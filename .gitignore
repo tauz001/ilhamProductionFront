@@ -1,9 +1,33 @@
-node_modules
+node_modules/
+
+# build output
 /.cache
 /build
 /dist
 /public/build
 /.mf
+/.react-router
+
+# Shopify/local tooling
+.shopify/
+
+# env/secrets
 .env
-.shopify
-.react-router
+.env.*
+!.env.example
+
+# TypeScript/cache
+*.tsbuildinfo
+
+# logs
+*.log
+.codex-dev.*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/

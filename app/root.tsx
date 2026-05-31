@@ -13,8 +13,6 @@ import {
 import type {Route} from './+types/root';
 import favicon from '~/assets/favicon.svg';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
-import resetStyles from '~/styles/reset.css?url';
-import appStyles from '~/styles/app.css?url';
 import tailwindCss from './styles/tailwind.css?url';
 import {PageLayout} from './components/PageLayout';
 
@@ -101,17 +99,20 @@ export async function loader(args: Route.LoaderArgs) {
 async function loadCriticalData({context}: Route.LoaderArgs) {
   const {storefront} = context;
 
-  const [header] = await Promise.all([
+  const [header, layoutCommerce] = await Promise.all([
     storefront.query(HEADER_QUERY, {
       cache: storefront.CacheLong(),
       variables: {
         headerMenuHandle: 'main-menu', // Adjust to your header menu handle
       },
     }),
+    storefront.query(LAYOUT_COMMERCE_QUERY, {
+      cache: storefront.CacheShort(),
+    }),
     // Add other queries here, so that they are loaded in parallel
   ]);
 
-  return {header};
+  return {header, layoutCommerce};
 }
 
 /**
@@ -142,6 +143,106 @@ function loadDeferredData({context}: Route.LoaderArgs) {
   };
 }
 
+const LAYOUT_COMMERCE_QUERY = `#graphql
+  query LayoutCommerce($country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    collections(first: 30) {
+      nodes {
+        id
+        title
+        handle
+        image {
+          id
+          url
+          altText
+          width
+          height
+        }
+        metafields(identifiers: [
+          {namespace: "custom", key: "tagline"},
+          {namespace: "custom", key: "category"}
+        ]) {
+          key
+          namespace
+          value
+        }
+      }
+    }
+    products(first: 50) {
+      nodes {
+        id
+        title
+        handle
+        vendor
+        productType
+        tags
+        featuredImage {
+          id
+          url
+          altText
+          width
+          height
+        }
+        images(first: 4) {
+          nodes {
+            id
+            url
+            altText
+            width
+            height
+          }
+        }
+        variants(first: 20) {
+          nodes {
+            id
+            title
+            availableForSale
+            image {
+              id
+              url
+              altText
+              width
+              height
+            }
+            price {
+              amount
+              currencyCode
+            }
+            product {
+              id
+              handle
+              title
+              vendor
+              productType
+            }
+            selectedOptions {
+              name
+              value
+            }
+          }
+        }
+        priceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+          maxVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        metafields(identifiers: [
+          {namespace: "custom", key: "subtitle"}
+        ]) {
+          key
+          namespace
+          value
+        }
+      }
+    }
+  }
+` as const;
+
 export function Layout({children}: {children?: React.ReactNode}) {
   const nonce = useNonce();
 
@@ -151,8 +252,6 @@ export function Layout({children}: {children?: React.ReactNode}) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="stylesheet" href={tailwindCss}></link>
-        <link rel="stylesheet" href={resetStyles}></link>
-        <link rel="stylesheet" href={appStyles}></link>
         <Meta />
         <Links />
       </head>

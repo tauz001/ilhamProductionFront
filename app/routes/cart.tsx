@@ -2,10 +2,17 @@ import {useLoaderData, data, type HeadersFunction} from 'react-router';
 import type {Route} from './+types/cart';
 import type {CartQueryDataReturn} from '@shopify/hydrogen';
 import {CartForm} from '@shopify/hydrogen';
-import {CartMain} from '~/components/CartMain';
+import {BagPage} from '~/components/commerce/BagPage';
 
 export const meta: Route.MetaFunction = () => {
-  return [{title: `Hydrogen | Cart`}];
+  return [
+    {title: 'The Bag — ilham'},
+    {
+      name: 'description',
+      content:
+        'Review the hand-embroidered pieces in your bag, gift wrapping, and shipping with ilham.',
+    },
+  ];
 };
 
 export const headers: HeadersFunction = ({actionHeaders}) => actionHeaders;
@@ -23,15 +30,31 @@ export async function action({request, context}: Route.ActionArgs) {
 
   let status = 200;
   let result: CartQueryDataReturn;
+  console.log(`[cart] action received: ${action}`);
 
   switch (action) {
     case CartForm.ACTIONS.LinesAdd:
+      console.log(
+        '[cart] adding lines:',
+        inputs.lines?.map((line) => ({
+          merchandiseId: line.merchandiseId,
+          quantity: line.quantity,
+        })) ?? [],
+      );
       result = await cart.addLines(inputs.lines);
       break;
     case CartForm.ACTIONS.LinesUpdate:
+      console.log(
+        '[cart] updating lines:',
+        inputs.lines?.map((line) => ({
+          id: line.id,
+          quantity: line.quantity,
+        })) ?? [],
+      );
       result = await cart.updateLines(inputs.lines);
       break;
     case CartForm.ACTIONS.LinesRemove:
+      console.log('[cart] removing lines:', inputs.lineIds ?? []);
       result = await cart.removeLines(inputs.lineIds);
       break;
     case CartForm.ACTIONS.DiscountCodesUpdate: {
@@ -77,6 +100,25 @@ export async function action({request, context}: Route.ActionArgs) {
   const headers = cartId ? cart.setCartId(result.cart.id) : new Headers();
   const {cart: cartResult, errors, warnings} = result;
 
+  if (errors?.length) {
+    console.error('[cart] Shopify cart API errors:', errors);
+  }
+  if (warnings?.length) {
+    console.warn('[cart] Shopify cart API warnings:', warnings);
+  }
+  if (!cartResult) {
+    console.error(
+      '[cart] Shopify cart API returned no cart. Check Storefront API cart permissions and variant availability in Shopify Admin.',
+    );
+  } else {
+    console.log('[cart] Shopify cart persisted:', {
+      cartId: cartResult.id,
+      totalQuantity: cartResult.totalQuantity,
+      lineCount: cartResult.lines?.nodes?.length ?? 0,
+      hasCheckoutUrl: Boolean(cartResult.checkoutUrl),
+    });
+  }
+
   const redirectTo = formData.get('redirectTo') ?? null;
   if (typeof redirectTo === 'string') {
     status = 303;
@@ -103,11 +145,5 @@ export async function loader({context}: Route.LoaderArgs) {
 
 export default function Cart() {
   const cart = useLoaderData<typeof loader>();
-
-  return (
-    <div className="cart">
-      <h1>Cart</h1>
-      <CartMain layout="page" cart={cart} />
-    </div>
-  );
+  return <BagPage cart={cart} />;
 }

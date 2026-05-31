@@ -1,89 +1,417 @@
-import {redirect, useLoaderData} from 'react-router';
+import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/collections.$handle';
-import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
-import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import {Check, ChevronDown, SlidersHorizontal, X} from 'lucide-react';
+import {AnimatePresence, motion} from 'framer-motion';
+import {Analytics} from '@shopify/hydrogen';
+import {ProductCard} from '~/components/commerce/ProductCard';
+import {FadeUp} from '~/components/editorial/MaskedReveal';
+import {ChikanMotif} from '~/components/editorial/ChikanMotif';
+import {
+  getMetafieldValue,
+  logMissingShopifyField,
+  parseListField,
+  tagIncludes,
+} from '~/lib/commerce/shopify-fields';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import {ProductItem} from '~/components/ProductItem';
-import type {ProductItemFragment} from 'storefrontapi.generated';
 
 export const meta: Route.MetaFunction = ({data}) => {
-  return [{title: `Hydrogen | ${data?.collection.title ?? ''} Collection`}];
+  const collection = data?.collection;
+  return [
+    {title: collection ? `${collection.title} — ilham` : 'Collection — ilham'},
+    {
+      name: 'description',
+      content: collection?.description ?? 'ilham collection',
+    },
+    {
+      property: 'og:title',
+      content: collection ? `${collection.title} — ilham` : 'ilham',
+    },
+    {property: 'og:image', content: collection?.image?.url},
+  ];
 };
 
-export async function loader(args: Route.LoaderArgs) {
-  // Start fetching non-critical data without blocking time to first byte
-  const deferredData = loadDeferredData(args);
-
-  // Await the critical data required to render initial state of the page
-  const criticalData = await loadCriticalData(args);
-
-  return {...deferredData, ...criticalData};
-}
-
-/**
- * Load data necessary for rendering content above the fold. This is the critical data
- * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
- */
-async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
+export async function loader({context, params, request}: Route.LoaderArgs) {
   const {handle} = params;
   const {storefront} = context;
-  const paginationVariables = getPaginationVariables(request, {
-    pageBy: 8,
-  });
 
   if (!handle) {
-    throw redirect('/collections');
+    throw new Response(null, {status: 404});
   }
 
-  const [{collection}] = await Promise.all([
-    storefront.query(COLLECTION_QUERY, {
-      variables: {handle, ...paginationVariables},
-      // Add other queries here, so that they are loaded in parallel
-    }),
-  ]);
+  const {collection} = await storefront.query(COLLECTION_QUERY, {
+    variables: {handle},
+  });
 
   if (!collection) {
-    throw new Response(`Collection ${handle} not found`, {
-      status: 404,
-    });
+    throw new Response(`Collection ${handle} not found`, {status: 404});
   }
 
-  // The API handle might be localized, so redirect to the localized handle
   redirectIfHandleIsLocalized(request, {handle, data: collection});
+  logCollectionRequirements(collection);
 
-  return {
-    collection,
-  };
+  return {collection};
 }
 
-/**
- * Load data for rendering content below the fold. This data is deferred and will be
- * fetched after the initial page load. If it's unavailable, the page should still 200.
- * Make sure to not throw any errors here, as it will cause the page to 500.
- */
-function loadDeferredData({context}: Route.LoaderArgs) {
-  return {};
-}
+type FilterState = {
+  priceBands: string[];
+  colors: string[];
+  occasions: string[];
+  fabrics: string[];
+  sizes: string[];
+  availability: string[];
+};
+
+const PRICE_BANDS = [
+  {id: '0-15000', label: 'Under ₹15,000', min: 0, max: 15000},
+  {id: '15000-25000', label: '₹15,000 – ₹25,000', min: 15000, max: 25000},
+  {id: '25000-50000', label: '₹25,000 – ₹50,000', min: 25000, max: 50000},
+  {id: '50000-9999999', label: 'Above ₹50,000', min: 50000, max: 9999999},
+];
+
+const emptyFilters: FilterState = {
+  priceBands: [],
+  colors: [],
+  occasions: [],
+  fabrics: [],
+  sizes: [],
+  availability: [],
+};
 
 export default function Collection() {
   const {collection} = useLoaderData<typeof loader>();
+  const baseItems = collection.products?.nodes ?? [];
+  const tagline = getRequiredCollectionMetafield(collection, 'tagline');
+  const category = getRequiredCollectionMetafield(collection, 'category');
+
+  const facets = useMemo(() => {
+    const occasions = new Set<string>();
+    const fabrics = new Set<string>();
+    const sizes = new Set<string>();
+    const colors = new Map<string, string | undefined>();
+
+    baseItems.forEach((product: any) => {
+      parseListField(getMetafieldValue(product, 'occasions')).forEach((occasion) =>
+        occasions.add(occasion),
+      );
+
+      const fabric = getMetafieldValue(product, 'fabric');
+      if (fabric) fabrics.add(fabric);
+
+      const color = getProductColor(product);
+      if (color.name) colors.set(color.name, color.hex ?? undefined);
+
+      product.variants?.nodes?.forEach((variant: any) => {
+        const size = variant.selectedOptions?.find(
+          (option: {name: string}) => option.name.toLowerCase() === 'size',
+        )?.value;
+        if (size) sizes.add(size);
+      });
+    });
+
+    return {
+      occasions: [...occasions].sort(),
+      fabrics: [...fabrics].sort(),
+      sizes: [...sizes],
+      colors: [...colors.entries()].map(([name, hex]) => ({name, hex})),
+    };
+  }, [baseItems]);
+
+  const [filters, setFilters] = useState<FilterState>(emptyFilters);
+  const [sort, setSort] = useState('featured');
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setFilters(emptyFilters);
+  }, [collection.handle]);
+
+  const toggle = (key: keyof FilterState, value: string) =>
+    setFilters((current) => ({
+      ...current,
+      [key]: current[key].includes(value)
+        ? current[key].filter((item) => item !== value)
+        : [...current[key], value],
+    }));
+
+  const clearAll = () => setFilters(emptyFilters);
+
+  const filtered = useMemo(() => {
+    return baseItems.filter((product: any) => {
+      const productOccasions = parseListField(getMetafieldValue(product, 'occasions'));
+      const fabric = getMetafieldValue(product, 'fabric');
+      const color = getProductColor(product);
+      const price = getProductPrice(product);
+
+      if (
+        filters.occasions.length &&
+        !filters.occasions.some((occasion) => productOccasions.includes(occasion))
+      ) {
+        return false;
+      }
+
+      if (filters.fabrics.length && (!fabric || !filters.fabrics.includes(fabric))) {
+        return false;
+      }
+
+      if (
+        filters.colors.length &&
+        (!color.name || !filters.colors.includes(color.name))
+      ) {
+        return false;
+      }
+
+      if (filters.priceBands.length) {
+        const inBand = filters.priceBands.some((id) => {
+          const band = PRICE_BANDS.find((item) => item.id === id);
+          return band ? price >= band.min && price < band.max : false;
+        });
+        if (!inBand) return false;
+      }
+
+      if (filters.sizes.length) {
+        const variantSizes =
+          product.variants?.nodes
+            ?.filter((variant: any) => variant.availableForSale)
+            .map((variant: any) =>
+              variant.selectedOptions?.find(
+                (option: {name: string}) => option.name.toLowerCase() === 'size',
+              )?.value,
+            )
+            .filter(Boolean) ?? [];
+        if (!filters.sizes.some((size) => variantSizes.includes(size))) {
+          return false;
+        }
+      }
+
+      if (filters.availability.includes('in-stock')) {
+        if (
+          !product.variants?.nodes?.some((variant: any) => variant.availableForSale)
+        ) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [baseItems, filters]);
+
+  const sorted = useMemo(
+    () =>
+      [...filtered].sort((a: any, b: any) => {
+        if (sort === 'price-asc') return getProductPrice(a) - getProductPrice(b);
+        if (sort === 'price-desc') return getProductPrice(b) - getProductPrice(a);
+        if (sort === 'new') {
+          return Number(isNewProduct(b)) - Number(isNewProduct(a));
+        }
+        return 0;
+      }),
+    [filtered, sort],
+  );
+
+  const activeCount =
+    filters.priceBands.length +
+    filters.colors.length +
+    filters.occasions.length +
+    filters.fabrics.length +
+    filters.sizes.length +
+    filters.availability.length;
+
+  const groups = [
+    {key: 'priceBands' as const, label: 'Price', type: 'price' as const},
+    {key: 'colors' as const, label: 'Color', type: 'color' as const},
+    {
+      key: 'occasions' as const,
+      label: 'Occasion',
+      type: 'list' as const,
+      values: facets.occasions,
+    },
+    {key: 'fabrics' as const, label: 'Fabric', type: 'list' as const, values: facets.fabrics},
+    {key: 'sizes' as const, label: 'Size', type: 'size' as const},
+    {key: 'availability' as const, label: 'Availability', type: 'availability' as const},
+  ];
 
   return (
-    <div className="collection">
-      <h1>{collection.title}</h1>
-      <p className="collection-description">{collection.description}</p>
-      <PaginatedResourceSection<ProductItemFragment>
-        connection={collection.products}
-        resourcesClassName="products-grid"
-      >
-        {({node: product, index}) => (
-          <ProductItem
-            key={product.id}
-            product={product}
-            loading={index < 8 ? 'eager' : undefined}
-          />
+    <>
+      <header className="mx-auto max-w-[1500px] px-6 pt-36 pb-12 text-center lg:px-12 lg:pt-44">
+        <p className="small-caps text-ink/50">{category} · The Atelier</p>
+        <h1 className="mt-5 font-display text-5xl md:text-7xl tracking-[0.01em]">
+          {collection.title}
+        </h1>
+        {tagline && (
+          <p className="mx-auto mt-5 max-w-xl text-sm md:text-base italic text-ink/65">
+            {tagline}
+          </p>
         )}
-      </PaginatedResourceSection>
+        <ChikanMotif className="mx-auto mt-8 h-5 w-32 text-gold" />
+      </header>
+
+      <div className="sticky top-16 lg:top-20 z-30 border-y border-border bg-cream/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-6 py-3.5 lg:px-12">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="flex items-center gap-2 small-caps text-ink/75 lg:hidden"
+          >
+            <SlidersHorizontal className="h-4 w-4" strokeWidth={1.3} />
+            Filters
+            {activeCount > 0 && <span className="text-gold">({activeCount})</span>}
+          </button>
+
+          <div className="hidden lg:flex items-center gap-1">
+            {groups.map((group) => (
+              <FilterDropdown key={group.key} label={group.label} count={filters[group.key].length}>
+                {group.type === 'price' && (
+                  <CheckList
+                    items={PRICE_BANDS.map((band) => ({value: band.id, label: band.label}))}
+                    selected={filters.priceBands}
+                    onToggle={(value) => toggle('priceBands', value)}
+                  />
+                )}
+                {group.type === 'color' && (
+                  <ColorList
+                    items={facets.colors}
+                    selected={filters.colors}
+                    onToggle={(value) => toggle('colors', value)}
+                  />
+                )}
+                {group.type === 'list' && (
+                  <CheckList
+                    items={(group.values ?? []).map((value) => ({value, label: value}))}
+                    selected={filters[group.key]}
+                    onToggle={(value) => toggle(group.key, value)}
+                  />
+                )}
+                {group.type === 'size' && (
+                  <SizeGrid
+                    sizes={facets.sizes}
+                    selected={filters.sizes}
+                    onToggle={(value) => toggle('sizes', value)}
+                  />
+                )}
+                {group.type === 'availability' && (
+                  <CheckList
+                    items={[{value: 'in-stock', label: 'In stock only'}]}
+                    selected={filters.availability}
+                    onToggle={(value) => toggle('availability', value)}
+                  />
+                )}
+              </FilterDropdown>
+            ))}
+            {activeCount > 0 && (
+              <button
+                onClick={clearAll}
+                className="ml-3 small-caps text-xs text-gold hover:text-ink transition-colors"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-5">
+            <span className="hidden md:inline small-caps text-xs text-ink/50">
+              {sorted.length} {sorted.length === 1 ? 'piece' : 'pieces'}
+            </span>
+            <label className="flex items-center gap-2 small-caps text-ink/60">
+              <span className="hidden sm:inline text-xs">Sort</span>
+              <div className="relative">
+                <select
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value)}
+                  className="appearance-none border-b border-ink/25 bg-transparent pr-5 py-1 small-caps text-xs focus:outline-none focus:border-ink"
+                >
+                  <option value="featured">Featured</option>
+                  <option value="new">New In</option>
+                  <option value="price-asc">Price ↑</option>
+                  <option value="price-desc">Price ↓</option>
+                </select>
+                <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 pointer-events-none" />
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {activeCount > 0 && (
+            <motion.div
+              initial={{height: 0, opacity: 0}}
+              animate={{height: 'auto', opacity: 1}}
+              exit={{height: 0, opacity: 0}}
+              transition={{duration: 0.3, ease: [0.65, 0, 0.35, 1]}}
+              className="overflow-hidden border-t border-border/60"
+            >
+              <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-2 px-6 py-3 lg:px-12">
+                {(Object.keys(filters) as (keyof FilterState)[]).flatMap((key) =>
+                  filters[key].map((value) => {
+                    const label =
+                      key === 'priceBands'
+                        ? PRICE_BANDS.find((band) => band.id === value)?.label ?? value
+                        : key === 'availability'
+                          ? 'In stock'
+                          : value;
+                    return (
+                      <button
+                        key={`${key}-${value}`}
+                        onClick={() => toggle(key, value)}
+                        className="group flex items-center gap-1.5 border border-ink/15 bg-ivory/70 px-3 py-1 text-xs text-ink/80 hover:border-ink/40 transition-colors"
+                      >
+                        {label}
+                        <X className="h-3 w-3 opacity-50 group-hover:opacity-100" />
+                      </button>
+                    );
+                  }),
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <section className="mx-auto max-w-[1500px] px-6 py-14 lg:px-12 lg:py-20">
+        {sorted.length === 0 ? (
+          <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 text-center">
+            <p className="font-serif text-2xl italic text-ink/70">No pieces match these filters.</p>
+            <button onClick={clearAll} className="small-caps story-link text-gold">
+              Clear filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3 md:gap-x-6 md:gap-y-14 lg:grid-cols-4">
+            {sorted.map((product: any) => (
+              <FadeUp key={product.handle}>
+                <ProductCard product={product} />
+              </FadeUp>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <MobileFilters
+        activeCount={activeCount}
+        clearAll={clearAll}
+        facets={facets}
+        filters={filters}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+        sortedLength={sorted.length}
+        toggle={toggle}
+      />
+
+      <section className="border-t border-border py-16 text-center">
+        <p className="small-caps text-ink/50">Continue exploring</p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+          <Link to="/collections" className="small-caps story-link">
+            All collections
+          </Link>
+          <span className="text-ink/30">·</span>
+          <Link to="/gifting" className="small-caps story-link">
+            Gifting
+          </Link>
+          <span className="text-ink/30">·</span>
+          <Link to="/about" className="small-caps story-link">
+            Our heritage
+          </Link>
+        </div>
+      </section>
+
       <Analytics.CollectionView
         data={{
           collection: {
@@ -92,70 +420,492 @@ export default function Collection() {
           },
         }}
       />
+    </>
+  );
+}
+
+function MobileFilters({
+  activeCount,
+  clearAll,
+  facets,
+  filters,
+  mobileOpen,
+  setMobileOpen,
+  sortedLength,
+  toggle,
+}: {
+  activeCount: number;
+  clearAll: () => void;
+  facets: {
+    occasions: string[];
+    fabrics: string[];
+    sizes: string[];
+    colors: {name: string; hex?: string}[];
+  };
+  filters: FilterState;
+  mobileOpen: boolean;
+  setMobileOpen: (open: boolean) => void;
+  sortedLength: number;
+  toggle: (key: keyof FilterState, value: string) => void;
+}) {
+  return (
+    <AnimatePresence>
+      {mobileOpen && (
+        <>
+          <motion.div
+            initial={{opacity: 0}}
+            animate={{opacity: 1}}
+            exit={{opacity: 0}}
+            onClick={() => setMobileOpen(false)}
+            className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-sm lg:hidden"
+          />
+          <motion.aside
+            initial={{y: '100%'}}
+            animate={{y: 0}}
+            exit={{y: '100%'}}
+            transition={{type: 'tween', ease: [0.65, 0, 0.35, 1], duration: 0.5}}
+            className="fixed inset-x-0 bottom-0 z-50 max-h-[88vh] overflow-y-auto rounded-t-2xl bg-cream p-6 shadow-2xl lg:hidden"
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="font-display text-2xl">Refine</h2>
+              <button onClick={() => setMobileOpen(false)} aria-label="Close filters">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            {activeCount > 0 && (
+              <button onClick={clearAll} className="mb-2 small-caps text-xs text-gold">
+                Clear all ({activeCount})
+              </button>
+            )}
+
+            <div className="divide-y divide-ink/10">
+              <MobileGroup title="Price">
+                <CheckList
+                  items={PRICE_BANDS.map((band) => ({value: band.id, label: band.label}))}
+                  selected={filters.priceBands}
+                  onToggle={(value) => toggle('priceBands', value)}
+                />
+              </MobileGroup>
+              <MobileGroup title="Color">
+                <ColorList
+                  items={facets.colors}
+                  selected={filters.colors}
+                  onToggle={(value) => toggle('colors', value)}
+                />
+              </MobileGroup>
+              <MobileGroup title="Occasion">
+                <CheckList
+                  items={facets.occasions.map((value) => ({value, label: value}))}
+                  selected={filters.occasions}
+                  onToggle={(value) => toggle('occasions', value)}
+                />
+              </MobileGroup>
+              <MobileGroup title="Fabric">
+                <CheckList
+                  items={facets.fabrics.map((value) => ({value, label: value}))}
+                  selected={filters.fabrics}
+                  onToggle={(value) => toggle('fabrics', value)}
+                />
+              </MobileGroup>
+              <MobileGroup title="Size">
+                <SizeGrid
+                  sizes={facets.sizes}
+                  selected={filters.sizes}
+                  onToggle={(value) => toggle('sizes', value)}
+                />
+              </MobileGroup>
+              <MobileGroup title="Availability">
+                <CheckList
+                  items={[{value: 'in-stock', label: 'In stock only'}]}
+                  selected={filters.availability}
+                  onToggle={(value) => toggle('availability', value)}
+                />
+              </MobileGroup>
+            </div>
+
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="mt-8 w-full bg-ink py-3 text-ivory small-caps"
+            >
+              View {sortedLength} {sortedLength === 1 ? 'piece' : 'pieces'}
+            </button>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function FilterDropdown({
+  label,
+  count,
+  children,
+}: {
+  label: string;
+  count: number;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
+    };
+    const onEsc = (event: KeyboardEvent) => event.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((current) => !current)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 small-caps text-xs transition-colors ${
+          open ? 'text-ink' : 'text-ink/70 hover:text-ink'
+        }`}
+      >
+        {label}
+        {count > 0 && <span className="text-gold">({count})</span>}
+        <ChevronDown
+          className={`h-3 w-3 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{opacity: 0, y: -6}}
+            animate={{opacity: 1, y: 0}}
+            exit={{opacity: 0, y: -6}}
+            transition={{duration: 0.22, ease: [0.65, 0, 0.35, 1]}}
+            className="absolute left-0 top-full mt-2 min-w-[220px] border border-ink/10 bg-ivory/95 backdrop-blur-md shadow-[0_20px_50px_-30px_rgba(0,0,0,0.35)] p-4 z-40"
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-const PRODUCT_ITEM_FRAGMENT = `#graphql
-  fragment MoneyProductItem on MoneyV2 {
-    amount
-    currencyCode
+function CheckList({
+  items,
+  selected,
+  onToggle,
+}: {
+  items: {value: string; label: string}[];
+  selected: string[];
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <ul className="space-y-2 max-h-72 overflow-y-auto pr-1">
+      {items.map((item) => {
+        const on = selected.includes(item.value);
+        return (
+          <li key={item.value}>
+            <button
+              onClick={() => onToggle(item.value)}
+              className="group flex w-full items-center gap-3 text-left"
+            >
+              <span
+                className={`relative flex h-3.5 w-3.5 shrink-0 items-center justify-center border transition-colors ${
+                  on ? 'border-gold bg-gold' : 'border-ink/30 group-hover:border-ink/60'
+                }`}
+              >
+                {on && <Check className="h-2.5 w-2.5 text-ivory" strokeWidth={3} />}
+              </span>
+              <span
+                className={`text-sm transition-colors ${
+                  on ? 'text-ink' : 'text-ink/70 group-hover:text-ink'
+                }`}
+              >
+                {item.label}
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function ColorList({
+  items,
+  selected,
+  onToggle,
+}: {
+  items: {name: string; hex?: string}[];
+  selected: string[];
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <ul className="space-y-2 max-h-72 overflow-y-auto pr-1">
+      {items.map((color) => {
+        const on = selected.includes(color.name);
+        return (
+          <li key={color.name}>
+            <button
+              onClick={() => onToggle(color.name)}
+              className="group flex w-full items-center gap-3 text-left"
+            >
+              <span
+                className={`relative h-5 w-5 shrink-0 rounded-full border transition-all ${
+                  on
+                    ? 'border-ink ring-1 ring-gold ring-offset-1 ring-offset-ivory'
+                    : 'border-ink/20 group-hover:border-ink/50'
+                }`}
+                style={{backgroundColor: color.hex ?? 'transparent'}}
+                aria-hidden
+              />
+              <span
+                className={`text-sm transition-colors ${
+                  on ? 'text-ink' : 'text-ink/70 group-hover:text-ink'
+                }`}
+              >
+                {color.name}
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function SizeGrid({
+  sizes,
+  selected,
+  onToggle,
+}: {
+  sizes: string[];
+  selected: string[];
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-2 min-w-[200px]">
+      {sizes.map((size) => {
+        const on = selected.includes(size);
+        return (
+          <button
+            key={size}
+            onClick={() => onToggle(size)}
+            className={`border py-2 text-xs small-caps transition-colors ${
+              on
+                ? 'border-ink bg-ink text-ivory'
+                : 'border-ink/20 text-ink/70 hover:border-ink/60 hover:text-ink'
+            }`}
+          >
+            {size}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function MobileGroup({title, children}: {title: string; children: React.ReactNode}) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="py-4">
+      <button
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full items-center justify-between"
+      >
+        <span className="small-caps tracking-[0.2em] text-ink">{title}</span>
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{height: 0, opacity: 0}}
+            animate={{height: 'auto', opacity: 1}}
+            exit={{height: 0, opacity: 0}}
+            transition={{duration: 0.3, ease: [0.65, 0, 0.35, 1]}}
+            className="overflow-hidden"
+          >
+            <div className="pt-4">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function getRequiredCollectionMetafield(collection: any, key: string) {
+  const value = getMetafieldValue(collection, key);
+  if (!value) {
+    logMissingShopifyField(
+      `collection:${collection.handle}`,
+      `collection metafield custom.${key}`,
+      `Create a collection metafield custom.${key} in Shopify Admin to fully match the TanStack collection UI.`,
+    );
   }
-  fragment ProductItem on Product {
+  return value;
+}
+
+function getProductColor(product: any) {
+  const metafieldColor = getMetafieldValue(product, 'color');
+  const optionColor = product.variants?.nodes?.[0]?.selectedOptions?.find(
+    (option: {name: string}) => option.name.toLowerCase() === 'color',
+  )?.value;
+  const name = metafieldColor ?? optionColor ?? '';
+  const hex = getMetafieldValue(product, 'color_hex') ?? undefined;
+
+  if (!name) {
+    logMissingShopifyField(
+      `product:${product.handle}`,
+      'product metafield custom.color or variant option Color',
+      'Add custom.color or a Color variant option in Shopify Admin so collection color filters can match the TanStack UI.',
+    );
+  }
+
+  return {name, hex};
+}
+
+function getProductPrice(product: any) {
+  return parseFloat(product.priceRange?.minVariantPrice?.amount ?? '0');
+}
+
+function isNewProduct(product: any) {
+  return tagIncludes(product.tags, 'new-arrival') || tagIncludes(product.tags, 'new');
+}
+
+function logCollectionRequirements(collection: any) {
+  if (!collection.image?.url) {
+    logMissingShopifyField(
+      `collection:${collection.handle}`,
+      'collection.image',
+      'Add a collection image in Shopify Admin so collection pages and cards match the TanStack visual layout.',
+    );
+  }
+  if (!collection.products?.nodes?.length) {
+    console.warn(
+      `Missing Shopify field: collection.products. Add products to collection "${collection.handle}" in Shopify Admin.`,
+    );
+  }
+}
+
+const PRODUCT_VARIANT_FRAGMENT = `#graphql
+  fragment IlhamCollectionProductVariant on ProductVariant {
     id
-    handle
     title
-    featuredImage {
+    availableForSale
+    image {
       id
-      altText
       url
+      altText
       width
       height
     }
-    priceRange {
-      minVariantPrice {
-        ...MoneyProductItem
-      }
-      maxVariantPrice {
-        ...MoneyProductItem
-      }
+    price {
+      amount
+      currencyCode
+    }
+    product {
+      id
+      handle
+      title
+      vendor
+      productType
+    }
+    selectedOptions {
+      name
+      value
     }
   }
 ` as const;
 
-// NOTE: https://shopify.dev/docs/api/storefront/2022-04/objects/collection
+const COLLECTION_PRODUCT_FRAGMENT = `#graphql
+  fragment IlhamCollectionProduct on Product {
+    id
+    title
+    handle
+    vendor
+    productType
+    tags
+    featuredImage {
+      id
+      url
+      altText
+      width
+      height
+    }
+    images(first: 4) {
+      nodes {
+        id
+        url
+        altText
+        width
+        height
+      }
+    }
+    variants(first: 50) {
+      nodes {
+        ...IlhamCollectionProductVariant
+      }
+    }
+    priceRange {
+      minVariantPrice {
+        amount
+        currencyCode
+      }
+      maxVariantPrice {
+        amount
+        currencyCode
+      }
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "subtitle"},
+      {namespace: "custom", key: "fabric"},
+      {namespace: "custom", key: "color"},
+      {namespace: "custom", key: "color_hex"},
+      {namespace: "custom", key: "occasions"}
+    ]) {
+      key
+      namespace
+      value
+    }
+  }
+  ${PRODUCT_VARIANT_FRAGMENT}
+` as const;
+
 const COLLECTION_QUERY = `#graphql
-  ${PRODUCT_ITEM_FRAGMENT}
   query Collection(
-    $handle: String!
     $country: CountryCode
+    $handle: String!
     $language: LanguageCode
-    $first: Int
-    $last: Int
-    $startCursor: String
-    $endCursor: String
   ) @inContext(country: $country, language: $language) {
     collection(handle: $handle) {
       id
       handle
       title
       description
-      products(
-        first: $first,
-        last: $last,
-        before: $startCursor,
-        after: $endCursor
-      ) {
+      image {
+        id
+        url
+        altText
+        width
+        height
+      }
+      metafields(identifiers: [
+        {namespace: "custom", key: "tagline"},
+        {namespace: "custom", key: "category"}
+      ]) {
+        key
+        namespace
+        value
+      }
+      products(first: 250) {
         nodes {
-          ...ProductItem
-        }
-        pageInfo {
-          hasPreviousPage
-          hasNextPage
-          endCursor
-          startCursor
+          ...IlhamCollectionProduct
         }
       }
     }
   }
+  ${COLLECTION_PRODUCT_FRAGMENT}
 ` as const;

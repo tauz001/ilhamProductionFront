@@ -1,132 +1,135 @@
-import {useLoaderData, Link} from 'react-router';
+import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/collections._index';
-import {getPaginationVariables, Image} from '@shopify/hydrogen';
-import type {CollectionFragment} from 'storefrontapi.generated';
-import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
+import {FadeUp} from '~/components/editorial/MaskedReveal';
+import {
+  getMetafieldValue,
+  logMissingShopifyField,
+} from '~/lib/commerce/shopify-fields';
 
-export async function loader(args: Route.LoaderArgs) {
-  // Start fetching non-critical data without blocking time to first byte
-  const deferredData = loadDeferredData(args);
+export const meta: Route.MetaFunction = () => {
+  return [
+    {title: 'Collections — ilham'},
+    {
+      name: 'description',
+      content: 'Browse ilham collections from Shopify.',
+    },
+    {property: 'og:title', content: 'Collections — ilham'},
+  ];
+};
 
-  // Await the critical data required to render initial state of the page
-  const criticalData = await loadCriticalData(args);
-
-  return {...deferredData, ...criticalData};
-}
-
-/**
- * Load data necessary for rendering content above the fold. This is the critical data
- * needed to render the page. If it's unavailable, the whole page should 400 or 500 error.
- */
-async function loadCriticalData({context, request}: Route.LoaderArgs) {
-  const paginationVariables = getPaginationVariables(request, {
-    pageBy: 4,
-  });
-
-  const [{collections}] = await Promise.all([
-    context.storefront.query(COLLECTIONS_QUERY, {
-      variables: paginationVariables,
-    }),
-    // Add other queries here, so that they are loaded in parallel
-  ]);
-
+export async function loader({context}: Route.LoaderArgs) {
+  const {collections} = await context.storefront.query(COLLECTIONS_QUERY);
+  collections.nodes.forEach(logCollectionRequirements);
   return {collections};
-}
-
-/**
- * Load data for rendering content below the fold. This data is deferred and will be
- * fetched after the initial page load. If it's unavailable, the page should still 200.
- * Make sure to not throw any errors here, as it will cause the page to 500.
- */
-function loadDeferredData({context}: Route.LoaderArgs) {
-  return {};
 }
 
 export default function Collections() {
   const {collections} = useLoaderData<typeof loader>();
+  const items = collections.nodes ?? [];
 
   return (
-    <div className="collections">
-      <h1>Collections</h1>
-      <PaginatedResourceSection<CollectionFragment>
-        connection={collections}
-        resourcesClassName="collections-grid"
-      >
-        {({node: collection, index}) => (
-          <CollectionItem
-            key={collection.id}
-            collection={collection}
-            index={index}
-          />
-        )}
-      </PaginatedResourceSection>
+    <div className="pt-32 md:pt-44">
+      <header className="mx-auto max-w-[1500px] px-6 pb-20 text-center lg:px-12">
+        <p className="small-caps text-ink/50">The Atelier</p>
+        <h1 className="mt-6 font-display text-6xl md:text-8xl">
+          All Collections
+        </h1>
+        <p className="mx-auto mt-8 max-w-xl text-ink/65 leading-relaxed">
+          Shopify collections, curated for the ilham atelier.
+        </p>
+      </header>
+      <div className="mx-auto max-w-[1500px] grid grid-cols-1 gap-x-6 gap-y-20 px-6 pb-32 md:grid-cols-2 lg:px-12">
+        {items.map((collection: any, index: number) => {
+          const tagline = getCollectionMetafield(collection, 'tagline');
+          const category = getCollectionMetafield(collection, 'category');
+          return (
+            <FadeUp key={collection.handle} delay={(index % 2) * 0.12}>
+              <Link to={`/collections/${collection.handle}`} className="group block">
+                <div
+                  className={`relative overflow-hidden bg-cream ${
+                    index % 3 === 0 ? 'aspect-[4/5]' : 'aspect-[3/4]'
+                  }`}
+                >
+                  {collection.image?.url && (
+                    <img
+                      src={collection.image.url}
+                      alt={collection.image.altText ?? collection.title}
+                      loading="lazy"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-ink/30" />
+                  {category && (
+                    <p className="absolute top-6 left-6 small-caps text-ivory">
+                      {category}
+                    </p>
+                  )}
+                </div>
+                <div className="mt-6 flex items-baseline justify-between">
+                  <h2 className="font-display text-4xl md:text-5xl">
+                    {collection.title}
+                  </h2>
+                  <span className="small-caps text-ink/50">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                </div>
+                {tagline && <p className="mt-2 italic text-ink/60">{tagline}</p>}
+              </Link>
+            </FadeUp>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-function CollectionItem({
-  collection,
-  index,
-}: {
-  collection: CollectionFragment;
-  index: number;
-}) {
-  return (
-    <Link
-      className="collection-item"
-      key={collection.id}
-      to={`/collections/${collection.handle}`}
-      prefetch="intent"
-    >
-      {collection?.image && (
-        <Image
-          alt={collection.image.altText || collection.title}
-          aspectRatio="1/1"
-          data={collection.image}
-          loading={index < 3 ? 'eager' : undefined}
-          sizes="(min-width: 45em) 400px, 100vw"
-        />
-      )}
-      <h5>{collection.title}</h5>
-    </Link>
-  );
+function getCollectionMetafield(collection: any, key: string) {
+  const value = getMetafieldValue(collection, key);
+  if (!value) {
+    logMissingShopifyField(
+      `collection:${collection.handle}`,
+      `collection metafield custom.${key}`,
+      `Create a collection metafield custom.${key} in Shopify Admin to fully match the TanStack collections index.`,
+    );
+  }
+  return value;
+}
+
+function logCollectionRequirements(collection: any) {
+  if (!collection.image?.url) {
+    logMissingShopifyField(
+      `collection:${collection.handle}`,
+      'collection.image',
+      'Add a collection image in Shopify Admin so the collections index can match the TanStack visual cards.',
+    );
+  }
 }
 
 const COLLECTIONS_QUERY = `#graphql
-  fragment Collection on Collection {
-    id
-    title
-    handle
-    image {
-      id
-      url
-      altText
-      width
-      height
-    }
-  }
   query StoreCollections(
     $country: CountryCode
-    $endCursor: String
-    $first: Int
     $language: LanguageCode
-    $last: Int
-    $startCursor: String
   ) @inContext(country: $country, language: $language) {
-    collections(
-      first: $first,
-      last: $last,
-      before: $startCursor,
-      after: $endCursor
-    ) {
+    collections(first: 50) {
       nodes {
-        ...Collection
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
+        id
+        title
+        handle
+        image {
+          id
+          url
+          altText
+          width
+          height
+        }
+        metafields(identifiers: [
+          {namespace: "custom", key: "tagline"},
+          {namespace: "custom", key: "category"}
+        ]) {
+          key
+          namespace
+          value
+        }
       }
     }
   }

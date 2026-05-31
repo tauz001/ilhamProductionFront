@@ -5,18 +5,18 @@ import type {
   ProductOptionValueSwatch,
 } from '@shopify/hydrogen/storefront-api-types';
 import {AddToCartButton} from './AddToCartButton';
-import {useAside} from './Aside';
-import type {ProductFragment} from 'storefrontapi.generated';
+import {useStore} from '~/lib/commerce/cart-store';
+import type {IlhamProductVariantFragment} from 'storefrontapi.generated';
 
 export function ProductForm({
   productOptions,
   selectedVariant,
 }: {
   productOptions: MappedProductOptions[];
-  selectedVariant: ProductFragment['selectedOrFirstAvailableVariant'];
+  selectedVariant: IlhamProductVariantFragment | null | undefined;
 }) {
   const navigate = useNavigate();
-  const {open} = useAside();
+  const openDrawer = useStore((s) => s.openDrawer);
   return (
     <div className="product-form">
       {productOptions.map((option) => {
@@ -104,7 +104,7 @@ export function ProductForm({
       <AddToCartButton
         disabled={!selectedVariant || !selectedVariant.availableForSale}
         onClick={() => {
-          open('cart');
+          openDrawer('cart');
         }}
         lines={
           selectedVariant
