@@ -1,4 +1,4 @@
-import {Link, useLoaderData} from 'react-router';
+import {Link, redirect, useLoaderData} from 'react-router';
 import type {Route} from './+types/login';
 import {motion} from 'framer-motion';
 import {ShieldCheck} from 'lucide-react';
@@ -17,6 +17,10 @@ export const meta: Route.MetaFunction = () => {
 };
 
 export async function loader({context}: Route.LoaderArgs) {
+  if (await context.customerAccount.isLoggedIn()) {
+    return redirect('/account');
+  }
+
   const data = await context.storefront
     .query(AUTH_VISUAL_QUERY)
     .catch((error: Error) => {

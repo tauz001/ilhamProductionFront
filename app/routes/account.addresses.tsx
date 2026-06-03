@@ -261,25 +261,34 @@ export default function Addresses() {
   const {defaultAddress, addresses} = customer;
 
   return (
-    <div className="account-addresses">
-      <h2>Addresses</h2>
-      <br />
-      <div>
-        <div>
-          <legend>Create address</legend>
+    <div>
+      <div className="mb-8">
+        <p className="small-caps text-ink/45">Addresses</p>
+        <h2 className="mt-2 font-display text-4xl text-ink md:text-5xl">
+          Where your pieces arrive
+        </h2>
+      </div>
+
+      <div className="grid gap-10 xl:grid-cols-[0.9fr_1.1fr]">
+        <section>
+          <p className="small-caps text-ink/50">Create address</p>
           <NewAddressForm key={addresses.nodes.length} />
-        </div>
-        <br />
-        <hr />
-        <br />
-        {!addresses.nodes.length ? (
-          <p>You have no addresses saved.</p>
-        ) : (
-          <ExistingAddresses
-            addresses={addresses}
-            defaultAddress={defaultAddress}
-          />
-        )}
+        </section>
+
+        <section>
+          {!addresses.nodes.length ? (
+            <div className="border border-dashed border-border bg-cream/40 px-6 py-12 text-center">
+              <p className="font-serif text-2xl italic text-ink/70">
+                You have no addresses saved.
+              </p>
+            </div>
+          ) : (
+            <ExistingAddresses
+              addresses={addresses}
+              defaultAddress={defaultAddress}
+            />
+          )}
+        </section>
       </div>
     </div>
   );
@@ -307,13 +316,14 @@ function NewAddressForm() {
       defaultAddress={null}
     >
       {({stateForMethod}) => (
-        <div>
+        <div className="pt-2">
           <button
             disabled={stateForMethod('POST') !== 'idle'}
             formMethod="POST"
             type="submit"
+            className="bg-ink px-8 py-4 small-caps text-ivory transition-colors hover:bg-gold disabled:bg-ink/40"
           >
-            {stateForMethod('POST') !== 'idle' ? 'Creating' : 'Create'}
+            {stateForMethod('POST') !== 'idle' ? 'Creating' : 'Create address'}
           </button>
         </div>
       )}
@@ -327,7 +337,8 @@ function ExistingAddresses({
 }: Pick<CustomerFragment, 'addresses' | 'defaultAddress'>) {
   return (
     <div>
-      <legend>Existing addresses</legend>
+      <p className="small-caps text-ink/50">Existing addresses</p>
+      <div className="mt-4 grid gap-6">
       {addresses.nodes.map((address) => (
         <AddressForm
           key={address.id}
@@ -336,11 +347,12 @@ function ExistingAddresses({
           defaultAddress={defaultAddress}
         >
           {({stateForMethod}) => (
-            <div>
+            <div className="flex flex-wrap gap-3 pt-2">
               <button
                 disabled={stateForMethod('PUT') !== 'idle'}
                 formMethod="PUT"
                 type="submit"
+                className="bg-ink px-7 py-3 small-caps text-ivory transition-colors hover:bg-gold disabled:bg-ink/40"
               >
                 {stateForMethod('PUT') !== 'idle' ? 'Saving' : 'Save'}
               </button>
@@ -348,6 +360,7 @@ function ExistingAddresses({
                 disabled={stateForMethod('DELETE') !== 'idle'}
                 formMethod="DELETE"
                 type="submit"
+                className="border border-border px-7 py-3 small-caps text-ink/65 transition-colors hover:border-destructive hover:text-destructive disabled:opacity-50"
               >
                 {stateForMethod('DELETE') !== 'idle' ? 'Deleting' : 'Delete'}
               </button>
@@ -355,6 +368,7 @@ function ExistingAddresses({
           )}
         </AddressForm>
       ))}
+      </div>
     </div>
   );
 }
@@ -376,141 +390,159 @@ export function AddressForm({
   const action = useActionData<ActionResponse>();
   const error = action?.error?.[addressId];
   const isDefaultAddress = defaultAddress?.id === addressId;
+  const idSuffix = String(addressId).replace(/[^a-zA-Z0-9_-]/g, '-');
+  const fieldId = (field: string) => `${field}-${idSuffix}`;
+
   return (
-    <Form id={addressId}>
-      <fieldset>
+    <Form id={`address-form-${idSuffix}`} className="mt-4 border border-border bg-cream/35 p-5">
+      <fieldset className="grid gap-4 border-0 p-0 md:grid-cols-2">
         <input type="hidden" name="addressId" defaultValue={addressId} />
-        <label htmlFor="firstName">First name*</label>
-        <input
-          aria-label="First name"
+        <AddressInput
           autoComplete="given-name"
           defaultValue={address?.firstName ?? ''}
-          id="firstName"
+          id={fieldId('firstName')}
+          label="First name*"
           name="firstName"
           placeholder="First name"
           required
-          type="text"
         />
-        <label htmlFor="lastName">Last name*</label>
-        <input
-          aria-label="Last name"
+        <AddressInput
           autoComplete="family-name"
           defaultValue={address?.lastName ?? ''}
-          id="lastName"
+          id={fieldId('lastName')}
+          label="Last name*"
           name="lastName"
           placeholder="Last name"
           required
-          type="text"
         />
-        <label htmlFor="company">Company</label>
-        <input
-          aria-label="Company"
+        <AddressInput
           autoComplete="organization"
           defaultValue={address?.company ?? ''}
-          id="company"
+          id={fieldId('company')}
+          label="Company"
           name="company"
           placeholder="Company"
-          type="text"
         />
-        <label htmlFor="address1">Address line*</label>
-        <input
-          aria-label="Address line 1"
+        <AddressInput
           autoComplete="address-line1"
           defaultValue={address?.address1 ?? ''}
-          id="address1"
+          id={fieldId('address1')}
+          label="Address line*"
           name="address1"
-          placeholder="Address line 1*"
+          placeholder="Address line 1"
           required
-          type="text"
         />
-        <label htmlFor="address2">Address line 2</label>
-        <input
-          aria-label="Address line 2"
+        <AddressInput
           autoComplete="address-line2"
           defaultValue={address?.address2 ?? ''}
-          id="address2"
+          id={fieldId('address2')}
+          label="Address line 2"
           name="address2"
           placeholder="Address line 2"
-          type="text"
         />
-        <label htmlFor="city">City*</label>
-        <input
-          aria-label="City"
+        <AddressInput
           autoComplete="address-level2"
           defaultValue={address?.city ?? ''}
-          id="city"
+          id={fieldId('city')}
+          label="City*"
           name="city"
           placeholder="City"
           required
-          type="text"
         />
-        <label htmlFor="zoneCode">State / Province*</label>
-        <input
-          aria-label="State/Province"
+        <AddressInput
           autoComplete="address-level1"
           defaultValue={address?.zoneCode ?? ''}
-          id="zoneCode"
+          id={fieldId('zoneCode')}
+          label="State / Province*"
           name="zoneCode"
           placeholder="State / Province"
           required
-          type="text"
         />
-        <label htmlFor="zip">Zip / Postal Code*</label>
-        <input
-          aria-label="Zip"
+        <AddressInput
           autoComplete="postal-code"
           defaultValue={address?.zip ?? ''}
-          id="zip"
+          id={fieldId('zip')}
+          label="Zip / Postal Code*"
           name="zip"
           placeholder="Zip / Postal Code"
           required
-          type="text"
         />
-        <label htmlFor="territoryCode">Country Code*</label>
-        <input
-          aria-label="territoryCode"
+        <AddressInput
           autoComplete="country"
           defaultValue={address?.territoryCode ?? ''}
-          id="territoryCode"
-          name="territoryCode"
-          placeholder="Country"
-          required
-          type="text"
+          id={fieldId('territoryCode')}
+          label="Country code*"
           maxLength={2}
+          name="territoryCode"
+          placeholder="IN"
+          required
         />
-        <label htmlFor="phoneNumber">Phone</label>
-        <input
-          aria-label="Phone Number"
+        <AddressInput
           autoComplete="tel"
           defaultValue={address?.phoneNumber ?? ''}
-          id="phoneNumber"
+          id={fieldId('phoneNumber')}
+          label="Phone"
           name="phoneNumber"
-          placeholder="+16135551111"
-          pattern="^\+?[1-9]\d{3,14}$"
+          pattern="^\\+?[1-9]\\d{3,14}$"
+          placeholder="+919999999999"
           type="tel"
         />
-        <div>
+        <div className="flex items-center gap-3 md:col-span-2">
           <input
+            className="h-4 w-4 accent-ink"
             defaultChecked={isDefaultAddress}
-            id="defaultAddress"
+            id={fieldId('defaultAddress')}
             name="defaultAddress"
             type="checkbox"
           />
-          <label htmlFor="defaultAddress">Set as default address</label>
+          <label htmlFor={fieldId('defaultAddress')} className="text-sm text-ink/65">
+            Set as default address
+          </label>
         </div>
         {error ? (
-          <p>
-            <mark>
-              <small>{error}</small>
-            </mark>
+          <p className="border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive md:col-span-2">
+            {error}
           </p>
-        ) : (
-          <br />
-        )}
-        {children({
-          stateForMethod: (method) => (formMethod === method ? state : 'idle'),
-        })}
+        ) : null}
+        <div className="md:col-span-2">
+          {children({
+            stateForMethod: (method) => (formMethod === method ? state : 'idle'),
+          })}
+        </div>
       </fieldset>
     </Form>
+  );
+}
+
+function AddressInput({
+  id,
+  label,
+  name,
+  type = 'text',
+  ...props
+}: {
+  autoComplete?: string;
+  defaultValue?: string;
+  id: string;
+  label: string;
+  maxLength?: number;
+  name: string;
+  pattern?: string;
+  placeholder?: string;
+  required?: boolean;
+  type?: string;
+}) {
+  return (
+    <label htmlFor={id} className="grid gap-2">
+      <span className="small-caps text-ink/50">{label}</span>
+      <input
+        {...props}
+        aria-label={label.replace('*', '')}
+        id={id}
+        name={name}
+        type={type}
+        className="h-12 border border-border bg-ivory px-4 text-sm text-ink placeholder:text-ink/35 focus:border-ink focus:outline-none"
+      />
+    </label>
   );
 }

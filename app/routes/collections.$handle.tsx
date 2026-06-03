@@ -39,6 +39,17 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
     throw new Response(null, {status: 404});
   }
 
+  if (handle === 'new-arrivals') {
+    const {products} = await storefront.query(NEW_ARRIVALS_QUERY);
+    const collection = createNewArrivalsCollection(
+      (products?.nodes ?? []).filter(isNewProduct),
+    );
+
+    logCollectionRequirements(collection);
+
+    return {collection};
+  }
+
   const {collection} = await storefront.query(COLLECTION_QUERY, {
     variables: {handle},
   });
@@ -95,7 +106,7 @@ export default function Collection() {
         occasions.add(occasion),
       );
 
-      const fabric = getMetafieldValue(product, 'fabric');
+      const fabric = getProductFabric(product);
       if (fabric) fabrics.add(fabric);
 
       const color = getProductColor(product);
@@ -138,7 +149,7 @@ export default function Collection() {
   const filtered = useMemo(() => {
     return baseItems.filter((product: any) => {
       const productOccasions = parseListField(getMetafieldValue(product, 'occasions'));
-      const fabric = getMetafieldValue(product, 'fabric');
+      const fabric = getProductFabric(product);
       const color = getProductColor(product);
       const price = getProductPrice(product);
 
@@ -767,12 +778,61 @@ function getProductColor(product: any) {
   return {name, hex};
 }
 
+function getProductFabric(product: any) {
+  const metafieldFabric = getMetafieldValue(product, 'fabric');
+  const optionFabric = product.variants?.nodes?.[0]?.selectedOptions?.find(
+    (option: {name: string}) => option.name.toLowerCase() === 'fabric',
+  )?.value;
+  const fabric = metafieldFabric ?? optionFabric ?? '';
+
+  if (!fabric) {
+    logMissingShopifyField(
+      `product:${product.handle}`,
+      'product metafield custom.fabric or variant option Fabric',
+      'Add custom.fabric or a Fabric variant option in Shopify Admin so collection fabric filters can match the TanStack UI.',
+    );
+  }
+
+  return fabric;
+}
+
 function getProductPrice(product: any) {
   return parseFloat(product.priceRange?.minVariantPrice?.amount ?? '0');
 }
 
 function isNewProduct(product: any) {
   return tagIncludes(product.tags, 'new-arrival') || tagIncludes(product.tags, 'new');
+}
+
+function createNewArrivalsCollection(products: any[]) {
+  const image =
+    products.find((product) => product.featuredImage?.url)?.featuredImage ??
+    products.find((product) => product.images?.nodes?.[0]?.url)?.images?.nodes?.[0] ??
+    null;
+
+  return {
+    id: 'virtual-new-arrivals',
+    handle: 'new-arrivals',
+    title: 'New Arrivals',
+    description:
+      'Freshly arrived chikankari pieces from the ilham atelier.',
+    image,
+    metafields: [
+      {
+        key: 'tagline',
+        namespace: 'custom',
+        value: 'Freshly off the loom',
+      },
+      {
+        key: 'category',
+        namespace: 'custom',
+        value: 'New arrivals',
+      },
+    ],
+    products: {
+      nodes: products,
+    },
+  };
 }
 
 function logCollectionRequirements(collection: any) {
@@ -904,6 +964,20 @@ const COLLECTION_QUERY = `#graphql
         nodes {
           ...IlhamCollectionProduct
         }
+      }
+    }
+  }
+  ${COLLECTION_PRODUCT_FRAGMENT}
+` as const;
+
+const NEW_ARRIVALS_QUERY = `#graphql
+  query NewArrivals(
+    $country: CountryCode
+    $language: LanguageCode
+  ) @inContext(country: $country, language: $language) {
+    products(first: 250, sortKey: CREATED_AT, reverse: true) {
+      nodes {
+        ...IlhamCollectionProduct
       }
     }
   }

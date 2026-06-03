@@ -86,46 +86,59 @@ export default function AccountProfile() {
   const customer = action?.customer ?? account?.customer;
 
   return (
-    <div className="account-profile">
-      <h2>My profile</h2>
-      <br />
-      <Form method="PUT">
-        <legend>Personal information</legend>
-        <fieldset>
-          <label htmlFor="firstName">First name</label>
-          <input
-            id="firstName"
-            name="firstName"
-            type="text"
-            autoComplete="given-name"
-            placeholder="First name"
-            aria-label="First name"
-            defaultValue={customer.firstName ?? ''}
-            minLength={2}
-          />
-          <label htmlFor="lastName">Last name</label>
-          <input
-            id="lastName"
-            name="lastName"
-            type="text"
-            autoComplete="family-name"
-            placeholder="Last name"
-            aria-label="Last name"
-            defaultValue={customer.lastName ?? ''}
-            minLength={2}
-          />
+    <div>
+      <div className="mb-8">
+        <p className="small-caps text-ink/45">Profile</p>
+        <h2 className="mt-2 font-display text-4xl text-ink md:text-5xl">
+          Personal details
+        </h2>
+      </div>
+
+      <Form method="PUT" className="max-w-3xl border border-border bg-cream/35 p-6">
+        <fieldset className="grid gap-5 border-0 p-0 md:grid-cols-2">
+          <legend className="sr-only">Personal information</legend>
+          <label htmlFor="firstName" className="grid gap-2">
+            <span className="small-caps text-ink/50">First name</span>
+            <input
+              id="firstName"
+              name="firstName"
+              type="text"
+              autoComplete="given-name"
+              placeholder="First name"
+              aria-label="First name"
+              defaultValue={customer.firstName ?? ''}
+              minLength={2}
+              className="h-12 border border-border bg-ivory px-4 text-sm text-ink placeholder:text-ink/35 focus:border-ink focus:outline-none"
+            />
+          </label>
+          <label htmlFor="lastName" className="grid gap-2">
+            <span className="small-caps text-ink/50">Last name</span>
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              autoComplete="family-name"
+              placeholder="Last name"
+              aria-label="Last name"
+              defaultValue={customer.lastName ?? ''}
+              minLength={2}
+              className="h-12 border border-border bg-ivory px-4 text-sm text-ink placeholder:text-ink/35 focus:border-ink focus:outline-none"
+            />
+          </label>
         </fieldset>
+
         {action?.error ? (
-          <p>
-            <mark>
-              <small>{action.error}</small>
-            </mark>
+          <p className="mt-5 border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {action.error}
           </p>
-        ) : (
-          <br />
-        )}
-        <button type="submit" disabled={state !== 'idle'}>
-          {state !== 'idle' ? 'Updating' : 'Update'}
+        ) : null}
+
+        <button
+          type="submit"
+          disabled={state !== 'idle'}
+          className="mt-8 bg-ink px-8 py-4 small-caps text-ivory transition-colors hover:bg-gold disabled:bg-ink/40"
+        >
+          {state !== 'idle' ? 'Updating' : 'Update profile'}
         </button>
       </Form>
     </div>

@@ -194,9 +194,15 @@ export type DiscountApplicationFragment = {
 
 export type OrderLineItemFullFragment = Pick<
   CustomerAccountAPI.LineItem,
-  'id' | 'title' | 'quantity' | 'variantTitle'
+  'id' | 'title' | 'quantity' | 'sku' | 'requiresShipping' | 'variantTitle'
 > & {
   price?: CustomerAccountAPI.Maybe<
+    Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
+  >;
+  currentTotalPrice?: CustomerAccountAPI.Maybe<
+    Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
+  >;
+  soldTotalPrice?: CustomerAccountAPI.Maybe<
     Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
   >;
   discountAllocations: Array<{
@@ -231,13 +237,64 @@ export type OrderFragment = Pick<
   | 'name'
   | 'confirmationNumber'
   | 'statusPageUrl'
+  | 'financialStatus'
   | 'fulfillmentStatus'
   | 'processedAt'
+  | 'updatedAt'
+  | 'requiresShipping'
+  | 'shippingTitle'
 > & {
-  fulfillments: {nodes: Array<Pick<CustomerAccountAPI.Fulfillment, 'status'>>};
+  fulfillments: {
+    nodes: Array<
+      Pick<
+        CustomerAccountAPI.Fulfillment,
+        | 'id'
+        | 'status'
+        | 'latestShipmentStatus'
+        | 'createdAt'
+        | 'updatedAt'
+        | 'estimatedDeliveryAt'
+        | 'requiresShipping'
+      > & {
+        trackingInformation: Array<
+          Pick<
+            CustomerAccountAPI.TrackingInformation,
+            'company' | 'number' | 'url'
+          >
+        >;
+        events: {
+          nodes: Array<
+            Pick<
+              CustomerAccountAPI.FulfillmentEvent,
+              'id' | 'status' | 'happenedAt'
+            >
+          >;
+        };
+        fulfillmentLineItems: {
+          nodes: Array<
+            Pick<CustomerAccountAPI.FulfillmentLineItem, 'id' | 'quantity'> & {
+              lineItem: Pick<
+                CustomerAccountAPI.LineItem,
+                'id' | 'title' | 'variantTitle'
+              > & {
+                image?: CustomerAccountAPI.Maybe<
+                  Pick<
+                    CustomerAccountAPI.Image,
+                    'altText' | 'height' | 'url' | 'id' | 'width'
+                  >
+                >;
+              };
+            }
+          >;
+        };
+      }
+    >;
+  };
   totalTax?: CustomerAccountAPI.Maybe<
     Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
   >;
+  totalShipping: Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>;
+  totalRefunded: Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>;
   totalPrice: Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>;
   subtotal?: CustomerAccountAPI.Maybe<
     Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
@@ -261,13 +318,37 @@ export type OrderFragment = Pick<
           >);
     }>;
   };
+  transactions: Array<
+    Pick<
+      CustomerAccountAPI.OrderTransaction,
+      'id' | 'kind' | 'status' | 'type' | 'processedAt'
+    > & {
+      transactionAmount: {
+        presentmentMoney: Pick<
+          CustomerAccountAPI.MoneyV2,
+          'amount' | 'currencyCode'
+        >;
+      };
+    }
+  >;
   lineItems: {
     nodes: Array<
       Pick<
         CustomerAccountAPI.LineItem,
-        'id' | 'title' | 'quantity' | 'variantTitle'
+        | 'id'
+        | 'title'
+        | 'quantity'
+        | 'sku'
+        | 'requiresShipping'
+        | 'variantTitle'
       > & {
         price?: CustomerAccountAPI.Maybe<
+          Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
+        >;
+        currentTotalPrice?: CustomerAccountAPI.Maybe<
+          Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
+        >;
+        soldTotalPrice?: CustomerAccountAPI.Maybe<
           Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
         >;
         discountAllocations: Array<{
@@ -315,14 +396,72 @@ export type OrderQuery = {
       | 'name'
       | 'confirmationNumber'
       | 'statusPageUrl'
+      | 'financialStatus'
       | 'fulfillmentStatus'
       | 'processedAt'
+      | 'updatedAt'
+      | 'requiresShipping'
+      | 'shippingTitle'
     > & {
       fulfillments: {
-        nodes: Array<Pick<CustomerAccountAPI.Fulfillment, 'status'>>;
+        nodes: Array<
+          Pick<
+            CustomerAccountAPI.Fulfillment,
+            | 'id'
+            | 'status'
+            | 'latestShipmentStatus'
+            | 'createdAt'
+            | 'updatedAt'
+            | 'estimatedDeliveryAt'
+            | 'requiresShipping'
+          > & {
+            trackingInformation: Array<
+              Pick<
+                CustomerAccountAPI.TrackingInformation,
+                'company' | 'number' | 'url'
+              >
+            >;
+            events: {
+              nodes: Array<
+                Pick<
+                  CustomerAccountAPI.FulfillmentEvent,
+                  'id' | 'status' | 'happenedAt'
+                >
+              >;
+            };
+            fulfillmentLineItems: {
+              nodes: Array<
+                Pick<
+                  CustomerAccountAPI.FulfillmentLineItem,
+                  'id' | 'quantity'
+                > & {
+                  lineItem: Pick<
+                    CustomerAccountAPI.LineItem,
+                    'id' | 'title' | 'variantTitle'
+                  > & {
+                    image?: CustomerAccountAPI.Maybe<
+                      Pick<
+                        CustomerAccountAPI.Image,
+                        'altText' | 'height' | 'url' | 'id' | 'width'
+                      >
+                    >;
+                  };
+                }
+              >;
+            };
+          }
+        >;
       };
       totalTax?: CustomerAccountAPI.Maybe<
         Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
+      >;
+      totalShipping: Pick<
+        CustomerAccountAPI.MoneyV2,
+        'amount' | 'currencyCode'
+      >;
+      totalRefunded: Pick<
+        CustomerAccountAPI.MoneyV2,
+        'amount' | 'currencyCode'
       >;
       totalPrice: Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>;
       subtotal?: CustomerAccountAPI.Maybe<
@@ -347,13 +486,37 @@ export type OrderQuery = {
               >);
         }>;
       };
+      transactions: Array<
+        Pick<
+          CustomerAccountAPI.OrderTransaction,
+          'id' | 'kind' | 'status' | 'type' | 'processedAt'
+        > & {
+          transactionAmount: {
+            presentmentMoney: Pick<
+              CustomerAccountAPI.MoneyV2,
+              'amount' | 'currencyCode'
+            >;
+          };
+        }
+      >;
       lineItems: {
         nodes: Array<
           Pick<
             CustomerAccountAPI.LineItem,
-            'id' | 'title' | 'quantity' | 'variantTitle'
+            | 'id'
+            | 'title'
+            | 'quantity'
+            | 'sku'
+            | 'requiresShipping'
+            | 'variantTitle'
           > & {
             price?: CustomerAccountAPI.Maybe<
+              Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
+            currentTotalPrice?: CustomerAccountAPI.Maybe<
+              Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
+            soldTotalPrice?: CustomerAccountAPI.Maybe<
               Pick<CustomerAccountAPI.MoneyV2, 'amount' | 'currencyCode'>
             >;
             discountAllocations: Array<{
@@ -508,7 +671,7 @@ interface GeneratedQueryTypes {
     return: CustomerDetailsQuery;
     variables: CustomerDetailsQueryVariables;
   };
-  '#graphql\n  fragment OrderMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment DiscountApplication on DiscountApplication {\n    value {\n      __typename\n      ... on MoneyV2 {\n        ...OrderMoney\n      }\n      ... on PricingPercentageValue {\n        percentage\n      }\n    }\n  }\n  fragment OrderLineItemFull on LineItem {\n    id\n    title\n    quantity\n    price {\n      ...OrderMoney\n    }\n    discountAllocations {\n      allocatedAmount {\n        ...OrderMoney\n      }\n      discountApplication {\n        ...DiscountApplication\n      }\n    }\n    totalDiscount {\n      ...OrderMoney\n    }\n    image {\n      altText\n      height\n      url\n      id\n      width\n    }\n    variantTitle\n  }\n  fragment Order on Order {\n    id\n    name\n    confirmationNumber\n    statusPageUrl\n    fulfillmentStatus\n    processedAt\n    fulfillments(first: 1) {\n      nodes {\n        status\n      }\n    }\n    totalTax {\n      ...OrderMoney\n    }\n    totalPrice {\n      ...OrderMoney\n    }\n    subtotal {\n      ...OrderMoney\n    }\n    shippingAddress {\n      name\n      formatted(withName: true)\n      formattedArea\n    }\n    discountApplications(first: 100) {\n      nodes {\n        ...DiscountApplication\n      }\n    }\n    lineItems(first: 100) {\n      nodes {\n        ...OrderLineItemFull\n      }\n    }\n  }\n  query Order($orderId: ID!, $language: LanguageCode)\n    @inContext(language: $language) {\n    order(id: $orderId) {\n      ... on Order {\n        ...Order\n      }\n    }\n  }\n': {
+  '#graphql\n  fragment OrderMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment DiscountApplication on DiscountApplication {\n    value {\n      __typename\n      ... on MoneyV2 {\n        ...OrderMoney\n      }\n      ... on PricingPercentageValue {\n        percentage\n      }\n    }\n  }\n  fragment OrderLineItemFull on LineItem {\n    id\n    title\n    quantity\n    sku\n    requiresShipping\n    price {\n      ...OrderMoney\n    }\n    currentTotalPrice {\n      ...OrderMoney\n    }\n    soldTotalPrice {\n      ...OrderMoney\n    }\n    discountAllocations {\n      allocatedAmount {\n        ...OrderMoney\n      }\n      discountApplication {\n        ...DiscountApplication\n      }\n    }\n    totalDiscount {\n      ...OrderMoney\n    }\n    image {\n      altText\n      height\n      url\n      id\n      width\n    }\n    variantTitle\n  }\n  fragment Order on Order {\n    id\n    name\n    confirmationNumber\n    statusPageUrl\n    financialStatus\n    fulfillmentStatus\n    processedAt\n    updatedAt\n    requiresShipping\n    shippingTitle\n    fulfillments(first: 10, sortKey: CREATED_AT) {\n      nodes {\n        id\n        status\n        latestShipmentStatus\n        createdAt\n        updatedAt\n        estimatedDeliveryAt\n        requiresShipping\n        trackingInformation {\n          company\n          number\n          url\n        }\n        events(first: 10, sortKey: HAPPENED_AT, reverse: true) {\n          nodes {\n            id\n            status\n            happenedAt\n          }\n        }\n        fulfillmentLineItems(first: 20) {\n          nodes {\n            id\n            quantity\n            lineItem {\n              id\n              title\n              variantTitle\n              image {\n                altText\n                height\n                url\n                id\n                width\n              }\n            }\n          }\n        }\n      }\n    }\n    totalTax {\n      ...OrderMoney\n    }\n    totalShipping {\n      ...OrderMoney\n    }\n    totalRefunded {\n      ...OrderMoney\n    }\n    totalPrice {\n      ...OrderMoney\n    }\n    subtotal {\n      ...OrderMoney\n    }\n    shippingAddress {\n      name\n      formatted(withName: true)\n      formattedArea\n    }\n    discountApplications(first: 100) {\n      nodes {\n        ...DiscountApplication\n      }\n    }\n    transactions {\n      id\n      kind\n      status\n      type\n      processedAt\n      transactionAmount {\n        presentmentMoney {\n          ...OrderMoney\n        }\n      }\n    }\n    lineItems(first: 100) {\n      nodes {\n        ...OrderLineItemFull\n      }\n    }\n  }\n  query Order($orderId: ID!, $language: LanguageCode)\n    @inContext(language: $language) {\n    order(id: $orderId) {\n      ... on Order {\n        ...Order\n      }\n    }\n  }\n': {
     return: OrderQuery;
     variables: OrderQueryVariables;
   };

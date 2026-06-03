@@ -1,28 +1,14 @@
-import {formatMoney} from './format-money';
-
-/** Display-only shipping estimate (Shopify calculates real shipping at checkout). */
+/** Shopify confirms shipping and taxes after checkout has a delivery address. */
 export function getDisplayShipping(
-  subtotalAmount: number,
-  currencyCode: string,
+  _subtotalAmount?: number,
+  _currencyCode?: string,
 ): {amount: number; label: string} {
-  const freeThreshold = currencyCode === 'INR' ? 25000 : 25000;
-  if (subtotalAmount === 0) {
-    return {amount: 0, label: 'Complimentary'};
-  }
-  if (subtotalAmount >= freeThreshold) {
-    return {amount: 0, label: 'Complimentary'};
-  }
-  const shippingAmount = currencyCode === 'INR' ? 850 : 850;
-  return {
-    amount: shippingAmount,
-    label: formatMoney(shippingAmount, currencyCode),
-  };
+  return {amount: 0, label: 'Calculated at checkout'};
 }
 
 export function getDisplayTotal(
   subtotalAmount: number,
-  currencyCode: string,
+  _currencyCode?: string,
 ): number {
-  const shipping = getDisplayShipping(subtotalAmount, currencyCode);
-  return subtotalAmount + shipping.amount;
+  return subtotalAmount;
 }

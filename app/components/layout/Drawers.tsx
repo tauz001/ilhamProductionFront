@@ -4,7 +4,12 @@ import {Link, useRouteLoaderData} from 'react-router';
 import {useState} from 'react';
 import {useStore} from '~/lib/commerce/cart-store';
 import {formatMoney} from '~/lib/commerce/format-money';
-import {getVisibleCartLines, type RootCart} from '~/lib/commerce/cart-lines';
+import {
+  getCartLineQuantityTotal,
+  getVisibleCartLines,
+  hasCartLineIssue,
+  type RootCart,
+} from '~/lib/commerce/cart-lines';
 import {RootCartGate} from '~/components/commerce/RootCartGate';
 import {easeSilk} from '~/lib/motion/variants';
 import {BagLineItem} from '~/components/commerce/BagLineItem';
@@ -36,7 +41,7 @@ function Backdrop() {
       initial={{opacity: 0}}
       animate={{opacity: 1}}
       exit={{opacity: 0}}
-      transition={{duration: 0.5, ease: easeSilk}}
+      transition={{duration: 0.25, ease: easeSilk}}
       onClick={close}
     />
   );
@@ -54,7 +59,7 @@ function CartDrawer() {
           initial={{x: '100%'}}
           animate={{x: 0}}
           exit={{x: '100%'}}
-          transition={{duration: 0.7, ease: easeSilk}}
+          transition={{duration: 0.42, ease: easeSilk}}
         >
           <div className="flex items-center justify-between border-b border-border px-8 py-6">
             <div>
@@ -85,8 +90,16 @@ function CartDrawerContent({
   onClose: () => void;
 }) {
   const lines = getVisibleCartLines(cart);
+  const invalidLines = lines.filter(hasCartLineIssue);
+  const quantityTotal = getCartLineQuantityTotal(lines);
   const subtotalMoney = cart?.cost?.subtotalAmount;
+  const subtotal = subtotalMoney ? parseFloat(String(subtotalMoney.amount)) : 0;
   const checkoutUrl = cart?.checkoutUrl;
+  const canCheckout =
+    Boolean(checkoutUrl) &&
+    quantityTotal > 0 &&
+    subtotal > 0 &&
+    invalidLines.length === 0;
 
   if (lines.length === 0) {
     return (
@@ -135,8 +148,7 @@ function CartDrawerContent({
           </span>
         </div>
         <p className="mt-2 text-xs text-ink/45">
-          Shipping & taxes calculated at checkout. Worldwide express included on
-          orders over ₹25,000.
+          Shipping, taxes, and delivery timelines are confirmed at checkout.
         </p>
         <div className="mt-6 grid grid-cols-2 gap-3">
           <Link
@@ -146,20 +158,25 @@ function CartDrawerContent({
           >
             View Bag
           </Link>
-          {checkoutUrl ? (
-            <a
-              href={checkoutUrl}
+          {canCheckout ? (
+            <Link
+              to="/checkout"
               onClick={onClose}
               className="bg-ink py-4 small-caps text-center text-ivory hover:bg-gold transition-colors"
             >
               Checkout
-            </a>
+            </Link>
           ) : (
             <span className="bg-ink/40 py-4 small-caps text-center text-ivory">
-              Checkout
+              Resolve Bag
             </span>
           )}
         </div>
+        {invalidLines.length > 0 && (
+          <p className="mt-4 text-xs text-destructive">
+            Fix zero-quantity items or remove unavailable pieces before checkout.
+          </p>
+        )}
       </div>
     </>
   );
@@ -187,7 +204,7 @@ function WishlistDrawer() {
           initial={{x: '100%'}}
           animate={{x: 0}}
           exit={{x: '100%'}}
-          transition={{duration: 0.7, ease: easeSilk}}
+          transition={{duration: 0.42, ease: easeSilk}}
         >
           <div className="flex items-center justify-between border-b border-border px-8 py-6">
             <div>

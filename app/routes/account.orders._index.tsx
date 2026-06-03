@@ -23,6 +23,7 @@ import type {
   OrderItemFragment,
 } from 'customer-accountapi.generated';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
+import {encodeOrderRouteId} from '~/lib/customer-account/order-route-id';
 
 type OrdersLoaderData = {
   customer: CustomerOrdersFragment;
@@ -63,7 +64,7 @@ export default function Orders() {
   const {orders} = customer;
 
   return (
-    <div className="orders">
+    <div className="space-y-8">
       <OrderSearchForm currentFilters={filters} />
       <OrdersTable orders={orders} filters={filters} />
     </div>
@@ -80,7 +81,7 @@ function OrdersTable({
   const hasFilters = !!(filters.name || filters.confirmationNumber);
 
   return (
-    <div className="acccount-orders" aria-live="polite">
+    <div className="space-y-4" aria-live="polite">
       {orders?.nodes.length ? (
         <PaginatedResourceSection connection={orders}>
           {({node: order}) => <OrderItem key={order.id} order={order} />}
@@ -94,21 +95,28 @@ function OrdersTable({
 
 function EmptyOrders({hasFilters = false}: {hasFilters?: boolean}) {
   return (
-    <div>
+    <div className="border border-dashed border-border bg-cream/40 px-6 py-12 text-center">
       {hasFilters ? (
         <>
-          <p>No orders found matching your search.</p>
-          <br />
-          <p>
-            <Link to="/account/orders">Clear filters →</Link>
+          <p className="font-serif text-2xl italic text-ink/70">
+            No orders found matching your search.
+          </p>
+          <p className="mt-5">
+            <Link to="/account/orders" className="small-caps story-link text-gold">
+              Clear filters
+            </Link>
           </p>
         </>
       ) : (
         <>
-          <p>You haven&apos;t placed any orders yet.</p>
-          <br />
-          <p>
-            <Link to="/collections">Start Shopping →</Link>
+          <p className="small-caps text-ink/45">No orders yet</p>
+          <p className="mt-3 font-serif text-3xl italic text-ink/70">
+            Your first ilham piece will appear here.
+          </p>
+          <p className="mt-6">
+            <Link to="/collections" className="small-caps story-link text-gold">
+              Start shopping
+            </Link>
           </p>
         </>
       )}
@@ -152,20 +160,20 @@ function OrderSearchForm({
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-      className="order-search-form"
+      className="border border-border bg-cream/35 p-5"
       aria-label="Search orders"
     >
-      <fieldset className="order-search-fieldset">
-        <legend className="order-search-legend">Filter Orders</legend>
+      <fieldset className="grid gap-4 border-0 p-0 lg:grid-cols-[1fr_auto] lg:items-end">
+        <legend className="small-caps text-ink/50">Filter orders</legend>
 
-        <div className="order-search-inputs">
+        <div className="grid gap-3 md:grid-cols-2 lg:col-start-1 lg:row-start-2">
           <input
             type="search"
             name={ORDER_FILTER_FIELDS.NAME}
             placeholder="Order #"
             aria-label="Order number"
             defaultValue={currentFilters.name || ''}
-            className="order-search-input"
+            className="h-12 border border-border bg-ivory px-4 text-sm text-ink placeholder:text-ink/35 focus:border-ink focus:outline-none"
           />
           <input
             type="search"
@@ -173,12 +181,16 @@ function OrderSearchForm({
             placeholder="Confirmation #"
             aria-label="Confirmation number"
             defaultValue={currentFilters.confirmationNumber || ''}
-            className="order-search-input"
+            className="h-12 border border-border bg-ivory px-4 text-sm text-ink placeholder:text-ink/35 focus:border-ink focus:outline-none"
           />
         </div>
 
-        <div className="order-search-buttons">
-          <button type="submit" disabled={isSearching}>
+        <div className="flex gap-3 lg:col-start-2 lg:row-start-2">
+          <button
+            type="submit"
+            disabled={isSearching}
+            className="h-12 bg-ink px-6 small-caps text-[11px] text-ivory transition-colors hover:bg-gold disabled:bg-ink/40"
+          >
             {isSearching ? 'Searching' : 'Search'}
           </button>
           {hasFilters && (
@@ -189,6 +201,7 @@ function OrderSearchForm({
                 setSearchParams(new URLSearchParams());
                 formRef.current?.reset();
               }}
+              className="h-12 border border-border px-6 small-caps text-[11px] text-ink/65 transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
             >
               Clear
             </button>
@@ -201,22 +214,37 @@ function OrderSearchForm({
 
 function OrderItem({order}: {order: OrderItemFragment}) {
   const fulfillmentStatus = flattenConnection(order.fulfillments)[0]?.status;
+  const orderHref = `/account/orders/${encodeOrderRouteId(order.id)}`;
+
   return (
-    <>
-      <fieldset>
-        <Link to={`/account/orders/${btoa(order.id)}`}>
-          <strong>#{order.number}</strong>
+    <article className="grid gap-5 border border-border bg-ivory/75 p-5 transition-colors hover:border-gold/70 md:grid-cols-[1fr_auto] md:items-center">
+      <div>
+        <Link
+          to={orderHref}
+          className="font-serif text-3xl text-ink transition-colors hover:text-gold"
+        >
+          #{order.number}
         </Link>
-        <p>{new Date(order.processedAt).toDateString()}</p>
-        {order.confirmationNumber && (
-          <p>Confirmation: {order.confirmationNumber}</p>
-        )}
-        <p>{order.financialStatus}</p>
-        {fulfillmentStatus && <p>{fulfillmentStatus}</p>}
-        <Money data={order.totalPrice} />
-        <Link to={`/account/orders/${btoa(order.id)}`}>View Order →</Link>
-      </fieldset>
-      <br />
-    </>
+        <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-ink/55">
+          <span>{new Date(order.processedAt).toDateString()}</span>
+          {order.confirmationNumber && (
+            <span>Confirmation {order.confirmationNumber}</span>
+          )}
+          <span>{order.financialStatus}</span>
+          {fulfillmentStatus && <span>{fulfillmentStatus}</span>}
+        </div>
+      </div>
+      <div className="flex flex-col items-start gap-3 md:items-end">
+        <span className="font-display text-3xl text-ink">
+          <Money data={order.totalPrice} />
+        </span>
+        <Link
+          to={orderHref}
+          className="small-caps story-link text-gold"
+        >
+          View order
+        </Link>
+      </div>
+    </article>
   );
 }

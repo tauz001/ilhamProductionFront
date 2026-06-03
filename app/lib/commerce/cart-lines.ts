@@ -24,6 +24,24 @@ export function getVisibleCartLines(cart: RootCart | undefined): ShopifyCartLine
   }) as ShopifyCartLine[];
 }
 
+export function hasCartLineIssue(line: ShopifyCartLine) {
+  return (
+    !line.quantity ||
+    line.quantity < 1 ||
+    line.merchandise.availableForSale === false
+  );
+}
+
+export function getPurchasableCartLines(
+  cart: RootCart | undefined,
+): ShopifyCartLine[] {
+  return getVisibleCartLines(cart).filter((line) => !hasCartLineIssue(line));
+}
+
+export function getCartLineQuantityTotal(lines: ShopifyCartLine[]) {
+  return lines.reduce((total, line) => total + Math.max(0, line.quantity ?? 0), 0);
+}
+
 export function getLineSizeLabel(line: ShopifyCartLine): string {
   const size = line.merchandise.selectedOptions?.find(
     (o) => o.name.toLowerCase() === 'size',

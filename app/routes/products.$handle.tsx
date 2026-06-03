@@ -5,7 +5,9 @@ import {ChevronDown, Heart, Minus, Plus} from 'lucide-react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Analytics} from '@shopify/hydrogen';
 import {AddToCartButton} from '~/components/AddToCartButton';
+import {ProductAssurancePanel} from '~/components/commerce/ProductAssurancePanel';
 import {ProductCard} from '~/components/commerce/ProductCard';
+import {ProductImageCarousel} from '~/components/commerce/ProductImageCarousel';
 import {FadeUp} from '~/components/editorial/MaskedReveal';
 import {ChikanMotif} from '~/components/editorial/ChikanMotif';
 import {useStore} from '~/lib/commerce/cart-store';
@@ -18,6 +20,7 @@ import {
   logMissingShopifyField,
   parseListField,
 } from '~/lib/commerce/shopify-fields';
+import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
 
 export const meta: Route.MetaFunction = ({data}) => {
   const product = data?.product;
@@ -78,34 +81,59 @@ export default function Product() {
   const variants = product.variants?.nodes ?? [];
   const firstAvailableIndex = Math.max(
     0,
-    variants.findIndex((variant: any) => variant.availableForSale),
+    variants.findIndex(isVariantPurchasable),
   );
   const [variantIdx, setVariantIdx] = useState(firstAvailableIndex);
   const [qty, setQty] = useState(1);
-  const [zoom, setZoom] = useState(false);
   const [openSection, setOpenSection] = useState<string | null>('fabric');
   const wishlist = useStore((s) => s.wishlist);
   const toggleW = useStore((s) => s.toggleWishlist);
   const openDrawer = useStore((s) => s.openDrawer);
   const saved = wishlist.includes(product.handle);
   const selectedVariant = variants[variantIdx] ?? variants[firstAvailableIndex];
+  const selectedVariantPurchasable = isVariantPurchasable(selectedVariant);
+  const optionGroups = buildVariantOptionGroups(variants, selectedVariant);
   const price = selectedVariant?.price ?? product.priceRange?.minVariantPrice;
+  const categoryLabel = product.productType || product.vendor;
   const images = product.images?.nodes ?? [];
+  const galleryImages = getUniqueImages([product.featuredImage, ...images]);
   const subtitle = getRequiredMetafield(product, 'subtitle');
   const fabric = getRequiredMetafield(product, 'fabric');
   const care = getRequiredMetafield(product, 'care');
+  const washCare = getMetafieldValue(product, 'wash_care') ?? care;
   const craftHours = getRequiredMetafield(product, 'craft_hours');
   const artisan = getRequiredMetafield(product, 'artisan');
   const origin = getRequiredMetafield(product, 'origin');
   const shippingReturns = getRequiredMetafield(product, 'shipping_returns');
   const giftingNote = getRequiredMetafield(product, 'gifting_note');
-  const fabricDetailImage =
-    getMetafieldImage(product, 'fabric_detail_image') ?? images[2] ?? null;
+  const fabricDetailMetafieldImage = getMetafieldImage(
+    product,
+    'fabric_detail_image',
+  );
+  const fabricDetailImage = getFirstUniqueImage(
+    [fabricDetailMetafieldImage],
+    galleryImages,
+  );
+  const carouselImages = getUniqueImages([
+    ...galleryImages,
+    fabricDetailImage,
+  ]);
   const artisanImage =
-    getMetafieldImage(product, 'artisan_image') ?? images[3] ?? null;
+    getMetafieldImage(product, 'artisan_image') ?? galleryImages[3] ?? null;
   const occasions = parseListField(getMetafieldValue(product, 'occasions'));
+  const reviewSummary = getMetafieldValue(product, 'reviews');
+  const productDetailSections = buildProductDetailSections({
+    artisan,
+    craftHours,
+    description: product.description,
+    fabric,
+    origin,
+    reviewSummary,
+    shippingReturns,
+    washCare,
+  });
 
-  if (!fabricDetailImage) {
+  if (!fabricDetailMetafieldImage && galleryImages.length < 2) {
     logMissingShopifyField(
       `product:${product.handle}`,
       'product metafield custom.fabric_detail_image',
@@ -157,39 +185,18 @@ export default function Product() {
   ].filter((section) => section.body);
 
   return (
-    <div className="pt-24 md:pt-28">
-      <section className="mx-auto grid max-w-[1500px] gap-10 px-6 md:grid-cols-12 lg:px-12">
-        <div className="md:col-span-7 space-y-3">
-          {images.map((img: any, i: number) => (
-            <div
-              key={img.id ?? img.url}
-              className="relative aspect-[3/4] overflow-hidden bg-cream cursor-zoom-in"
-              onClick={() => i === 0 && setZoom(true)}
-            >
-              <img
-                src={img.url}
-                alt={img.altText ?? product.title}
-                className="h-full w-full object-cover"
-              />
-            </div>
-          ))}
-          {fabricDetailImage?.url && (
-            <div className="relative aspect-[3/4] overflow-hidden bg-cream">
-              <img
-                src={fabricDetailImage.url}
-                alt={fabricDetailImage.altText ?? 'Fabric detail'}
-                className="h-full w-full object-cover"
-              />
-              <span className="absolute bottom-6 left-6 small-caps text-ivory bg-ink/40 backdrop-blur px-3 py-1">
-                Embroidery detail
-              </span>
-            </div>
-          )}
+    <div className="overflow-x-hidden pt-24 md:pt-28">
+      <section className="mx-auto grid max-w-[1500px] gap-8 px-4 sm:px-6 md:grid-cols-12 md:items-start lg:px-12">
+        <div className="min-w-0 md:col-span-7">
+          <ProductImageCarousel
+            images={carouselImages}
+            productTitle={product.title}
+          />
         </div>
 
-        <aside className="md:col-span-5 md:sticky md:top-28 md:self-start md:max-h-[calc(100vh-7rem)] md:overflow-y-auto md:pl-6">
-          <p className="small-caps text-ink/50">{product.productType}</p>
-          <h1 className="mt-3 font-display text-5xl md:text-6xl">
+        <aside className="min-w-0 md:col-span-5 md:sticky md:top-24 md:self-start md:pl-8">
+          <p className="small-caps text-ink/50">{categoryLabel}</p>
+          <h1 className="mt-2 break-words font-display text-4xl leading-none sm:text-5xl md:text-[4rem]">
             {product.title}
           </h1>
           {subtitle && (
@@ -198,19 +205,14 @@ export default function Product() {
             </p>
           )}
           {price && (
-            <p className="mt-6 text-2xl">
+            <p className="mt-4 text-2xl">
               {formatMoney(price.amount, price.currencyCode)}
             </p>
           )}
           <p className="mt-1 text-xs text-ink/45">
             Inclusive of all taxes · Checkout and shipping calculated by Shopify
           </p>
-
-          {product.description && (
-            <p className="mt-8 text-sm leading-relaxed text-ink/70">
-              {product.description}
-            </p>
-          )}
+          <div className="mt-5 h-px bg-border" />
 
           {occasions.length > 0 && (
             <p className="mt-5 text-xs italic text-ink/50">
@@ -218,44 +220,61 @@ export default function Product() {
             </p>
           )}
 
-          {variants.length > 0 && (
-            <div className="mt-10">
-              <p className="small-caps text-ink/50">Size</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {variants.map((variant: any, i: number) => (
-                  <button
-                    key={variant.id}
-                    onClick={() => variant.availableForSale && setVariantIdx(i)}
-                    disabled={!variant.availableForSale}
-                    className={`h-12 min-w-12 px-4 border text-sm transition-colors ${
-                      i === variantIdx
-                        ? 'border-ink bg-ink text-ivory'
-                        : variant.availableForSale
-                          ? 'border-border hover:border-ink'
-                          : 'border-border text-ink/30 line-through cursor-not-allowed'
-                    }`}
-                  >
-                    {getVariantLabel(variant)}
-                  </button>
-                ))}
-              </div>
+          {optionGroups.length > 0 && (
+            <div className="mt-6 space-y-4">
+              {optionGroups.map((option) => (
+                <div key={option.name}>
+                  <p className="small-caps text-ink/50">{option.name}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {option.values.map((value) => (
+                      <button
+                        key={`${option.name}-${value.value}`}
+                        type="button"
+                        onClick={() => {
+                          if (value.available && value.variantIndex >= 0) {
+                            setVariantIdx(value.variantIndex);
+                          }
+                        }}
+                        disabled={!value.available || value.variantIndex < 0}
+                        className={`h-11 min-w-11 px-4 border text-sm transition-colors ${
+                          value.selected
+                            ? 'border-ink bg-ink text-ivory'
+                            : value.available
+                              ? 'border-border hover:border-ink'
+                              : 'border-border text-ink/30 line-through cursor-not-allowed'
+                        }`}
+                      >
+                        {value.value}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
-          <div className="mt-8 flex items-center gap-4">
-            <div className="flex items-center border border-border h-12">
-              <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3">
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex h-12 w-full items-center justify-center border border-border sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setQty(Math.max(1, qty - 1))}
+                className="px-4 sm:px-3"
+              >
                 <Minus className="h-3 w-3" />
               </button>
-              <span className="px-4 text-sm">{qty}</span>
-              <button onClick={() => setQty(qty + 1)} className="px-3">
+              <span className="px-5 text-sm sm:px-4">{qty}</span>
+              <button
+                type="button"
+                onClick={() => setQty((current) => current + 1)}
+                className="px-4 sm:px-3"
+              >
                 <Plus className="h-3 w-3" />
               </button>
             </div>
             <AddToCartButton
-              disabled={!selectedVariant?.availableForSale}
+              disabled={!selectedVariantPurchasable}
               lines={
-                selectedVariant
+                selectedVariant && selectedVariantPurchasable
                   ? [
                       {
                         merchandiseId: selectedVariant.id,
@@ -266,15 +285,17 @@ export default function Product() {
                   : []
               }
               onClick={() => openDrawer('cart')}
+              className="w-full min-w-0 sm:min-w-[220px] sm:flex-1"
             >
-              <span className="flex h-12 flex-1 items-center justify-center small-caps bg-ink px-10 text-ivory hover:bg-gold transition-colors">
-                {selectedVariant?.availableForSale ? 'Add to bag' : 'Sold out'}
+              <span className="flex h-12 w-full items-center justify-center bg-ink px-4 small-caps text-ivory transition-colors hover:bg-gold sm:px-8">
+                {selectedVariantPurchasable ? 'Add to bag' : 'Sold out'}
               </span>
             </AddToCartButton>
             <button
+              type="button"
               onClick={() => toggleW(product.handle)}
               aria-label="Wishlist"
-              className="h-12 w-12 border border-border flex items-center justify-center hover:border-ink"
+              className="flex h-12 w-full shrink-0 items-center justify-center border border-border hover:border-ink sm:w-12"
             >
               <Heart
                 className="h-4 w-4"
@@ -283,6 +304,8 @@ export default function Product() {
               />
             </button>
           </div>
+
+          <ProductAssurancePanel priceAmount={price?.amount} />
 
           {accordionSections.length > 0 && (
             <div className="mt-10 space-y-2 border-t border-border">
@@ -321,8 +344,34 @@ export default function Product() {
         </aside>
       </section>
 
+      {productDetailSections.length > 0 && (
+        <section className="mx-auto mt-24 max-w-[1500px] border-t border-border px-4 pt-16 sm:px-6 lg:px-12">
+          <div className="grid gap-12 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+            <div>
+              <p className="small-caps text-ink/50">Product notes</p>
+              <h2 className="mt-5 break-words font-display text-4xl md:text-6xl">
+                Details after the drape.
+              </h2>
+            </div>
+            <div className="divide-y divide-border">
+              {productDetailSections.map((section) => (
+                <article
+                  key={section.title}
+                  className="grid gap-5 py-8 md:grid-cols-[160px_minmax(0,1fr)] first:pt-0"
+                >
+                  <h3 className="small-caps text-ink/50">{section.title}</h3>
+                  <p className="text-sm leading-relaxed text-ink/70">
+                    {section.body}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {(artisanImage?.url || artisan || craftHours) && (
-        <section className="mx-auto mt-32 grid max-w-[1500px] gap-12 px-6 md:grid-cols-2 lg:px-12">
+        <section className="mx-auto mt-32 grid max-w-[1500px] gap-12 px-4 sm:px-6 md:grid-cols-2 lg:px-12">
           {artisanImage?.url && (
             <div className="aspect-[4/5] overflow-hidden">
               <img
@@ -334,7 +383,7 @@ export default function Product() {
           )}
           <div className="flex flex-col justify-center">
             <p className="small-caps text-ink/50">The hands behind {product.title}</p>
-            <h2 className="mt-6 font-display text-5xl text-balance">
+            <h2 className="mt-6 break-words font-display text-4xl text-balance sm:text-5xl">
               {craftHours && artisan ? (
                 <>
                   Handcrafted over{' '}
@@ -355,9 +404,9 @@ export default function Product() {
       )}
 
       {recommendations.length > 0 && (
-        <section className="mx-auto max-w-[1500px] px-6 py-32 lg:px-12">
+        <section className="mx-auto max-w-[1500px] px-4 py-32 sm:px-6 lg:px-12">
           <h3 className="font-display text-4xl md:text-5xl">You may also love</h3>
-          <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-14 md:grid-cols-4">
+          <div className="mt-12 grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 sm:gap-y-14 md:grid-cols-4">
             {recommendations.slice(0, 4).map((recommended: any) => (
               <FadeUp key={recommended.handle}>
                 <ProductCard product={recommended} />
@@ -366,24 +415,6 @@ export default function Product() {
           </div>
         </section>
       )}
-
-      <AnimatePresence>
-        {zoom && images[0]?.url && (
-          <motion.div
-            className="fixed inset-0 z-[90] bg-ink/95 flex items-center justify-center p-6"
-            initial={{opacity: 0}}
-            animate={{opacity: 1}}
-            exit={{opacity: 0}}
-            onClick={() => setZoom(false)}
-          >
-            <img
-              src={images[0].url}
-              alt={images[0].altText ?? ''}
-              className="max-h-full max-w-full object-contain"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <Analytics.ProductView
         data={{
@@ -404,14 +435,6 @@ export default function Product() {
   );
 }
 
-function getVariantLabel(variant: any) {
-  return (
-    variant.selectedOptions?.find(
-      (option: {name: string}) => option.name.toLowerCase() === 'size',
-    )?.value ?? variant.title
-  );
-}
-
 function getRequiredMetafield(product: any, key: string) {
   const value = getMetafieldValue(product, key);
   if (!value) {
@@ -422,6 +445,185 @@ function getRequiredMetafield(product: any, key: string) {
     );
   }
   return value;
+}
+
+function getUniqueImages(images: any[]) {
+  const seen = new Set<string>();
+
+  return images.filter((image) => {
+    const key = getImageKey(image);
+    if (!key || seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
+  });
+}
+
+function getFirstUniqueImage(candidates: any[], existingImages: any[]) {
+  const existingKeys = new Set(existingImages.map(getImageKey).filter(Boolean));
+
+  return (
+    candidates.find((image) => {
+      const key = getImageKey(image);
+      return key && !existingKeys.has(key);
+    }) ?? null
+  );
+}
+
+function getImageKey(image: any) {
+  if (!image?.url) return '';
+
+  return image.id ?? image.url.split('?')[0];
+}
+
+function buildProductDetailSections({
+  artisan,
+  craftHours,
+  description,
+  fabric,
+  origin,
+  reviewSummary,
+  shippingReturns,
+  washCare,
+}: {
+  artisan?: string | null;
+  craftHours?: string | null;
+  description?: string | null;
+  fabric?: string | null;
+  origin?: string | null;
+  reviewSummary?: string | null;
+  shippingReturns?: string | null;
+  washCare?: string | null;
+}) {
+  const craftParts = [
+    fabric,
+    craftHours ? `${craftHours}+ hours of hand embroidery` : '',
+    artisan ? `finished by ${artisan}` : '',
+    origin,
+  ].filter(Boolean);
+
+  return [
+    {
+      title: 'Description',
+      body: description,
+    },
+    {
+      title: 'Craft',
+      body: craftParts.join('. '),
+    },
+    {
+      title: 'Wash care',
+      body:
+        washCare ||
+        'Dry clean recommended. Store folded in a breathable cover and avoid direct sunlight on the embroidery.',
+    },
+    {
+      title: 'Reviews',
+      body:
+        reviewSummary ||
+        'Customer reviews for this piece will appear here once shared.',
+    },
+    {
+      title: 'Shipping',
+      body: shippingReturns,
+    },
+  ].filter((section) => section.body);
+}
+
+function buildVariantOptionGroups(variants: any[], selectedVariant: any) {
+  const optionNames: string[] = [];
+  const valuesByName = new Map<string, Set<string>>();
+
+  variants.forEach((variant) => {
+    variant.selectedOptions?.forEach((option: {name: string; value: string}) => {
+      if (isDefaultTitleOption(option)) return;
+
+      if (!valuesByName.has(option.name)) {
+        valuesByName.set(option.name, new Set<string>());
+        optionNames.push(option.name);
+      }
+
+      valuesByName.get(option.name)?.add(option.value);
+    });
+  });
+
+  return optionNames.map((name) => ({
+    name,
+    values: [...(valuesByName.get(name) ?? [])].map((value) => {
+      const variantIndex = findVariantIndexForOption(
+        variants,
+        selectedVariant,
+        name,
+        value,
+      );
+      const variant = variants[variantIndex];
+
+      return {
+        value,
+        selected: getOptionValue(selectedVariant, name) === value,
+        available: isVariantPurchasable(variant),
+        variantIndex,
+      };
+    }),
+  }));
+}
+
+function findVariantIndexForOption(
+  variants: any[],
+  selectedVariant: any,
+  optionName: string,
+  optionValue: string,
+) {
+  const selectedOptions = getSelectedOptionMap(selectedVariant);
+  selectedOptions.set(optionName, optionValue);
+
+  const exactIndex = variants.findIndex((variant) =>
+    variantMatchesOptions(variant, selectedOptions),
+  );
+
+  if (exactIndex >= 0) return exactIndex;
+
+  return variants.findIndex(
+    (variant) => getOptionValue(variant, optionName) === optionValue,
+  );
+}
+
+function getSelectedOptionMap(variant: any) {
+  const selectedOptions = new Map<string, string>();
+
+  variant?.selectedOptions?.forEach((option: {name: string; value: string}) => {
+    if (!isDefaultTitleOption(option)) {
+      selectedOptions.set(option.name, option.value);
+    }
+  });
+
+  return selectedOptions;
+}
+
+function variantMatchesOptions(
+  variant: any,
+  selectedOptions: Map<string, string>,
+) {
+  for (const [name, value] of selectedOptions.entries()) {
+    if (getOptionValue(variant, name) !== value) return false;
+  }
+
+  return true;
+}
+
+function getOptionValue(variant: any, optionName: string) {
+  return (
+    variant?.selectedOptions?.find(
+      (option: {name: string}) => option.name === optionName,
+    )?.value ?? ''
+  );
+}
+
+function isDefaultTitleOption(option: {name: string; value: string}) {
+  return (
+    option.name.toLowerCase() === 'title' &&
+    option.value.toLowerCase() === 'default title'
+  );
 }
 
 function logProductRequirements(product: any) {
@@ -446,6 +648,7 @@ const PRODUCT_VARIANT_FRAGMENT = `#graphql
     id
     title
     availableForSale
+    currentlyNotInStock
     sku
     compareAtPrice {
       amount
@@ -582,6 +785,8 @@ const PRODUCT_QUERY = `#graphql
         {namespace: "custom", key: "artisan"},
         {namespace: "custom", key: "origin"},
         {namespace: "custom", key: "occasions"},
+        {namespace: "custom", key: "wash_care"},
+        {namespace: "custom", key: "reviews"},
         {namespace: "custom", key: "shipping_returns"},
         {namespace: "custom", key: "gifting_note"},
         {namespace: "custom", key: "fabric_detail_image"},

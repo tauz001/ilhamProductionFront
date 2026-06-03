@@ -7,6 +7,7 @@ import type {
 import {AddToCartButton} from './AddToCartButton';
 import {useStore} from '~/lib/commerce/cart-store';
 import type {IlhamProductVariantFragment} from 'storefrontapi.generated';
+import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
 
 export function ProductForm({
   productOptions,
@@ -17,6 +18,7 @@ export function ProductForm({
 }) {
   const navigate = useNavigate();
   const openDrawer = useStore((s) => s.openDrawer);
+  const purchasable = isVariantPurchasable(selectedVariant);
   return (
     <div className="product-form">
       {productOptions.map((option) => {
@@ -102,12 +104,12 @@ export function ProductForm({
         );
       })}
       <AddToCartButton
-        disabled={!selectedVariant || !selectedVariant.availableForSale}
+        disabled={!purchasable}
         onClick={() => {
           openDrawer('cart');
         }}
         lines={
-          selectedVariant
+          selectedVariant && purchasable
             ? [
                 {
                   merchandiseId: selectedVariant.id,
@@ -118,7 +120,7 @@ export function ProductForm({
             : []
         }
       >
-        {selectedVariant?.availableForSale ? 'Add to cart' : 'Sold out'}
+        {purchasable ? 'Add to cart' : 'Sold out'}
       </AddToCartButton>
     </div>
   );

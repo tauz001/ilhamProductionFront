@@ -1,5 +1,6 @@
 import {Link} from 'react-router';
 import {Heart, ShoppingBag} from 'lucide-react';
+import {useEffect, useState} from 'react';
 import {useStore} from '~/lib/commerce/cart-store';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {formatMoney} from '~/lib/commerce/format-money';
@@ -8,6 +9,7 @@ import {
   logMissingShopifyField,
   tagIncludes,
 } from '~/lib/commerce/shopify-fields';
+import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
 
 type Props = {
   product: any;
@@ -24,24 +26,21 @@ export function ProductCard({
   const saved = wishlist.includes(product.handle);
   const openDrawer = useStore((s) => s.openDrawer);
 
-  const images = product.images?.nodes ?? [];
-
-  const firstImage =
-    images[0]?.url || product.featuredImage?.url;
-
-  const secondImage =
-    images[1]?.url ||
-    images[0]?.url ||
-    product.featuredImage?.url;
+  const hoverImages = getHoverImages(product);
+  const firstImage = hoverImages[0];
+  const [hovering, setHovering] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
+  const activeImageIndex = hovering ? imageIndex : 0;
 
   const price =
     product.priceRange?.minVariantPrice;
 
   const subtitle = getMetafieldValue(product, 'subtitle');
   const variant =
-    product.variants?.nodes?.find((node: any) => node.availableForSale) ??
+    product.variants?.nodes?.find(isVariantPurchasable) ??
     product.variants?.nodes?.[0];
   const variantId = variant?.id;
+  const canAddToBag = Boolean(variantId && isVariantPurchasable(variant));
   const isNew =
     tagIncludes(product.tags, 'new-arrival') ||
     tagIncludes(product.tags, 'new');
@@ -68,8 +67,25 @@ export function ProductCard({
     );
   }
 
+  useEffect(() => {
+    if (!hovering || hoverImages.length < 2) return;
+
+    const timer = window.setInterval(() => {
+      setImageIndex((current) => (current + 1) % hoverImages.length);
+    }, 1800);
+
+    return () => window.clearInterval(timer);
+  }, [hoverImages.length, hovering]);
+
     return (
-      <div className="group block">
+      <div
+        className="group block"
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => {
+          setHovering(false);
+          setImageIndex(0);
+        }}
+      >
         <div
           className={`relative overflow-hidden bg-cream ${
             aspect === 'tall'
@@ -79,28 +95,26 @@ export function ProductCard({
         >
           <Link
             to={`/products/${product.handle}`}
-            className="absolute inset-0 z-0"
+            aria-label={`View ${product.title}`}
+            className="absolute inset-0 z-10"
           />
 
-          {firstImage && (
+          {hoverImages.map((image: any, i: number) => (
             <img
-              src={firstImage}
-              alt={images[0]?.altText ?? product.featuredImage?.altText ?? product.title}
+              key={image.id ?? image.url}
+              src={image.url}
+              alt={image.altText ?? product.title}
               loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] group-hover:opacity-0"
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1400ms] ease-in-out ${
+                i === activeImageIndex
+                  ? 'opacity-100'
+                  : 'opacity-0'
+              }`}
             />
-          )}
-
-          {secondImage && (
-            <img
-              src={secondImage}
-              alt={images[1]?.altText ?? images[0]?.altText ?? product.title}
-              loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover scale-[1.04] opacity-0 transition-all duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 group-hover:scale-100"
-            />
-          )}
+          ))}
     
           <button
+            type="button"
             onClick={(e) => {
               e.preventDefault();
               toggle(product.handle);
@@ -126,7 +140,7 @@ export function ProductCard({
           )}
     
           <div className="absolute inset-x-0 bottom-0 z-20 px-4 pb-4 translate-y-full opacity-0 transition-all duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100">
-            {variantId && (
+            {canAddToBag && (
               <AddToCartButton
               className="block w-full"
               lines={[
@@ -151,9 +165,9 @@ export function ProductCard({
         </div>
     
         <div className="mt-5 flex items-baseline justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <Link to={`/products/${product.handle}`}>
-              <p className="font-serif text-xl text-ink hover:text-gold transition-colors">
+              <p className="font-serif text-xl leading-tight text-ink transition-colors hover:text-gold">
                 {product.title}
               </p>
             </Link>
@@ -163,10 +177,24 @@ export function ProductCard({
             </p>
           </div>
     
-          <p className="text-sm text-ink/80 whitespace-nowrap">
+          <p className="shrink-0 text-sm text-ink/80 whitespace-nowrap">
             {price ? formatMoney(price.amount, price.currencyCode) : ''}
           </p>
         </div>
       </div>
     );
+}
+
+function getHoverImages(product: any) {
+  const seen = new Set<string>();
+  const images = [
+    ...(product.images?.nodes ?? []),
+    product.featuredImage,
+  ].filter((image) => {
+    if (!image?.url || seen.has(image.url)) return false;
+    seen.add(image.url);
+    return true;
+  });
+
+  return images.slice(0, 3);
 }

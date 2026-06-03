@@ -1,5 +1,5 @@
 import {Link, useLocation, useRouteLoaderData} from 'react-router';
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Heart, Menu, Search, ShoppingBag, User, X} from 'lucide-react';
 import {useStore} from '~/lib/commerce/cart-store';
@@ -26,12 +26,84 @@ const navLinks = [
   {label: 'Heritage', href: '/about'},
 ];
 
+const megaMenuCopy = {
+  women: {
+    eyebrow: 'Women - Atelier',
+    heading: (
+      <>
+        Airy chikankari for <em className="font-serif italic">every hour</em>.
+      </>
+    ),
+    description:
+      'Find soft everyday kurtis, polished occasion pieces, and festive whites without digging through the whole shop.',
+    moods: [
+      'Daily elegance',
+      'Party wear',
+      'Festive whites',
+      'Ethnic classics',
+      'Office grace',
+      'Summer cottons',
+    ],
+    types: ['Anarkali kurtas', 'Short kurtis', 'Kaftan sets', 'Sleeveless kurtis'],
+  },
+  men: {
+    eyebrow: 'Men - Atelier',
+    heading: (
+      <>
+        Quiet tailoring with <em className="font-serif italic">Lucknowi</em>{' '}
+        detail.
+      </>
+    ),
+    description:
+      'Easy kurta layers, evening-ready embroidery, and breathable cotton pieces for repeated wear.',
+    moods: [
+      'Everyday chikankari',
+      'Festive kurtas',
+      'Mehfil evenings',
+      'Ivory classics',
+      'Summer cottons',
+    ],
+    types: ['Chikankari kurtas', 'Kurta sets', 'Embroidered shirts', 'Layered jackets'],
+  },
+  wedding: {
+    eyebrow: 'Wedding - Edit',
+    heading: (
+      <>
+        Ceremony pieces with <em className="font-serif italic">heirloom</em>{' '}
+        calm.
+      </>
+    ),
+    description:
+      'A smaller edit for wedding days, gifting rituals, and intimate celebrations.',
+    moods: ['Bride side', 'Groom side', 'Sangeet ready', 'Wedding gifting'],
+    types: ['Occasion sets', 'Ivory ensembles', 'Statement dupattas'],
+  },
+} as const;
+
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [megaOpen, setMegaOpen] = useState<string | null>(null);
+  const megaCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wishlist = useStore((s) => s.wishlist.length);
   const openDrawer = useStore((s) => s.openDrawer);
   const location = useLocation();
+
+  const cancelMegaClose = () => {
+    if (megaCloseTimer.current) {
+      clearTimeout(megaCloseTimer.current);
+      megaCloseTimer.current = null;
+    }
+  };
+
+  const openMegaMenu = (label: string) => {
+    cancelMegaClose();
+    setMegaOpen(label);
+  };
+
+  const queueMegaClose = () => {
+    cancelMegaClose();
+    megaCloseTimer.current = setTimeout(() => setMegaOpen(null), 90);
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -44,10 +116,15 @@ export function Navbar() {
     setMegaOpen(null);
   }, [location.pathname]);
 
+  useEffect(() => {
+    return () => cancelMegaClose();
+  }, []);
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${scrolled ? 'bg-ivory/85 backdrop-blur-md border-b border-border/60' : 'bg-transparent'}`}
-      onMouseLeave={() => setMegaOpen(null)}
+      onMouseEnter={cancelMegaClose}
+      onMouseLeave={queueMegaClose}
     >
       <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-6 lg:h-20 lg:px-12">
         <button
@@ -63,8 +140,8 @@ export function Navbar() {
             <Link
               key={l.label}
               to={l.href}
-              onMouseEnter={() => setMegaOpen(l.label)}
-              onFocus={() => setMegaOpen(l.label)}
+              onMouseEnter={() => openMegaMenu(l.label)}
+              onFocus={() => openMegaMenu(l.label)}
               className="small-caps text-ink/80 hover:text-ink transition-colors story-link"
             >
               {l.label}
@@ -100,7 +177,7 @@ export function Navbar() {
             <Search className="h-[18px] w-[18px]" strokeWidth={1.2} />
           </button>
           <Link
-            to="/login"
+            to="/account"
             aria-label="Account"
             className="text-ink/80 hover:text-ink"
           >
@@ -137,14 +214,15 @@ export function Navbar() {
         </div>
       </div>
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {megaOpen && (
           <motion.div
-            initial={{opacity: 0, y: -8}}
+            initial={{opacity: 0, y: -4, scaleY: 0.985}}
             animate={{opacity: 1, y: 0}}
-            exit={{opacity: 0, y: -8}}
-            transition={{duration: 0.5, ease: easeSilk}}
-            className="absolute left-0 right-0 top-full hidden border-t border-border/60 bg-ivory/95 backdrop-blur-md lg:block"
+            exit={{opacity: 0, y: -4, scaleY: 0.985}}
+            transition={{duration: 0.24, ease: easeSilk}}
+            onMouseEnter={cancelMegaClose}
+            className="absolute left-0 right-0 top-full hidden origin-top border-t border-border/60 bg-ivory/95 shadow-soft backdrop-blur-md will-change-transform lg:block"
           >
             <MegaMenu category={megaOpen} onClose={() => setMegaOpen(null)} />
           </motion.div>
@@ -157,13 +235,17 @@ export function Navbar() {
 function MegaMenu({category, onClose}: {category: string; onClose: () => void}) {
   const layoutCommerce = useLayoutCommerce();
   const collections = layoutCommerce?.collections?.nodes ?? [];
-  const cat = category.toLowerCase();
+  const cat = category.toLowerCase() as keyof typeof megaMenuCopy;
+  const content = megaMenuCopy[cat] ?? megaMenuCopy.women;
   const list = collections.filter(
     (c) =>
       (getCollectionCategory(c) === cat || (cat === 'wedding' && c.handle === 'wedding-edit')) &&
       c.handle !== cat,
   );
-  const feature = list[0];
+  const collectionLinks = list.slice(0, 4);
+  const feature = list.find((c) => c.image?.url) ?? list[0];
+  const categoryHref =
+    cat === 'wedding' ? '/collections/wedding-edit' : `/collections/${cat}`;
 
   if (!collections.length) {
     logMissingShopifyField(
@@ -174,51 +256,120 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
   }
 
   return (
-    <div className="mx-auto grid max-w-[1500px] grid-cols-12 gap-10 px-12 py-12">
+    <motion.div
+      key={cat}
+      initial={{opacity: 0, y: 5}}
+      animate={{opacity: 1, y: 0}}
+      transition={{duration: 0.22, ease: easeSilk}}
+      className="mx-auto grid max-w-[1500px] grid-cols-12 gap-9 px-12 py-10"
+    >
       <div className="col-span-3">
-        <p className="small-caps text-ink/50">{category} — Atelier</p>
-        <h3 className="mt-6 font-display text-3xl text-ink">
-          Six centuries of <em className="font-serif italic">whitework</em>,
-          slowly translated.
+        <p className="small-caps text-ink/50">{content.eyebrow}</p>
+        <h3 className="mt-5 font-display text-[34px] leading-tight text-ink">
+          {content.heading}
         </h3>
+        <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink/55">
+          {content.description}
+        </p>
+        <Link
+          to={categoryHref}
+          onClick={onClose}
+          className="mt-7 inline-flex h-11 items-center border border-ink px-5 small-caps text-[10px] text-ink transition-colors hover:bg-ink hover:text-ivory"
+        >
+          Shop {category}
+        </Link>
       </div>
-      <div className="col-span-5 grid grid-cols-2 gap-x-8 gap-y-4">
-        {list.map((c) => (
-          <Link
-            key={c.handle}
-            to={`/collections/${c.handle}`}
-            onClick={onClose}
-            className="group flex flex-col gap-1"
-          >
-            <span className="font-serif text-xl text-ink group-hover:text-gold transition-colors">
-              {c.title}
-            </span>
-            <span className="text-xs text-ink/55">{getCollectionTagline(c)}</span>
-          </Link>
-        ))}
+      <div className="col-span-3 border-l border-border pl-8">
+        <p className="small-caps text-ink/45">Shop by mood</p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {content.moods.map((keyword) => (
+            <Link
+              key={keyword}
+              to={searchHref(`${category} ${keyword}`)}
+              onClick={onClose}
+              className="border border-border bg-cream/45 px-3 py-2 text-sm text-ink/70 transition-colors hover:border-gold hover:text-gold"
+            >
+              {keyword}
+            </Link>
+          ))}
+        </div>
       </div>
-      {feature && (
+
+      <div className="col-span-3 border-l border-border pl-8">
+        <p className="small-caps text-ink/45">Silhouettes</p>
+        <div className="mt-5 grid gap-3">
+          {content.types.map((type) => (
+            <Link
+              key={type}
+              to={searchHref(`${category} ${type}`)}
+              onClick={onClose}
+              className="group flex items-baseline justify-between gap-4 border-b border-border pb-2"
+            >
+              <span className="font-serif text-xl text-ink transition-colors group-hover:text-gold">
+                {type}
+              </span>
+              <span className="text-xs text-ink/35 transition-colors group-hover:text-gold">
+                View
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        {collectionLinks.length ? (
+          <div className="mt-7">
+            <p className="small-caps text-ink/40">Collections</p>
+            <div className="mt-3 grid gap-2">
+              {collectionLinks.map((c) => (
+                <Link
+                  key={c.handle}
+                  to={`/collections/${c.handle}`}
+                  onClick={onClose}
+                  className="text-sm text-ink/55 transition-colors hover:text-gold"
+                >
+                  {c.title}
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+      <div className="col-span-3">
+        {feature?.image?.url ? (
         <Link
           to={`/collections/${feature.handle}`}
           onClick={onClose}
-          className="col-span-4 group block overflow-hidden"
+          className="group block overflow-hidden"
         >
-          <div className="aspect-[4/5] overflow-hidden">
+          <div className="aspect-[5/4] overflow-hidden bg-cream">
             <img
               src={feature.image.url}
-              alt={feature.image.altText}
-              className="h-full w-full object-cover transition-transform duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
-              loading="lazy"
+              alt={feature.image.altText ?? feature.title}
+              className="h-full w-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.035]"
+              loading="eager"
             />
           </div>
-          <div className="mt-4 flex items-baseline justify-between">
+          <div className="mt-4 flex items-baseline justify-between gap-4">
             <span className="font-serif text-xl text-ink">{feature.title}</span>
-            <span className="small-caps text-ink/50">Discover →</span>
+            <span className="small-caps text-[10px] text-ink/50 transition-colors group-hover:text-gold">
+              Discover
+            </span>
           </div>
         </Link>
-      )}
-    </div>
+        ) : (
+          <div className="flex h-full min-h-[220px] flex-col justify-end border border-border bg-cream/35 p-6">
+            <p className="small-caps text-gold">ilham</p>
+            <p className="mt-5 font-serif text-3xl italic leading-tight text-ink/75">
+              Hand embroidery, edited for the moment you are dressing for.
+            </p>
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
+}
+
+function searchHref(term: string) {
+  return `/search?q=${encodeURIComponent(term.toLowerCase())}`;
 }
 
 function useLayoutCommerce() {

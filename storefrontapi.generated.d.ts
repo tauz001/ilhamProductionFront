@@ -709,6 +709,993 @@ export type BlogsQuery = {
   };
 };
 
+export type RawCartCreateMutationVariables = StorefrontAPI.Exact<{
+  input: StorefrontAPI.CartInput;
+  numCartLines?: StorefrontAPI.InputMaybe<
+    StorefrontAPI.Scalars['Int']['input']
+  >;
+}>;
+
+export type RawCartCreateMutation = {
+  cartCreate?: StorefrontAPI.Maybe<{
+    cart?: StorefrontAPI.Maybe<
+      Pick<
+        StorefrontAPI.Cart,
+        'updatedAt' | 'id' | 'checkoutUrl' | 'totalQuantity' | 'note'
+      > & {
+        appliedGiftCards: Array<
+          Pick<StorefrontAPI.AppliedGiftCard, 'id' | 'lastCharacters'> & {
+            amountUsed: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+          }
+        >;
+        buyerIdentity: Pick<
+          StorefrontAPI.CartBuyerIdentity,
+          'countryCode' | 'email' | 'phone'
+        > & {
+          customer?: StorefrontAPI.Maybe<
+            Pick<
+              StorefrontAPI.Customer,
+              'id' | 'email' | 'firstName' | 'lastName' | 'displayName'
+            >
+          >;
+        };
+        lines: {
+          nodes: Array<
+            | (Pick<StorefrontAPI.CartLine, 'id' | 'quantity'> & {
+                attributes: Array<
+                  Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                >;
+                cost: {
+                  totalAmount: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  amountPerQuantity: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                };
+                merchandise: Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                > & {
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  product: Pick<
+                    StorefrontAPI.Product,
+                    'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                };
+                parentRelationship?: StorefrontAPI.Maybe<{
+                  parent: Pick<StorefrontAPI.CartLine, 'id'>;
+                }>;
+              })
+            | (Pick<
+                StorefrontAPI.ComponentizableCartLine,
+                'id' | 'quantity'
+              > & {
+                attributes: Array<
+                  Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                >;
+                cost: {
+                  totalAmount: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  amountPerQuantity: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                };
+                merchandise: Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                > & {
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  product: Pick<
+                    StorefrontAPI.Product,
+                    'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                };
+                lineComponents: Array<
+                  Pick<StorefrontAPI.CartLine, 'id' | 'quantity'> & {
+                    attributes: Array<
+                      Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                    >;
+                    cost: {
+                      totalAmount: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      amountPerQuantity: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                      >;
+                    };
+                    merchandise: Pick<
+                      StorefrontAPI.ProductVariant,
+                      'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                    > & {
+                      compareAtPrice?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                      >;
+                      price: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      image?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.Image,
+                          'id' | 'url' | 'altText' | 'width' | 'height'
+                        >
+                      >;
+                      product: Pick<
+                        StorefrontAPI.Product,
+                        'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                      >;
+                      selectedOptions: Array<
+                        Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                      >;
+                    };
+                    parentRelationship?: StorefrontAPI.Maybe<{
+                      parent: Pick<StorefrontAPI.CartLine, 'id'>;
+                    }>;
+                  }
+                >;
+              })
+          >;
+        };
+        cost: {
+          subtotalAmount: Pick<
+            StorefrontAPI.MoneyV2,
+            'currencyCode' | 'amount'
+          >;
+          totalAmount: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+          totalDutyAmount?: StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+          >;
+          totalTaxAmount?: StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+          >;
+        };
+        attributes: Array<Pick<StorefrontAPI.Attribute, 'key' | 'value'>>;
+        discountCodes: Array<
+          Pick<StorefrontAPI.CartDiscountCode, 'code' | 'applicable'>
+        >;
+      }
+    >;
+    userErrors: Array<
+      Pick<StorefrontAPI.CartUserError, 'field' | 'message' | 'code'>
+    >;
+    warnings: Array<
+      Pick<StorefrontAPI.CartWarning, 'code' | 'message' | 'target'>
+    >;
+  }>;
+};
+
+export type RawCartLinesAddMutationVariables = StorefrontAPI.Exact<{
+  cartId: StorefrontAPI.Scalars['ID']['input'];
+  lines: Array<StorefrontAPI.CartLineInput> | StorefrontAPI.CartLineInput;
+  numCartLines?: StorefrontAPI.InputMaybe<
+    StorefrontAPI.Scalars['Int']['input']
+  >;
+}>;
+
+export type RawCartLinesAddMutation = {
+  cartLinesAdd?: StorefrontAPI.Maybe<{
+    cart?: StorefrontAPI.Maybe<
+      Pick<
+        StorefrontAPI.Cart,
+        'updatedAt' | 'id' | 'checkoutUrl' | 'totalQuantity' | 'note'
+      > & {
+        appliedGiftCards: Array<
+          Pick<StorefrontAPI.AppliedGiftCard, 'id' | 'lastCharacters'> & {
+            amountUsed: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+          }
+        >;
+        buyerIdentity: Pick<
+          StorefrontAPI.CartBuyerIdentity,
+          'countryCode' | 'email' | 'phone'
+        > & {
+          customer?: StorefrontAPI.Maybe<
+            Pick<
+              StorefrontAPI.Customer,
+              'id' | 'email' | 'firstName' | 'lastName' | 'displayName'
+            >
+          >;
+        };
+        lines: {
+          nodes: Array<
+            | (Pick<StorefrontAPI.CartLine, 'id' | 'quantity'> & {
+                attributes: Array<
+                  Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                >;
+                cost: {
+                  totalAmount: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  amountPerQuantity: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                };
+                merchandise: Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                > & {
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  product: Pick<
+                    StorefrontAPI.Product,
+                    'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                };
+                parentRelationship?: StorefrontAPI.Maybe<{
+                  parent: Pick<StorefrontAPI.CartLine, 'id'>;
+                }>;
+              })
+            | (Pick<
+                StorefrontAPI.ComponentizableCartLine,
+                'id' | 'quantity'
+              > & {
+                attributes: Array<
+                  Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                >;
+                cost: {
+                  totalAmount: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  amountPerQuantity: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                };
+                merchandise: Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                > & {
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  product: Pick<
+                    StorefrontAPI.Product,
+                    'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                };
+                lineComponents: Array<
+                  Pick<StorefrontAPI.CartLine, 'id' | 'quantity'> & {
+                    attributes: Array<
+                      Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                    >;
+                    cost: {
+                      totalAmount: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      amountPerQuantity: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                      >;
+                    };
+                    merchandise: Pick<
+                      StorefrontAPI.ProductVariant,
+                      'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                    > & {
+                      compareAtPrice?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                      >;
+                      price: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      image?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.Image,
+                          'id' | 'url' | 'altText' | 'width' | 'height'
+                        >
+                      >;
+                      product: Pick<
+                        StorefrontAPI.Product,
+                        'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                      >;
+                      selectedOptions: Array<
+                        Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                      >;
+                    };
+                    parentRelationship?: StorefrontAPI.Maybe<{
+                      parent: Pick<StorefrontAPI.CartLine, 'id'>;
+                    }>;
+                  }
+                >;
+              })
+          >;
+        };
+        cost: {
+          subtotalAmount: Pick<
+            StorefrontAPI.MoneyV2,
+            'currencyCode' | 'amount'
+          >;
+          totalAmount: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+          totalDutyAmount?: StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+          >;
+          totalTaxAmount?: StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+          >;
+        };
+        attributes: Array<Pick<StorefrontAPI.Attribute, 'key' | 'value'>>;
+        discountCodes: Array<
+          Pick<StorefrontAPI.CartDiscountCode, 'code' | 'applicable'>
+        >;
+      }
+    >;
+    userErrors: Array<
+      Pick<StorefrontAPI.CartUserError, 'field' | 'message' | 'code'>
+    >;
+    warnings: Array<
+      Pick<StorefrontAPI.CartWarning, 'code' | 'message' | 'target'>
+    >;
+  }>;
+};
+
+export type RawCartLinesUpdateMutationVariables = StorefrontAPI.Exact<{
+  cartId: StorefrontAPI.Scalars['ID']['input'];
+  lines:
+    | Array<StorefrontAPI.CartLineUpdateInput>
+    | StorefrontAPI.CartLineUpdateInput;
+  numCartLines?: StorefrontAPI.InputMaybe<
+    StorefrontAPI.Scalars['Int']['input']
+  >;
+}>;
+
+export type RawCartLinesUpdateMutation = {
+  cartLinesUpdate?: StorefrontAPI.Maybe<{
+    cart?: StorefrontAPI.Maybe<
+      Pick<
+        StorefrontAPI.Cart,
+        'updatedAt' | 'id' | 'checkoutUrl' | 'totalQuantity' | 'note'
+      > & {
+        appliedGiftCards: Array<
+          Pick<StorefrontAPI.AppliedGiftCard, 'id' | 'lastCharacters'> & {
+            amountUsed: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+          }
+        >;
+        buyerIdentity: Pick<
+          StorefrontAPI.CartBuyerIdentity,
+          'countryCode' | 'email' | 'phone'
+        > & {
+          customer?: StorefrontAPI.Maybe<
+            Pick<
+              StorefrontAPI.Customer,
+              'id' | 'email' | 'firstName' | 'lastName' | 'displayName'
+            >
+          >;
+        };
+        lines: {
+          nodes: Array<
+            | (Pick<StorefrontAPI.CartLine, 'id' | 'quantity'> & {
+                attributes: Array<
+                  Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                >;
+                cost: {
+                  totalAmount: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  amountPerQuantity: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                };
+                merchandise: Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                > & {
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  product: Pick<
+                    StorefrontAPI.Product,
+                    'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                };
+                parentRelationship?: StorefrontAPI.Maybe<{
+                  parent: Pick<StorefrontAPI.CartLine, 'id'>;
+                }>;
+              })
+            | (Pick<
+                StorefrontAPI.ComponentizableCartLine,
+                'id' | 'quantity'
+              > & {
+                attributes: Array<
+                  Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                >;
+                cost: {
+                  totalAmount: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  amountPerQuantity: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                };
+                merchandise: Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                > & {
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  product: Pick<
+                    StorefrontAPI.Product,
+                    'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                };
+                lineComponents: Array<
+                  Pick<StorefrontAPI.CartLine, 'id' | 'quantity'> & {
+                    attributes: Array<
+                      Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                    >;
+                    cost: {
+                      totalAmount: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      amountPerQuantity: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                      >;
+                    };
+                    merchandise: Pick<
+                      StorefrontAPI.ProductVariant,
+                      'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                    > & {
+                      compareAtPrice?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                      >;
+                      price: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      image?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.Image,
+                          'id' | 'url' | 'altText' | 'width' | 'height'
+                        >
+                      >;
+                      product: Pick<
+                        StorefrontAPI.Product,
+                        'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                      >;
+                      selectedOptions: Array<
+                        Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                      >;
+                    };
+                    parentRelationship?: StorefrontAPI.Maybe<{
+                      parent: Pick<StorefrontAPI.CartLine, 'id'>;
+                    }>;
+                  }
+                >;
+              })
+          >;
+        };
+        cost: {
+          subtotalAmount: Pick<
+            StorefrontAPI.MoneyV2,
+            'currencyCode' | 'amount'
+          >;
+          totalAmount: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+          totalDutyAmount?: StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+          >;
+          totalTaxAmount?: StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+          >;
+        };
+        attributes: Array<Pick<StorefrontAPI.Attribute, 'key' | 'value'>>;
+        discountCodes: Array<
+          Pick<StorefrontAPI.CartDiscountCode, 'code' | 'applicable'>
+        >;
+      }
+    >;
+    userErrors: Array<
+      Pick<StorefrontAPI.CartUserError, 'field' | 'message' | 'code'>
+    >;
+    warnings: Array<
+      Pick<StorefrontAPI.CartWarning, 'code' | 'message' | 'target'>
+    >;
+  }>;
+};
+
+export type RawCartLinesRemoveMutationVariables = StorefrontAPI.Exact<{
+  cartId: StorefrontAPI.Scalars['ID']['input'];
+  lineIds:
+    | Array<StorefrontAPI.Scalars['ID']['input']>
+    | StorefrontAPI.Scalars['ID']['input'];
+  numCartLines?: StorefrontAPI.InputMaybe<
+    StorefrontAPI.Scalars['Int']['input']
+  >;
+}>;
+
+export type RawCartLinesRemoveMutation = {
+  cartLinesRemove?: StorefrontAPI.Maybe<{
+    cart?: StorefrontAPI.Maybe<
+      Pick<
+        StorefrontAPI.Cart,
+        'updatedAt' | 'id' | 'checkoutUrl' | 'totalQuantity' | 'note'
+      > & {
+        appliedGiftCards: Array<
+          Pick<StorefrontAPI.AppliedGiftCard, 'id' | 'lastCharacters'> & {
+            amountUsed: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+          }
+        >;
+        buyerIdentity: Pick<
+          StorefrontAPI.CartBuyerIdentity,
+          'countryCode' | 'email' | 'phone'
+        > & {
+          customer?: StorefrontAPI.Maybe<
+            Pick<
+              StorefrontAPI.Customer,
+              'id' | 'email' | 'firstName' | 'lastName' | 'displayName'
+            >
+          >;
+        };
+        lines: {
+          nodes: Array<
+            | (Pick<StorefrontAPI.CartLine, 'id' | 'quantity'> & {
+                attributes: Array<
+                  Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                >;
+                cost: {
+                  totalAmount: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  amountPerQuantity: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                };
+                merchandise: Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                > & {
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  product: Pick<
+                    StorefrontAPI.Product,
+                    'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                };
+                parentRelationship?: StorefrontAPI.Maybe<{
+                  parent: Pick<StorefrontAPI.CartLine, 'id'>;
+                }>;
+              })
+            | (Pick<
+                StorefrontAPI.ComponentizableCartLine,
+                'id' | 'quantity'
+              > & {
+                attributes: Array<
+                  Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                >;
+                cost: {
+                  totalAmount: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  amountPerQuantity: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                };
+                merchandise: Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                > & {
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  product: Pick<
+                    StorefrontAPI.Product,
+                    'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                };
+                lineComponents: Array<
+                  Pick<StorefrontAPI.CartLine, 'id' | 'quantity'> & {
+                    attributes: Array<
+                      Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                    >;
+                    cost: {
+                      totalAmount: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      amountPerQuantity: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                      >;
+                    };
+                    merchandise: Pick<
+                      StorefrontAPI.ProductVariant,
+                      'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                    > & {
+                      compareAtPrice?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                      >;
+                      price: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      image?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.Image,
+                          'id' | 'url' | 'altText' | 'width' | 'height'
+                        >
+                      >;
+                      product: Pick<
+                        StorefrontAPI.Product,
+                        'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                      >;
+                      selectedOptions: Array<
+                        Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                      >;
+                    };
+                    parentRelationship?: StorefrontAPI.Maybe<{
+                      parent: Pick<StorefrontAPI.CartLine, 'id'>;
+                    }>;
+                  }
+                >;
+              })
+          >;
+        };
+        cost: {
+          subtotalAmount: Pick<
+            StorefrontAPI.MoneyV2,
+            'currencyCode' | 'amount'
+          >;
+          totalAmount: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+          totalDutyAmount?: StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+          >;
+          totalTaxAmount?: StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+          >;
+        };
+        attributes: Array<Pick<StorefrontAPI.Attribute, 'key' | 'value'>>;
+        discountCodes: Array<
+          Pick<StorefrontAPI.CartDiscountCode, 'code' | 'applicable'>
+        >;
+      }
+    >;
+    userErrors: Array<
+      Pick<StorefrontAPI.CartUserError, 'field' | 'message' | 'code'>
+    >;
+    warnings: Array<
+      Pick<StorefrontAPI.CartWarning, 'code' | 'message' | 'target'>
+    >;
+  }>;
+};
+
+export type RawCheckoutCartCreateMutationVariables = StorefrontAPI.Exact<{
+  input: StorefrontAPI.CartInput;
+  numCartLines?: StorefrontAPI.InputMaybe<
+    StorefrontAPI.Scalars['Int']['input']
+  >;
+}>;
+
+export type RawCheckoutCartCreateMutation = {
+  cartCreate?: StorefrontAPI.Maybe<{
+    cart?: StorefrontAPI.Maybe<
+      Pick<
+        StorefrontAPI.Cart,
+        'updatedAt' | 'id' | 'checkoutUrl' | 'totalQuantity' | 'note'
+      > & {
+        appliedGiftCards: Array<
+          Pick<StorefrontAPI.AppliedGiftCard, 'id' | 'lastCharacters'> & {
+            amountUsed: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+          }
+        >;
+        buyerIdentity: Pick<
+          StorefrontAPI.CartBuyerIdentity,
+          'countryCode' | 'email' | 'phone'
+        > & {
+          customer?: StorefrontAPI.Maybe<
+            Pick<
+              StorefrontAPI.Customer,
+              'id' | 'email' | 'firstName' | 'lastName' | 'displayName'
+            >
+          >;
+        };
+        lines: {
+          nodes: Array<
+            | (Pick<StorefrontAPI.CartLine, 'id' | 'quantity'> & {
+                attributes: Array<
+                  Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                >;
+                cost: {
+                  totalAmount: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  amountPerQuantity: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                };
+                merchandise: Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                > & {
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  product: Pick<
+                    StorefrontAPI.Product,
+                    'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                };
+                parentRelationship?: StorefrontAPI.Maybe<{
+                  parent: Pick<StorefrontAPI.CartLine, 'id'>;
+                }>;
+              })
+            | (Pick<
+                StorefrontAPI.ComponentizableCartLine,
+                'id' | 'quantity'
+              > & {
+                attributes: Array<
+                  Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                >;
+                cost: {
+                  totalAmount: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  amountPerQuantity: Pick<
+                    StorefrontAPI.MoneyV2,
+                    'currencyCode' | 'amount'
+                  >;
+                  compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                };
+                merchandise: Pick<
+                  StorefrontAPI.ProductVariant,
+                  'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                > & {
+                  compareAtPrice?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                  >;
+                  price: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  product: Pick<
+                    StorefrontAPI.Product,
+                    'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                  >;
+                  selectedOptions: Array<
+                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                  >;
+                };
+                lineComponents: Array<
+                  Pick<StorefrontAPI.CartLine, 'id' | 'quantity'> & {
+                    attributes: Array<
+                      Pick<StorefrontAPI.Attribute, 'key' | 'value'>
+                    >;
+                    cost: {
+                      totalAmount: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      amountPerQuantity: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      compareAtAmountPerQuantity?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                      >;
+                    };
+                    merchandise: Pick<
+                      StorefrontAPI.ProductVariant,
+                      'id' | 'availableForSale' | 'requiresShipping' | 'title'
+                    > & {
+                      compareAtPrice?: StorefrontAPI.Maybe<
+                        Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+                      >;
+                      price: Pick<
+                        StorefrontAPI.MoneyV2,
+                        'currencyCode' | 'amount'
+                      >;
+                      image?: StorefrontAPI.Maybe<
+                        Pick<
+                          StorefrontAPI.Image,
+                          'id' | 'url' | 'altText' | 'width' | 'height'
+                        >
+                      >;
+                      product: Pick<
+                        StorefrontAPI.Product,
+                        'handle' | 'title' | 'id' | 'vendor' | 'productType'
+                      >;
+                      selectedOptions: Array<
+                        Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                      >;
+                    };
+                    parentRelationship?: StorefrontAPI.Maybe<{
+                      parent: Pick<StorefrontAPI.CartLine, 'id'>;
+                    }>;
+                  }
+                >;
+              })
+          >;
+        };
+        cost: {
+          subtotalAmount: Pick<
+            StorefrontAPI.MoneyV2,
+            'currencyCode' | 'amount'
+          >;
+          totalAmount: Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>;
+          totalDutyAmount?: StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+          >;
+          totalTaxAmount?: StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.MoneyV2, 'currencyCode' | 'amount'>
+          >;
+        };
+        attributes: Array<Pick<StorefrontAPI.Attribute, 'key' | 'value'>>;
+        discountCodes: Array<
+          Pick<StorefrontAPI.CartDiscountCode, 'code' | 'applicable'>
+        >;
+      }
+    >;
+    userErrors: Array<
+      Pick<StorefrontAPI.CartUserError, 'field' | 'message' | 'code'>
+    >;
+    warnings: Array<
+      Pick<StorefrontAPI.CartWarning, 'code' | 'message' | 'target'>
+    >;
+  }>;
+};
+
 export type IlhamCollectionProductVariantFragment = Pick<
   StorefrontAPI.ProductVariant,
   'id' | 'title' | 'availableForSale'
@@ -853,6 +1840,75 @@ export type CollectionQuery = {
       };
     }
   >;
+};
+
+export type NewArrivalsQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type NewArrivalsQuery = {
+  products: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'title' | 'handle' | 'vendor' | 'productType' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        images: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.Image,
+              'id' | 'url' | 'altText' | 'width' | 'height'
+            >
+          >;
+        };
+        variants: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.ProductVariant,
+              'id' | 'title' | 'availableForSale'
+            > & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              product: Pick<
+                StorefrontAPI.Product,
+                'id' | 'handle' | 'title' | 'vendor' | 'productType'
+              >;
+              selectedOptions: Array<
+                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+              >;
+            }
+          >;
+        };
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+          maxVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        metafields: Array<
+          StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.Metafield, 'key' | 'namespace' | 'value'>
+          >
+        >;
+      }
+    >;
+  };
 };
 
 export type StoreCollectionsQueryVariables = StorefrontAPI.Exact<{
@@ -1068,7 +2124,7 @@ export type PoliciesQuery = {
 
 export type IlhamProductVariantFragment = Pick<
   StorefrontAPI.ProductVariant,
-  'id' | 'title' | 'availableForSale' | 'sku'
+  'id' | 'title' | 'availableForSale' | 'currentlyNotInStock' | 'sku'
 > & {
   compareAtPrice?: StorefrontAPI.Maybe<
     Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
@@ -1100,7 +2156,7 @@ export type IlhamProductCardFragment = Pick<
     nodes: Array<
       Pick<
         StorefrontAPI.ProductVariant,
-        'id' | 'title' | 'availableForSale' | 'sku'
+        'id' | 'title' | 'availableForSale' | 'currentlyNotInStock' | 'sku'
       > & {
         compareAtPrice?: StorefrontAPI.Maybe<
           Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
@@ -1168,7 +2224,7 @@ export type ProductQuery = {
         nodes: Array<
           Pick<
             StorefrontAPI.ProductVariant,
-            'id' | 'title' | 'availableForSale' | 'sku'
+            'id' | 'title' | 'availableForSale' | 'currentlyNotInStock' | 'sku'
           > & {
             compareAtPrice?: StorefrontAPI.Maybe<
               Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
@@ -1246,7 +2302,11 @@ export type ProductRecommendationsQuery = {
           nodes: Array<
             Pick<
               StorefrontAPI.ProductVariant,
-              'id' | 'title' | 'availableForSale' | 'sku'
+              | 'id'
+              | 'title'
+              | 'availableForSale'
+              | 'currentlyNotInStock'
+              | 'sku'
             > & {
               compareAtPrice?: StorefrontAPI.Maybe<
                 Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
@@ -1562,9 +2622,13 @@ interface GeneratedQueryTypes {
     return: BlogsQuery;
     variables: BlogsQueryVariables;
   };
-  '#graphql\n  query Collection(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        id\n        url\n        altText\n        width\n        height\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "tagline"},\n        {namespace: "custom", key: "category"}\n      ]) {\n        key\n        namespace\n        value\n      }\n      products(first: 250) {\n        nodes {\n          ...IlhamCollectionProduct\n        }\n      }\n    }\n  }\n  #graphql\n  fragment IlhamCollectionProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 4) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    variants(first: 50) {\n      nodes {\n        ...IlhamCollectionProductVariant\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "subtitle"},\n      {namespace: "custom", key: "fabric"},\n      {namespace: "custom", key: "color"},\n      {namespace: "custom", key: "color_hex"},\n      {namespace: "custom", key: "occasions"}\n    ]) {\n      key\n      namespace\n      value\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n\n': {
+  '#graphql\n  query Collection(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        id\n        url\n        altText\n        width\n        height\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "tagline"},\n        {namespace: "custom", key: "category"}\n      ]) {\n        key\n        namespace\n        value\n      }\n      products(first: 250) {\n        nodes {\n          ...IlhamCollectionProduct\n        }\n      }\n    }\n  }\n  #graphql\n  fragment IlhamCollectionProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 4) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    variants(first: 50) {\n      nodes {\n        ...IlhamCollectionProductVariant\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "subtitle"},\n      {namespace: "custom", key: "fabric"},\n      {namespace: "custom", key: "color"},\n      {namespace: "custom", key: "color_hex"},\n      {namespace: "custom", key: "occasions"}\n    ]) {\n      key\n      namespace\n      value\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n\n': {
     return: CollectionQuery;
     variables: CollectionQueryVariables;
+  };
+  '#graphql\n  query NewArrivals(\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    products(first: 250, sortKey: CREATED_AT, reverse: true) {\n      nodes {\n        ...IlhamCollectionProduct\n      }\n    }\n  }\n  #graphql\n  fragment IlhamCollectionProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 4) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    variants(first: 50) {\n      nodes {\n        ...IlhamCollectionProductVariant\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "subtitle"},\n      {namespace: "custom", key: "fabric"},\n      {namespace: "custom", key: "color"},\n      {namespace: "custom", key: "color_hex"},\n      {namespace: "custom", key: "occasions"}\n    ]) {\n      key\n      namespace\n      value\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n\n': {
+    return: NewArrivalsQuery;
+    variables: NewArrivalsQueryVariables;
   };
   '#graphql\n  query StoreCollections(\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    collections(first: 50) {\n      nodes {\n        id\n        title\n        handle\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        metafields(identifiers: [\n          {namespace: "custom", key: "tagline"},\n          {namespace: "custom", key: "category"}\n        ]) {\n          key\n          namespace\n          value\n        }\n      }\n    }\n  }\n': {
     return: StoreCollectionsQuery;
@@ -1598,11 +2662,11 @@ interface GeneratedQueryTypes {
     return: PoliciesQuery;
     variables: PoliciesQueryVariables;
   };
-  '#graphql\n  query Product(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      vendor\n      handle\n      productType\n      descriptionHtml\n      description\n      tags\n      seo {\n        description\n        title\n      }\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 12) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          ...IlhamProductVariant\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n        maxVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"},\n        {namespace: "custom", key: "fabric"},\n        {namespace: "custom", key: "care"},\n        {namespace: "custom", key: "craft_hours"},\n        {namespace: "custom", key: "artisan"},\n        {namespace: "custom", key: "origin"},\n        {namespace: "custom", key: "occasions"},\n        {namespace: "custom", key: "shipping_returns"},\n        {namespace: "custom", key: "gifting_note"},\n        {namespace: "custom", key: "fabric_detail_image"},\n        {namespace: "custom", key: "artisan_image"}\n      ]) {\n        key\n        namespace\n        value\n        type\n        reference {\n          ... on MediaImage {\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n        }\n      }\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n': {
+  '#graphql\n  query Product(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      vendor\n      handle\n      productType\n      descriptionHtml\n      description\n      tags\n      seo {\n        description\n        title\n      }\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 12) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          ...IlhamProductVariant\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n        maxVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"},\n        {namespace: "custom", key: "fabric"},\n        {namespace: "custom", key: "care"},\n        {namespace: "custom", key: "craft_hours"},\n        {namespace: "custom", key: "artisan"},\n        {namespace: "custom", key: "origin"},\n        {namespace: "custom", key: "occasions"},\n        {namespace: "custom", key: "wash_care"},\n        {namespace: "custom", key: "reviews"},\n        {namespace: "custom", key: "shipping_returns"},\n        {namespace: "custom", key: "gifting_note"},\n        {namespace: "custom", key: "fabric_detail_image"},\n        {namespace: "custom", key: "artisan_image"}\n      ]) {\n        key\n        namespace\n        value\n        type\n        reference {\n          ... on MediaImage {\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n        }\n      }\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n': {
     return: ProductQuery;
     variables: ProductQueryVariables;
   };
-  '#graphql\n  query ProductRecommendations(\n    $country: CountryCode\n    $language: LanguageCode\n    $productId: ID!\n  ) @inContext(country: $country, language: $language) {\n    productRecommendations(productId: $productId) {\n      ...IlhamProductCard\n    }\n  }\n  #graphql\n  fragment IlhamProductCard on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 4) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    variants(first: 20) {\n      nodes {\n        ...IlhamProductVariant\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [{namespace: "custom", key: "subtitle"}]) {\n      key\n      namespace\n      value\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n\n': {
+  '#graphql\n  query ProductRecommendations(\n    $country: CountryCode\n    $language: LanguageCode\n    $productId: ID!\n  ) @inContext(country: $country, language: $language) {\n    productRecommendations(productId: $productId) {\n      ...IlhamProductCard\n    }\n  }\n  #graphql\n  fragment IlhamProductCard on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 4) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    variants(first: 20) {\n      nodes {\n        ...IlhamProductVariant\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [{namespace: "custom", key: "subtitle"}]) {\n      key\n      namespace\n      value\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n\n': {
     return: ProductRecommendationsQuery;
     variables: ProductRecommendationsQueryVariables;
   };
@@ -1620,7 +2684,28 @@ interface GeneratedQueryTypes {
   };
 }
 
-interface GeneratedMutationTypes {}
+interface GeneratedMutationTypes {
+  '#graphql\n  mutation RawCartCreate($input: CartInput!, $numCartLines: Int = 250) {\n    cartCreate(input: $input) {\n      cart {\n        ...CartApiQuery\n      }\n      userErrors {\n        field\n        message\n        code\n      }\n      warnings {\n        code\n        message\n        target\n      }\n    }\n  }\n  #graphql\n  fragment Money on MoneyV2 {\n    currencyCode\n    amount\n  }\n  fragment CartLine on CartLine {\n    id\n    quantity\n    attributes {\n      key\n      value\n    }\n    cost {\n      totalAmount {\n        ...Money\n      }\n      amountPerQuantity {\n        ...Money\n      }\n      compareAtAmountPerQuantity {\n        ...Money\n      }\n    }\n    merchandise {\n      ... on ProductVariant {\n        id\n        availableForSale\n        compareAtPrice {\n          ...Money\n        }\n        price {\n          ...Money\n        }\n        requiresShipping\n        title\n        image {\n          id\n          url\n          altText\n          width\n          height\n\n        }\n        product {\n          handle\n          title\n          id\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    parentRelationship {\n      parent {\n        id\n      }\n    }\n  }\n  fragment CartLineComponent on ComponentizableCartLine {\n    id\n    quantity\n    attributes {\n      key\n      value\n    }\n    cost {\n      totalAmount {\n        ...Money\n      }\n      amountPerQuantity {\n        ...Money\n      }\n      compareAtAmountPerQuantity {\n        ...Money\n      }\n    }\n    merchandise {\n      ... on ProductVariant {\n        id\n        availableForSale\n        compareAtPrice {\n          ...Money\n        }\n        price {\n          ...Money\n        }\n        requiresShipping\n        title\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        product {\n          handle\n          title\n          id\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    lineComponents {\n      ...CartLine\n    }\n  }\n  fragment CartApiQuery on Cart {\n    updatedAt\n    id\n    appliedGiftCards {\n      id\n      lastCharacters\n      amountUsed {\n        ...Money\n      }\n    }\n    checkoutUrl\n    totalQuantity\n    buyerIdentity {\n      countryCode\n      customer {\n        id\n        email\n        firstName\n        lastName\n        displayName\n      }\n      email\n      phone\n    }\n    lines(first: $numCartLines) {\n      nodes {\n        ...CartLine\n        ...CartLineComponent\n      }\n    }\n    cost {\n      subtotalAmount {\n        ...Money\n      }\n      totalAmount {\n        ...Money\n      }\n      totalDutyAmount {\n        ...Money\n      }\n      totalTaxAmount {\n        ...Money\n      }\n    }\n    note\n    attributes {\n      key\n      value\n    }\n    discountCodes {\n      code\n      applicable\n    }\n  }\n\n': {
+    return: RawCartCreateMutation;
+    variables: RawCartCreateMutationVariables;
+  };
+  '#graphql\n  mutation RawCartLinesAdd(\n    $cartId: ID!\n    $lines: [CartLineInput!]!\n    $numCartLines: Int = 250\n  ) {\n    cartLinesAdd(cartId: $cartId, lines: $lines) {\n      cart {\n        ...CartApiQuery\n      }\n      userErrors {\n        field\n        message\n        code\n      }\n      warnings {\n        code\n        message\n        target\n      }\n    }\n  }\n  #graphql\n  fragment Money on MoneyV2 {\n    currencyCode\n    amount\n  }\n  fragment CartLine on CartLine {\n    id\n    quantity\n    attributes {\n      key\n      value\n    }\n    cost {\n      totalAmount {\n        ...Money\n      }\n      amountPerQuantity {\n        ...Money\n      }\n      compareAtAmountPerQuantity {\n        ...Money\n      }\n    }\n    merchandise {\n      ... on ProductVariant {\n        id\n        availableForSale\n        compareAtPrice {\n          ...Money\n        }\n        price {\n          ...Money\n        }\n        requiresShipping\n        title\n        image {\n          id\n          url\n          altText\n          width\n          height\n\n        }\n        product {\n          handle\n          title\n          id\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    parentRelationship {\n      parent {\n        id\n      }\n    }\n  }\n  fragment CartLineComponent on ComponentizableCartLine {\n    id\n    quantity\n    attributes {\n      key\n      value\n    }\n    cost {\n      totalAmount {\n        ...Money\n      }\n      amountPerQuantity {\n        ...Money\n      }\n      compareAtAmountPerQuantity {\n        ...Money\n      }\n    }\n    merchandise {\n      ... on ProductVariant {\n        id\n        availableForSale\n        compareAtPrice {\n          ...Money\n        }\n        price {\n          ...Money\n        }\n        requiresShipping\n        title\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        product {\n          handle\n          title\n          id\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    lineComponents {\n      ...CartLine\n    }\n  }\n  fragment CartApiQuery on Cart {\n    updatedAt\n    id\n    appliedGiftCards {\n      id\n      lastCharacters\n      amountUsed {\n        ...Money\n      }\n    }\n    checkoutUrl\n    totalQuantity\n    buyerIdentity {\n      countryCode\n      customer {\n        id\n        email\n        firstName\n        lastName\n        displayName\n      }\n      email\n      phone\n    }\n    lines(first: $numCartLines) {\n      nodes {\n        ...CartLine\n        ...CartLineComponent\n      }\n    }\n    cost {\n      subtotalAmount {\n        ...Money\n      }\n      totalAmount {\n        ...Money\n      }\n      totalDutyAmount {\n        ...Money\n      }\n      totalTaxAmount {\n        ...Money\n      }\n    }\n    note\n    attributes {\n      key\n      value\n    }\n    discountCodes {\n      code\n      applicable\n    }\n  }\n\n': {
+    return: RawCartLinesAddMutation;
+    variables: RawCartLinesAddMutationVariables;
+  };
+  '#graphql\n  mutation RawCartLinesUpdate(\n    $cartId: ID!\n    $lines: [CartLineUpdateInput!]!\n    $numCartLines: Int = 250\n  ) {\n    cartLinesUpdate(cartId: $cartId, lines: $lines) {\n      cart {\n        ...CartApiQuery\n      }\n      userErrors {\n        field\n        message\n        code\n      }\n      warnings {\n        code\n        message\n        target\n      }\n    }\n  }\n  #graphql\n  fragment Money on MoneyV2 {\n    currencyCode\n    amount\n  }\n  fragment CartLine on CartLine {\n    id\n    quantity\n    attributes {\n      key\n      value\n    }\n    cost {\n      totalAmount {\n        ...Money\n      }\n      amountPerQuantity {\n        ...Money\n      }\n      compareAtAmountPerQuantity {\n        ...Money\n      }\n    }\n    merchandise {\n      ... on ProductVariant {\n        id\n        availableForSale\n        compareAtPrice {\n          ...Money\n        }\n        price {\n          ...Money\n        }\n        requiresShipping\n        title\n        image {\n          id\n          url\n          altText\n          width\n          height\n\n        }\n        product {\n          handle\n          title\n          id\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    parentRelationship {\n      parent {\n        id\n      }\n    }\n  }\n  fragment CartLineComponent on ComponentizableCartLine {\n    id\n    quantity\n    attributes {\n      key\n      value\n    }\n    cost {\n      totalAmount {\n        ...Money\n      }\n      amountPerQuantity {\n        ...Money\n      }\n      compareAtAmountPerQuantity {\n        ...Money\n      }\n    }\n    merchandise {\n      ... on ProductVariant {\n        id\n        availableForSale\n        compareAtPrice {\n          ...Money\n        }\n        price {\n          ...Money\n        }\n        requiresShipping\n        title\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        product {\n          handle\n          title\n          id\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    lineComponents {\n      ...CartLine\n    }\n  }\n  fragment CartApiQuery on Cart {\n    updatedAt\n    id\n    appliedGiftCards {\n      id\n      lastCharacters\n      amountUsed {\n        ...Money\n      }\n    }\n    checkoutUrl\n    totalQuantity\n    buyerIdentity {\n      countryCode\n      customer {\n        id\n        email\n        firstName\n        lastName\n        displayName\n      }\n      email\n      phone\n    }\n    lines(first: $numCartLines) {\n      nodes {\n        ...CartLine\n        ...CartLineComponent\n      }\n    }\n    cost {\n      subtotalAmount {\n        ...Money\n      }\n      totalAmount {\n        ...Money\n      }\n      totalDutyAmount {\n        ...Money\n      }\n      totalTaxAmount {\n        ...Money\n      }\n    }\n    note\n    attributes {\n      key\n      value\n    }\n    discountCodes {\n      code\n      applicable\n    }\n  }\n\n': {
+    return: RawCartLinesUpdateMutation;
+    variables: RawCartLinesUpdateMutationVariables;
+  };
+  '#graphql\n  mutation RawCartLinesRemove(\n    $cartId: ID!\n    $lineIds: [ID!]!\n    $numCartLines: Int = 250\n  ) {\n    cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {\n      cart {\n        ...CartApiQuery\n      }\n      userErrors {\n        field\n        message\n        code\n      }\n      warnings {\n        code\n        message\n        target\n      }\n    }\n  }\n  #graphql\n  fragment Money on MoneyV2 {\n    currencyCode\n    amount\n  }\n  fragment CartLine on CartLine {\n    id\n    quantity\n    attributes {\n      key\n      value\n    }\n    cost {\n      totalAmount {\n        ...Money\n      }\n      amountPerQuantity {\n        ...Money\n      }\n      compareAtAmountPerQuantity {\n        ...Money\n      }\n    }\n    merchandise {\n      ... on ProductVariant {\n        id\n        availableForSale\n        compareAtPrice {\n          ...Money\n        }\n        price {\n          ...Money\n        }\n        requiresShipping\n        title\n        image {\n          id\n          url\n          altText\n          width\n          height\n\n        }\n        product {\n          handle\n          title\n          id\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    parentRelationship {\n      parent {\n        id\n      }\n    }\n  }\n  fragment CartLineComponent on ComponentizableCartLine {\n    id\n    quantity\n    attributes {\n      key\n      value\n    }\n    cost {\n      totalAmount {\n        ...Money\n      }\n      amountPerQuantity {\n        ...Money\n      }\n      compareAtAmountPerQuantity {\n        ...Money\n      }\n    }\n    merchandise {\n      ... on ProductVariant {\n        id\n        availableForSale\n        compareAtPrice {\n          ...Money\n        }\n        price {\n          ...Money\n        }\n        requiresShipping\n        title\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        product {\n          handle\n          title\n          id\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    lineComponents {\n      ...CartLine\n    }\n  }\n  fragment CartApiQuery on Cart {\n    updatedAt\n    id\n    appliedGiftCards {\n      id\n      lastCharacters\n      amountUsed {\n        ...Money\n      }\n    }\n    checkoutUrl\n    totalQuantity\n    buyerIdentity {\n      countryCode\n      customer {\n        id\n        email\n        firstName\n        lastName\n        displayName\n      }\n      email\n      phone\n    }\n    lines(first: $numCartLines) {\n      nodes {\n        ...CartLine\n        ...CartLineComponent\n      }\n    }\n    cost {\n      subtotalAmount {\n        ...Money\n      }\n      totalAmount {\n        ...Money\n      }\n      totalDutyAmount {\n        ...Money\n      }\n      totalTaxAmount {\n        ...Money\n      }\n    }\n    note\n    attributes {\n      key\n      value\n    }\n    discountCodes {\n      code\n      applicable\n    }\n  }\n\n': {
+    return: RawCartLinesRemoveMutation;
+    variables: RawCartLinesRemoveMutationVariables;
+  };
+  '#graphql\n  mutation RawCheckoutCartCreate(\n    $input: CartInput!\n    $numCartLines: Int = 250\n  ) {\n    cartCreate(input: $input) {\n      cart {\n        ...CartApiQuery\n      }\n      userErrors {\n        field\n        message\n        code\n      }\n      warnings {\n        code\n        message\n        target\n      }\n    }\n  }\n  #graphql\n  fragment Money on MoneyV2 {\n    currencyCode\n    amount\n  }\n  fragment CartLine on CartLine {\n    id\n    quantity\n    attributes {\n      key\n      value\n    }\n    cost {\n      totalAmount {\n        ...Money\n      }\n      amountPerQuantity {\n        ...Money\n      }\n      compareAtAmountPerQuantity {\n        ...Money\n      }\n    }\n    merchandise {\n      ... on ProductVariant {\n        id\n        availableForSale\n        compareAtPrice {\n          ...Money\n        }\n        price {\n          ...Money\n        }\n        requiresShipping\n        title\n        image {\n          id\n          url\n          altText\n          width\n          height\n\n        }\n        product {\n          handle\n          title\n          id\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    parentRelationship {\n      parent {\n        id\n      }\n    }\n  }\n  fragment CartLineComponent on ComponentizableCartLine {\n    id\n    quantity\n    attributes {\n      key\n      value\n    }\n    cost {\n      totalAmount {\n        ...Money\n      }\n      amountPerQuantity {\n        ...Money\n      }\n      compareAtAmountPerQuantity {\n        ...Money\n      }\n    }\n    merchandise {\n      ... on ProductVariant {\n        id\n        availableForSale\n        compareAtPrice {\n          ...Money\n        }\n        price {\n          ...Money\n        }\n        requiresShipping\n        title\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        product {\n          handle\n          title\n          id\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n    lineComponents {\n      ...CartLine\n    }\n  }\n  fragment CartApiQuery on Cart {\n    updatedAt\n    id\n    appliedGiftCards {\n      id\n      lastCharacters\n      amountUsed {\n        ...Money\n      }\n    }\n    checkoutUrl\n    totalQuantity\n    buyerIdentity {\n      countryCode\n      customer {\n        id\n        email\n        firstName\n        lastName\n        displayName\n      }\n      email\n      phone\n    }\n    lines(first: $numCartLines) {\n      nodes {\n        ...CartLine\n        ...CartLineComponent\n      }\n    }\n    cost {\n      subtotalAmount {\n        ...Money\n      }\n      totalAmount {\n        ...Money\n      }\n      totalDutyAmount {\n        ...Money\n      }\n      totalTaxAmount {\n        ...Money\n      }\n    }\n    note\n    attributes {\n      key\n      value\n    }\n    discountCodes {\n      code\n      applicable\n    }\n  }\n\n': {
+    return: RawCheckoutCartCreateMutation;
+    variables: RawCheckoutCartCreateMutationVariables;
+  };
+}
 
 declare module '@shopify/hydrogen' {
   interface StorefrontQueries extends GeneratedQueryTypes {}

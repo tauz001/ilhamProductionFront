@@ -1,4 +1,4 @@
-import {Link} from 'react-router';
+import {Link, useSearchParams} from 'react-router';
 import {motion} from 'framer-motion';
 import {Gift, RefreshCw, ShieldCheck, Truck} from 'lucide-react';
 import {useOptimisticCart} from '@shopify/hydrogen';
@@ -9,9 +9,14 @@ import {
   getDisplayShipping,
   getDisplayTotal,
 } from '~/lib/commerce/cart-pricing';
-import {getVisibleCartLines} from '~/lib/commerce/cart-lines';
+import {
+  getCartLineQuantityTotal,
+  getVisibleCartLines,
+  hasCartLineIssue,
+} from '~/lib/commerce/cart-lines';
 import {easeSilk} from '~/lib/motion/variants';
 import {BagLineItem} from './BagLineItem';
+import {DeliveryEstimator} from './DeliveryEstimator';
 
 export type BagRecommendation = {
   id: string;
@@ -27,8 +32,11 @@ type Props = {
 };
 
 export function BagPage({cart: originalCart, recommendations = []}: Props) {
+  const [searchParams] = useSearchParams();
   const cart = useOptimisticCart(originalCart);
   const lines = getVisibleCartLines(cart as CartApiQueryFragment | null);
+  const invalidLines = lines.filter(hasCartLineIssue);
+  const quantityTotal = getCartLineQuantityTotal(lines);
   const subtotalMoney = cart?.cost?.subtotalAmount;
   const subtotal = subtotalMoney
     ? parseFloat(String(subtotalMoney.amount))
@@ -37,6 +45,12 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
   const shipping = getDisplayShipping(subtotal, currencyCode);
   const total = getDisplayTotal(subtotal, currencyCode);
   const checkoutUrl = cart?.checkoutUrl;
+  const canCheckout =
+    Boolean(checkoutUrl) &&
+    quantityTotal > 0 &&
+    subtotal > 0 &&
+    invalidLines.length === 0;
+  const checkoutBlocked = searchParams.get('checkout') === 'unavailable';
 
   return (
     <div className="relative min-h-screen bg-ivory pt-28 pb-24 lg:pt-36">
@@ -48,7 +62,7 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
         className="absolute -top-10 right-4"
       />
 
-      <div className="mx-auto max-w-[1500px] px-6 lg:px-12">
+      <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-12">
         <motion.div
           initial={{opacity: 0, y: 20}}
           animate={{opacity: 1, y: 0}}
@@ -62,7 +76,7 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
             </h1>
           </div>
           <p className="hidden text-sm italic text-ink/55 md:block">
-            {lines.length} {lines.length === 1 ? 'piece' : 'pieces'} selected
+            {quantityTotal} {quantityTotal === 1 ? 'piece' : 'pieces'} selected
           </p>
         </motion.div>
 
@@ -70,7 +84,7 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
           <EmptyBag />
         ) : (
           <div className="grid gap-16 lg:grid-cols-[1fr_400px]">
-            <ul className="divide-y divide-border">
+            <ul className="min-w-0 divide-y divide-border">
               {lines.map((line, i) => (
                 <BagLineItem
                   key={line.id}
@@ -81,7 +95,7 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
               ))}
             </ul>
 
-            <aside className="self-start lg:sticky lg:top-28">
+            <aside className="min-w-0 self-start lg:sticky lg:top-28">
               <div className="border border-border bg-cream/50 p-8">
                 <p className="small-caps text-ink/50">Order summary</p>
                 <h2 className="mt-2 font-serif text-3xl">Carefully tallied</h2>
@@ -100,7 +114,7 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-ink/65">Shipping</dt>
-                    <dd className="italic">{shipping.label}</dd>
+                    <dd className="text-right italic">{shipping.label}</dd>
                   </div>
                   <div className="flex justify-between text-ink/50">
                     <dt>Estimated taxes</dt>
@@ -109,22 +123,36 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
                 </dl>
 
                 <div className="mt-6 flex items-baseline justify-between border-t border-border pt-6">
-                  <span className="small-caps text-ink/60">Total</span>
+                  <span className="small-caps text-ink/60">Estimated total</span>
                   <span className="font-display text-3xl">
                     {formatMoney(total, currencyCode)}
                   </span>
                 </div>
 
-                {checkoutUrl ? (
-                  <a
-                    href={checkoutUrl}
+                <DeliveryEstimator
+                  amount={subtotal}
+                  compact
+                  className="mt-6 bg-ivory/60"
+                />
+
+                {(invalidLines.length > 0 || checkoutBlocked) && (
+                  <p className="mt-6 border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    One item in your bag has zero quantity or is no longer
+                    purchasable. Increase it back to 1 or remove it before
+                    checkout.
+                  </p>
+                )}
+
+                {canCheckout ? (
+                  <Link
+                    to="/checkout"
                     className="mt-8 block w-full bg-ink py-4 small-caps text-center text-ivory hover:bg-gold transition-colors"
                   >
                     Proceed to Checkout
-                  </a>
+                  </Link>
                 ) : (
                   <span className="mt-8 block w-full bg-ink/40 py-4 small-caps text-center text-ivory">
-                    Proceed to Checkout
+                    Resolve Bag Before Checkout
                   </span>
                 )}
                 <Link
@@ -147,7 +175,7 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
                       className="mt-0.5 h-3.5 w-3.5 text-gold"
                       strokeWidth={1.4}
                     />{' '}
-                    Worldwide express, free over ₹25,000
+                    Delivery rates and timelines confirmed at checkout
                   </li>
                   <li className="flex items-start gap-2">
                     <RefreshCw
@@ -183,7 +211,7 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
                 View all
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4 md:gap-8">
               {recommendations.map((p) => (
                 <Link
                   key={p.id}
@@ -229,16 +257,16 @@ function EmptyBag() {
         Every ilham piece is hand-embroidered over weeks. Begin your selection
         from the atelier below.
       </p>
-      <div className="mt-10 flex gap-4">
+      <div className="mt-10 flex flex-col gap-4 sm:flex-row">
         <Link
           to="/collections"
-          className="small-caps border border-ink bg-ink px-8 py-3 text-ivory hover:bg-gold hover:border-gold transition-colors"
+          className="border border-ink bg-ink px-8 py-3 text-center small-caps text-ivory transition-colors hover:border-gold hover:bg-gold"
         >
           Discover the Atelier
         </Link>
         <Link
           to="/gifting"
-          className="small-caps border border-ink px-8 py-3 hover:bg-ink hover:text-ivory transition-colors"
+          className="border border-ink px-8 py-3 text-center small-caps transition-colors hover:bg-ink hover:text-ivory"
         >
           Gifting Hub
         </Link>

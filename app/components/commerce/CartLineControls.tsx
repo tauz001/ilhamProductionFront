@@ -65,6 +65,7 @@ export function CartLineQuantityControls({
   if (!line || typeof line.quantity === 'undefined') return null;
 
   const {id: lineId, quantity, isOptimistic} = line;
+  const merchandiseUnavailable = line.merchandise.availableForSale === false;
   const prevQuantity = Number(Math.max(0, quantity - 1).toFixed(0));
   const nextQuantity = Number((quantity + 1).toFixed(0));
   const btnClass = compact ? 'p-1.5' : 'p-2 hover:bg-cream';
@@ -75,7 +76,7 @@ export function CartLineQuantityControls({
         <button
           type="submit"
           aria-label="Decrease quantity"
-          disabled={quantity <= 1 || !!isOptimistic}
+          disabled={quantity <= 1 || !!isOptimistic || merchandiseUnavailable}
           className={btnClass}
         >
           <Minus className="h-3 w-3" strokeWidth={compact ? 1.2 : 1.4} />
@@ -86,7 +87,7 @@ export function CartLineQuantityControls({
         <button
           type="submit"
           aria-label="Increase quantity"
-          disabled={!!isOptimistic}
+          disabled={!!isOptimistic || merchandiseUnavailable}
           className={btnClass}
         >
           <Plus className="h-3 w-3" strokeWidth={compact ? 1.2 : 1.4} />

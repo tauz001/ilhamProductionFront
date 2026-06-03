@@ -1,6 +1,6 @@
 import {type FetcherWithComponents} from 'react-router';
 import {CartForm, type OptimisticCartLineInput} from '@shopify/hydrogen';
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 export function AddToCartButton({
   analytics,
@@ -52,11 +52,26 @@ function AddToCartButtonContent({
   lines: Array<OptimisticCartLineInput>;
   onClick?: () => void;
 }) {
+  const onClickRef = useRef(onClick);
+
+  useEffect(() => {
+    onClickRef.current = onClick;
+  }, [onClick]);
+
   useEffect(() => {
     if (fetcher.state !== 'idle' || !fetcher.data) return;
 
     const data = fetcher.data as {
-      cart?: {id?: string; totalQuantity?: number} | null;
+      cart?: {
+        id?: string;
+        totalQuantity?: number;
+        lines?: {
+          nodes?: Array<{
+            quantity?: number;
+            merchandise?: {availableForSale?: boolean};
+          }>;
+        };
+      } | null;
       errors?: unknown[];
       warnings?: unknown[];
     };
@@ -79,6 +94,14 @@ function AddToCartButtonContent({
       cartId: data.cart.id,
       totalQuantity: data.cart.totalQuantity,
     });
+
+    if (!data.cart.totalQuantity) {
+      console.warn(
+        '[cart] Add to cart returned a cart with zero total quantity. Opening the drawer so the stale line can be removed.',
+      );
+    }
+
+    onClickRef.current?.();
   }, [fetcher.data, fetcher.state]);
 
   return (

@@ -1,0 +1,207 @@
+import type {Route} from './+types/api.delivery-estimate';
+
+type ShiprocketCourier = {
+  courier_name?: string;
+  cod?: number | boolean;
+  cod_charges?: number;
+  etd?: string;
+  estimated_delivery_days?: string | number;
+  estimated_delivery_date?: string;
+  min_delivery_days?: string | number;
+  max_delivery_days?: string | number;
+};
+
+type ShiprocketEnv = {
+  SHIPROCKET_API_TOKEN?: string;
+  SHIPROCKET_DEFAULT_WEIGHT_KG?: string;
+  SHIPROCKET_EMAIL?: string;
+  SHIPROCKET_PASSWORD?: string;
+  SHIPROCKET_PICKUP_POSTCODE?: string;
+};
+
+export async function loader({request, context}: Route.LoaderArgs) {
+  const url = new URL(request.url);
+  const pincode = url.searchParams.get('pincode')?.trim() ?? '';
+  const amount = Number(url.searchParams.get('amount') ?? 0);
+  const env = context.env as unknown as ShiprocketEnv;
+
+  if (!/^\d{6}$/.test(pincode)) {
+    return json(
+      {
+        configured: isShiprocketConfigured(env),
+        serviceable: false,
+        message: 'Enter a valid 6-digit pincode.',
+      },
+      400,
+    );
+  }
+
+  if (!isShiprocketConfigured(env)) {
+    return json({
+      configured: false,
+      serviceable: undefined,
+      message: 'Delivery timelines are confirmed at checkout for your pincode.',
+      estimate: {checkedPincode: pincode},
+    });
+  }
+
+  try {
+    const token = await getShiprocketToken(env);
+    const serviceabilityUrl = buildServiceabilityUrl({
+      env,
+      amount,
+      deliveryPincode: pincode,
+    });
+
+    const response = await fetch(serviceabilityUrl, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const payload = (await response.json()) as any;
+
+    if (!response.ok) {
+      console.error('[delivery-estimate] Shiprocket serviceability failed:', {
+        status: response.status,
+        payload,
+      });
+      return json(
+        {
+          configured: true,
+          serviceable: false,
+          message: 'Could not check this pincode right now.',
+          estimate: {checkedPincode: pincode},
+        },
+        502,
+      );
+    }
+
+    const couriers = getCourierCompanies(payload);
+    const bestCourier = couriers[0];
+    const etaText = bestCourier ? getEtaText(bestCourier) : '';
+
+    return json({
+      configured: true,
+      serviceable: couriers.length > 0,
+      message: couriers.length
+        ? 'Delivery is available for this pincode.'
+        : 'Delivery is not available for this pincode yet. Try another pincode.',
+      estimate: {
+        checkedPincode: pincode,
+        courier: bestCourier?.courier_name,
+        codAvailable: couriers.some((courier) => Boolean(courier.cod)),
+        prepaidAvailable: couriers.length > 0,
+        etaText,
+      },
+    });
+  } catch (error) {
+    console.error('[delivery-estimate] Shiprocket estimate failed:', error);
+    return json(
+      {
+        configured: true,
+        serviceable: false,
+        message: 'Could not check this pincode right now.',
+        estimate: {checkedPincode: pincode},
+      },
+      502,
+    );
+  }
+}
+
+function isShiprocketConfigured(env: ShiprocketEnv) {
+  return Boolean(
+    env.SHIPROCKET_PICKUP_POSTCODE &&
+      (env.SHIPROCKET_API_TOKEN ||
+        (env.SHIPROCKET_EMAIL && env.SHIPROCKET_PASSWORD)),
+  );
+}
+
+async function getShiprocketToken(env: ShiprocketEnv) {
+  if (env.SHIPROCKET_API_TOKEN) return env.SHIPROCKET_API_TOKEN;
+
+  const response = await fetch(
+    'https://apiv2.shiprocket.in/v1/external/auth/login',
+    {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: env.SHIPROCKET_EMAIL,
+        password: env.SHIPROCKET_PASSWORD,
+      }),
+    },
+  );
+  const payload = (await response.json()) as {token?: string};
+
+  if (!response.ok || !payload.token) {
+    throw new Error('Shiprocket authentication failed.');
+  }
+
+  return payload.token;
+}
+
+function buildServiceabilityUrl({
+  env,
+  amount,
+  deliveryPincode,
+}: {
+  env: ShiprocketEnv;
+  amount: number;
+  deliveryPincode: string;
+}) {
+  const serviceabilityUrl = new URL(
+    'https://apiv2.shiprocket.in/v1/external/courier/serviceability/',
+  );
+  const weight = Number(env.SHIPROCKET_DEFAULT_WEIGHT_KG ?? 0.5);
+  const declaredValue = Number.isFinite(amount) && amount > 0 ? amount : 1;
+
+  serviceabilityUrl.searchParams.set(
+    'pickup_postcode',
+    env.SHIPROCKET_PICKUP_POSTCODE ?? '',
+  );
+  serviceabilityUrl.searchParams.set('delivery_postcode', deliveryPincode);
+  serviceabilityUrl.searchParams.set('cod', '0');
+  serviceabilityUrl.searchParams.set('weight', String(weight));
+  serviceabilityUrl.searchParams.set('declared_value', String(declaredValue));
+
+  return serviceabilityUrl;
+}
+
+function getCourierCompanies(payload: any): ShiprocketCourier[] {
+  const couriers =
+    payload?.data?.available_courier_companies ??
+    payload?.available_courier_companies ??
+    [];
+
+  return Array.isArray(couriers) ? (couriers as ShiprocketCourier[]) : [];
+}
+
+function getEtaText(courier: ShiprocketCourier) {
+  if (courier.etd) return `Estimated delivery ${courier.etd}`;
+  if (courier.estimated_delivery_date) {
+    return `Estimated delivery ${courier.estimated_delivery_date}`;
+  }
+  if (courier.estimated_delivery_days) {
+    return `Estimated delivery in ${courier.estimated_delivery_days} days`;
+  }
+  if (courier.min_delivery_days || courier.max_delivery_days) {
+    const minDays = courier.min_delivery_days ?? courier.max_delivery_days;
+    const maxDays = courier.max_delivery_days ?? courier.min_delivery_days;
+    return `Estimated delivery in ${minDays}-${maxDays} days`;
+  }
+
+  return 'Estimated delivery is confirmed after checkout address selection.';
+}
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'private, max-age=60',
+    },
+  });
+}

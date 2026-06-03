@@ -19,7 +19,15 @@ export const CUSTOMER_ORDER_QUERY = `#graphql
     id
     title
     quantity
+    sku
+    requiresShipping
     price {
+      ...OrderMoney
+    }
+    currentTotalPrice {
+      ...OrderMoney
+    }
+    soldTotalPrice {
       ...OrderMoney
     }
     discountAllocations {
@@ -47,14 +55,60 @@ export const CUSTOMER_ORDER_QUERY = `#graphql
     name
     confirmationNumber
     statusPageUrl
+    financialStatus
     fulfillmentStatus
     processedAt
-    fulfillments(first: 1) {
+    updatedAt
+    requiresShipping
+    shippingTitle
+    fulfillments(first: 10, sortKey: CREATED_AT) {
       nodes {
+        id
         status
+        latestShipmentStatus
+        createdAt
+        updatedAt
+        estimatedDeliveryAt
+        requiresShipping
+        trackingInformation {
+          company
+          number
+          url
+        }
+        events(first: 10, sortKey: HAPPENED_AT, reverse: true) {
+          nodes {
+            id
+            status
+            happenedAt
+          }
+        }
+        fulfillmentLineItems(first: 20) {
+          nodes {
+            id
+            quantity
+            lineItem {
+              id
+              title
+              variantTitle
+              image {
+                altText
+                height
+                url
+                id
+                width
+              }
+            }
+          }
+        }
       }
     }
     totalTax {
+      ...OrderMoney
+    }
+    totalShipping {
+      ...OrderMoney
+    }
+    totalRefunded {
       ...OrderMoney
     }
     totalPrice {
@@ -71,6 +125,18 @@ export const CUSTOMER_ORDER_QUERY = `#graphql
     discountApplications(first: 100) {
       nodes {
         ...DiscountApplication
+      }
+    }
+    transactions {
+      id
+      kind
+      status
+      type
+      processedAt
+      transactionAmount {
+        presentmentMoney {
+          ...OrderMoney
+        }
       }
     }
     lineItems(first: 100) {

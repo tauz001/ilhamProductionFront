@@ -56,9 +56,8 @@ export default function Gifting() {
   );
 
   const giftingHero =
-    collections.find((c: any) => c.handle === 'luxury-gifting')?.image?.url ??
-    collections[0]?.image?.url ??
-    '';
+  'https://cdn.shopify.com/s/files/1/0820/4389/6063/files/ChatGPT_Image_May_31_2026_05_58_51_PM.png?v=1780230545';
+  const giftBox = 'https://cdn.shopify.com/s/files/1/0820/4389/6063/files/giftingbox01.png?v=1780228988'
   const wedding =
     collections.find((c: any) => c.handle === 'wedding-edit')?.image?.url ??
     giftingHero;
@@ -158,7 +157,7 @@ export default function Gifting() {
         </h2>
 
         <div className="mt-20 grid gap-16 md:grid-cols-2">
-          <ParallaxImage src={giftingHero} alt="" className="aspect-[4/5]" />
+          <ParallaxImage src={giftBox} alt="" className="aspect-[4/5]" />
 
           <div className="space-y-12">
             <div>
