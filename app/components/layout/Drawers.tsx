@@ -1,7 +1,7 @@
 import {AnimatePresence, motion} from 'framer-motion';
 import {Heart, Search as SearchIcon, X} from 'lucide-react';
-import {Link, useRouteLoaderData} from 'react-router';
-import {useState} from 'react';
+import {Link, useNavigate, useRouteLoaderData} from 'react-router';
+import {useState, type FormEvent} from 'react';
 import {useStore} from '~/lib/commerce/cart-store';
 import {formatMoney} from '~/lib/commerce/format-money';
 import {
@@ -144,7 +144,7 @@ function CartDrawerContent({
                   String(subtotalMoney.amount),
                   subtotalMoney.currencyCode,
                 )
-              : '—'}
+              : '-'}
           </span>
         </div>
         <p className="mt-2 text-xs text-ink/45">
@@ -271,6 +271,7 @@ function SearchOverlay() {
   const drawer = useStore((s) => s.drawer);
   const close = useStore((s) => s.closeDrawer);
   const [q, setQ] = useState('');
+  const navigate = useNavigate();
   const products = useLayoutProducts();
   const collections = useLayoutCollections();
 
@@ -286,6 +287,14 @@ function SearchOverlay() {
   const matchCollections = collections
     .filter((c) => !q || c.title.toLowerCase().includes(q.toLowerCase()))
     .slice(0, 4);
+  const trimmedQuery = q.trim();
+
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!trimmedQuery) return;
+    close();
+    void navigate(`/search?q=${encodeURIComponent(trimmedQuery)}`);
+  };
 
   return (
     <AnimatePresence>
@@ -321,6 +330,13 @@ function SearchOverlay() {
             >
               <span
                 aria-hidden
+                className="hidden font-urdu pointer-events-none absolute -top-12 right-6 select-none text-[180px] leading-none text-[oklch(0.32_0.11_25)]/[0.05]"
+              >
+                تلاش
+              </span>
+
+              <span
+                aria-hidden
                 className="font-urdu pointer-events-none absolute -top-12 right-6 select-none text-[180px] leading-none text-[oklch(0.32_0.11_25)]/[0.05]"
               >
                 تلاش
@@ -338,7 +354,8 @@ function SearchOverlay() {
                   </button>
                 </div>
 
-                <motion.div
+                <motion.form
+                  onSubmit={submitSearch}
                   className="mt-5 flex items-center border-b border-ink/30 pb-3"
                   initial={{opacity: 0, y: 8}}
                   animate={{opacity: 1, y: 0}}
@@ -349,13 +366,18 @@ function SearchOverlay() {
                     strokeWidth={1.2}
                   />
                   <input
-                    autoFocus
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
-                    placeholder="Anarkali, saree, ivory…"
+                    placeholder="Anarkali, saree, ivory..."
                     className="ml-3 w-full bg-transparent font-serif text-2xl text-ink placeholder:text-ink/25 focus:outline-none md:text-3xl"
                   />
-                </motion.div>
+                  <button
+                    type="submit"
+                    className="ml-4 whitespace-nowrap small-caps text-[10px] text-ink/45 transition-colors hover:text-gold"
+                  >
+                    View all
+                  </button>
+                </motion.form>
               </div>
 
               <motion.div
@@ -401,7 +423,7 @@ function SearchOverlay() {
                             <p className="font-serif text-base group-hover:text-gold transition-colors">
                               {p.title}{' '}
                               <span className="italic text-ink/45">
-                                — {getMetafieldValue(p, 'subtitle')}
+                                - {getMetafieldValue(p, 'subtitle')}
                               </span>
                             </p>
                             <p className="text-[11px] text-ink/40">

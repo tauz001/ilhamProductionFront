@@ -19,6 +19,10 @@ type ShiprocketEnv = {
   SHIPROCKET_PICKUP_POSTCODE?: string;
 };
 
+let cachedShiprocketToken:
+  | {email: string; token: string; expiresAt: number}
+  | null = null;
+
 export async function loader({request, context}: Route.LoaderArgs) {
   const url = new URL(request.url);
   const pincode = url.searchParams.get('pincode')?.trim() ?? '';
@@ -119,6 +123,14 @@ function isShiprocketConfigured(env: ShiprocketEnv) {
 
 async function getShiprocketToken(env: ShiprocketEnv) {
   if (env.SHIPROCKET_API_TOKEN) return env.SHIPROCKET_API_TOKEN;
+  const email = env.SHIPROCKET_EMAIL ?? '';
+
+  if (
+    cachedShiprocketToken?.email === email &&
+    cachedShiprocketToken.expiresAt > Date.now()
+  ) {
+    return cachedShiprocketToken.token;
+  }
 
   const response = await fetch(
     'https://apiv2.shiprocket.in/v1/external/auth/login',
@@ -139,6 +151,12 @@ async function getShiprocketToken(env: ShiprocketEnv) {
   if (!response.ok || !payload.token) {
     throw new Error('Shiprocket authentication failed.');
   }
+
+  cachedShiprocketToken = {
+    email,
+    token: payload.token,
+    expiresAt: Date.now() + 20 * 60 * 1000,
+  };
 
   return payload.token;
 }
@@ -176,7 +194,23 @@ function getCourierCompanies(payload: any): ShiprocketCourier[] {
     payload?.available_courier_companies ??
     [];
 
-  return Array.isArray(couriers) ? (couriers as ShiprocketCourier[]) : [];
+  return Array.isArray(couriers)
+    ? [...(couriers as ShiprocketCourier[])].sort(
+        (a, b) => getDeliveryDayScore(a) - getDeliveryDayScore(b),
+      )
+    : [];
+}
+
+function getDeliveryDayScore(courier: ShiprocketCourier) {
+  const candidates = [
+    courier.min_delivery_days,
+    courier.estimated_delivery_days,
+    courier.max_delivery_days,
+  ]
+    .map((value) => Number.parseFloat(String(value ?? '')))
+    .filter((value) => Number.isFinite(value) && value > 0);
+
+  return candidates.length ? Math.min(...candidates) : Number.MAX_SAFE_INTEGER;
 }
 
 function getEtaText(courier: ShiprocketCourier) {

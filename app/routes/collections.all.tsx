@@ -6,7 +6,14 @@ import {ProductItem} from '~/components/ProductItem';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
 
 export const meta: Route.MetaFunction = () => {
-  return [{title: `Hydrogen | Products`}];
+  return [
+    {title: 'All Pieces - ilham'},
+    {
+      name: 'description',
+      content:
+        'Browse all ilham Lucknowi chikankari pieces available through the atelier.',
+    },
+  ];
 };
 
 export async function loader(args: Route.LoaderArgs) {

@@ -8,7 +8,7 @@ import {logMissingShopifyField} from '~/lib/commerce/shopify-fields';
 
 export const meta: Route.MetaFunction = () => {
   return [
-    {title: 'Create Account — ilham'},
+    {title: 'Create Account - ilham'},
     {
       name: 'description',
       content: 'Begin your ilham atelier through Shopify Customer Accounts.',
@@ -36,10 +36,6 @@ export async function loader({context}: Route.LoaderArgs) {
       'Add at least one product image in Shopify Admin so login/signup pages can match the TanStack visual layout.',
     );
   }
-
-  console.log(
-    '[auth] Signup is delegated to Shopify Customer Accounts. Enable customer account creation in Shopify Admin > Settings > Customer accounts.',
-  );
 
   return {image};
 }

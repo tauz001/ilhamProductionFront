@@ -8,12 +8,12 @@ import {
 
 export const meta: Route.MetaFunction = () => {
   return [
-    {title: 'Collections — ilham'},
+    {title: 'Collections - ilham'},
     {
       name: 'description',
       content: 'Browse ilham collections from Shopify.',
     },
-    {property: 'og:title', content: 'Collections — ilham'},
+    {property: 'og:title', content: 'Collections - ilham'},
   ];
 };
 

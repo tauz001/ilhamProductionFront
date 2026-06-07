@@ -1,5 +1,9 @@
 import {Link} from 'react-router';
 import {ChikanMotif} from '~/components/editorial/ChikanMotif';
+import {SOCIAL_LINKS} from '~/lib/social-links';
+
+const LOGO_URL =
+  'https://cdn.shopify.com/s/files/1/0820/4389/6063/files/ilham_logo_wo_bg.png?v=1780461025';
 
 export function Footer() {
   return (
@@ -8,11 +12,19 @@ export function Footer() {
         aria-hidden
         className="font-urdu pointer-events-none absolute -bottom-16 left-1/2 -translate-x-1/2 select-none text-[42vh] leading-none text-[oklch(0.62_0.11_75)]/[0.04]"
       >
-        نقش
+        الہام
       </span>
       <div className="relative mx-auto max-w-[1500px] px-6 py-24 lg:px-12">
         <div className="flex flex-col items-center text-center">
-          <ChikanMotif className="h-8 w-48 text-gold-soft" />
+          <Link to="/" aria-label="ilham home">
+            <img
+              src={LOGO_URL}
+              alt="ilham"
+              className="h-11 w-auto object-contain invert"
+              loading="lazy"
+            />
+          </Link>
+          <ChikanMotif className="mt-8 h-8 w-48 text-gold-soft" />
           <h2 className="mt-10 font-display text-5xl tracking-[0.04em] md:text-7xl">
             Every thread <em className="italic font-serif">carries</em> a story.
           </h2>
@@ -105,14 +117,19 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a className="hover:text-gold" href="#">
-                  Worldwide shipping
-                </a>
+                <Link to="/policies/shipping-policy" className="hover:text-gold">
+                  All India shipping
+                </Link>
               </li>
               <li>
-                <a className="hover:text-gold" href="#">
+                <Link to="/terms-and-conditions" className="hover:text-gold">
+                  Terms & conditions
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-gold">
                   Care & repair
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -123,18 +140,38 @@ export function Footer() {
             © {new Date().getFullYear()} ilham Atelier — Lucknow, India. Made by
             hand.
           </p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-gold">
-              Instagram
-            </a>
-            <a href="#" className="hover:text-gold">
-              Pinterest
-            </a>
-            <a href="#" className="hover:text-gold">
+          <div className="flex flex-wrap justify-center gap-6">
+            {SOCIAL_LINKS.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-gold"
+              >
+                {social.label}
+              </a>
+            ))}
+            <Link to="/terms-and-conditions" className="hover:text-gold">
+              Terms
+            </Link>
+            <Link to="/blogs" className="hover:text-gold">
               Journal
-            </a>
+            </Link>
           </div>
         </div>
+
+        <p className="mt-6 text-center text-xs text-ivory/35">
+          Developed by{' '}
+          <a
+            href="https://tauz001.github.io/PortfolioTauz/"
+            target="_blank"
+            rel="noreferrer"
+            className="text-ivory/55 transition-colors hover:text-gold"
+          >
+            Love
+          </a>
+        </p>
       </div>
     </footer>
   );

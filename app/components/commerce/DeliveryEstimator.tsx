@@ -114,7 +114,12 @@ export function DeliveryEstimator({
         </div>
       </div>
 
-      <form onSubmit={checkDelivery} className="mt-4 flex gap-2">
+      <form
+        onSubmit={(event) => {
+          void checkDelivery(event);
+        }}
+        className="mt-4 flex gap-2"
+      >
         <input
           inputMode="numeric"
           maxLength={6}

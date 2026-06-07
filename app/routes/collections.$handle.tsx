@@ -1,4 +1,4 @@
-import {Link, useLoaderData} from 'react-router';
+import {Link, useLoaderData, useSearchParams} from 'react-router';
 import type {Route} from './+types/collections.$handle';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Check, ChevronDown, SlidersHorizontal, X} from 'lucide-react';
@@ -7,25 +7,40 @@ import {Analytics} from '@shopify/hydrogen';
 import {ProductCard} from '~/components/commerce/ProductCard';
 import {FadeUp} from '~/components/editorial/MaskedReveal';
 import {ChikanMotif} from '~/components/editorial/ChikanMotif';
+import {JsonLd} from '~/components/seo/JsonLd';
 import {
   getMetafieldValue,
   logMissingShopifyField,
   parseListField,
   tagIncludes,
 } from '~/lib/commerce/shopify-fields';
+import {
+  clearCollectionFilters,
+  PRICE_BANDS,
+  parseCollectionFilters,
+  getCollectionSearchTerm,
+  getCollectionSort,
+  setCollectionSearchTerm,
+  setCollectionSort,
+  toggleCollectionFilterValue,
+  type CollectionFilterKey,
+  type CollectionFilterState,
+} from '~/lib/commerce/collection-filters';
+import {productMatchesText} from '~/lib/commerce/product-facets';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {breadcrumbJsonLd, collectionItemListJsonLd} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = ({data}) => {
   const collection = data?.collection;
   return [
-    {title: collection ? `${collection.title} — ilham` : 'Collection — ilham'},
+    {title: collection ? `${collection.title} - ilham` : 'Collection - ilham'},
     {
       name: 'description',
       content: collection?.description ?? 'ilham collection',
     },
     {
       property: 'og:title',
-      content: collection ? `${collection.title} — ilham` : 'ilham',
+      content: collection ? `${collection.title} - ilham` : 'ilham',
     },
     {property: 'og:image', content: collection?.image?.url},
   ];
@@ -64,36 +79,23 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
   return {collection};
 }
 
-type FilterState = {
-  priceBands: string[];
-  colors: string[];
-  occasions: string[];
-  fabrics: string[];
-  sizes: string[];
-  availability: string[];
-};
-
-const PRICE_BANDS = [
-  {id: '0-15000', label: 'Under ₹15,000', min: 0, max: 15000},
-  {id: '15000-25000', label: '₹15,000 – ₹25,000', min: 15000, max: 25000},
-  {id: '25000-50000', label: '₹25,000 – ₹50,000', min: 25000, max: 50000},
-  {id: '50000-9999999', label: 'Above ₹50,000', min: 50000, max: 9999999},
-];
-
-const emptyFilters: FilterState = {
-  priceBands: [],
-  colors: [],
-  occasions: [],
-  fabrics: [],
-  sizes: [],
-  availability: [],
-};
+type FilterState = CollectionFilterState;
 
 export default function Collection() {
   const {collection} = useLoaderData<typeof loader>();
-  const baseItems = collection.products?.nodes ?? [];
+  const [searchParams, setSearchParams] = useSearchParams();
+  const baseItems = useMemo(
+    () => collection.products?.nodes ?? [],
+    [collection.products?.nodes],
+  );
   const tagline = getRequiredCollectionMetafield(collection, 'tagline');
   const category = getRequiredCollectionMetafield(collection, 'category');
+  const filters = useMemo(
+    () => parseCollectionFilters(searchParams),
+    [searchParams],
+  );
+  const collectionQuery = getCollectionSearchTerm(searchParams);
+  const sort = getCollectionSort(searchParams);
 
   const facets = useMemo(() => {
     const occasions = new Set<string>();
@@ -128,26 +130,32 @@ export default function Collection() {
     };
   }, [baseItems]);
 
-  const [filters, setFilters] = useState<FilterState>(emptyFilters);
-  const [sort, setSort] = useState('featured');
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  useEffect(() => {
-    setFilters(emptyFilters);
-  }, [collection.handle]);
+  const updateSearchParams = (next: URLSearchParams) => {
+    setSearchParams(next, {preventScrollReset: true});
+  };
 
-  const toggle = (key: keyof FilterState, value: string) =>
-    setFilters((current) => ({
-      ...current,
-      [key]: current[key].includes(value)
-        ? current[key].filter((item) => item !== value)
-        : [...current[key], value],
-    }));
+  const toggle = (key: CollectionFilterKey, value: string) => {
+    updateSearchParams(toggleCollectionFilterValue(searchParams, key, value));
+  };
 
-  const clearAll = () => setFilters(emptyFilters);
+  const clearQuery = () => {
+    updateSearchParams(setCollectionSearchTerm(searchParams, ''));
+  };
+
+  const clearAll = () => updateSearchParams(clearCollectionFilters(searchParams));
+
+  const updateSort = (value: string) => {
+    updateSearchParams(setCollectionSort(searchParams, value));
+  };
 
   const filtered = useMemo(() => {
     return baseItems.filter((product: any) => {
+      if (collectionQuery && !productMatchesText(product, collectionQuery)) {
+        return false;
+      }
+
       const productOccasions = parseListField(getMetafieldValue(product, 'occasions'));
       const fabric = getProductFabric(product);
       const color = getProductColor(product);
@@ -204,7 +212,7 @@ export default function Collection() {
 
       return true;
     });
-  }, [baseItems, filters]);
+  }, [baseItems, collectionQuery, filters]);
 
   const sorted = useMemo(
     () =>
@@ -225,7 +233,8 @@ export default function Collection() {
     filters.occasions.length +
     filters.fabrics.length +
     filters.sizes.length +
-    filters.availability.length;
+    filters.availability.length +
+    (collectionQuery ? 1 : 0);
 
   const groups = [
     {key: 'priceBands' as const, label: 'Price', type: 'price' as const},
@@ -244,7 +253,7 @@ export default function Collection() {
   return (
     <>
       <header className="mx-auto max-w-[1500px] px-6 pt-36 pb-12 text-center lg:px-12 lg:pt-44">
-        <p className="small-caps text-ink/50">{category} · The Atelier</p>
+        <p className="small-caps text-ink/50">{category} / The Atelier</p>
         <h1 className="mt-5 font-display text-5xl md:text-7xl tracking-[0.01em]">
           {collection.title}
         </h1>
@@ -326,13 +335,13 @@ export default function Collection() {
               <div className="relative">
                 <select
                   value={sort}
-                  onChange={(event) => setSort(event.target.value)}
+                  onChange={(event) => updateSort(event.target.value)}
                   className="appearance-none border-b border-ink/25 bg-transparent pr-5 py-1 small-caps text-xs focus:outline-none focus:border-ink"
                 >
                   <option value="featured">Featured</option>
                   <option value="new">New In</option>
-                  <option value="price-asc">Price ↑</option>
-                  <option value="price-desc">Price ↓</option>
+                  <option value="price-asc">Price low to high</option>
+                  <option value="price-desc">Price high to low</option>
                 </select>
                 <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 pointer-events-none" />
               </div>
@@ -350,6 +359,15 @@ export default function Collection() {
               className="overflow-hidden border-t border-border/60"
             >
               <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-2 px-6 py-3 lg:px-12">
+                {collectionQuery && (
+                  <button
+                    onClick={clearQuery}
+                    className="group flex items-center gap-1.5 border border-ink/15 bg-ivory/70 px-3 py-1 text-xs text-ink/80 transition-colors hover:border-ink/40"
+                  >
+                    Search: {collectionQuery}
+                    <X className="h-3 w-3 opacity-50 group-hover:opacity-100" />
+                  </button>
+                )}
                 {(Object.keys(filters) as (keyof FilterState)[]).flatMap((key) =>
                   filters[key].map((value) => {
                     const label =
@@ -376,7 +394,7 @@ export default function Collection() {
         </AnimatePresence>
       </div>
 
-      <section className="mx-auto max-w-[1500px] px-6 py-14 lg:px-12 lg:py-20">
+      <section className="mx-auto max-w-[1500px] px-4 py-12 sm:px-6 lg:px-12 lg:py-20">
         {sorted.length === 0 ? (
           <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 text-center">
             <p className="font-serif text-2xl italic text-ink/70">No pieces match these filters.</p>
@@ -385,7 +403,7 @@ export default function Collection() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3 md:gap-x-6 md:gap-y-14 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-5 sm:gap-y-12 md:grid-cols-3 md:gap-x-6 md:gap-y-14 lg:grid-cols-4">
             {sorted.map((product: any) => (
               <FadeUp key={product.handle}>
                 <ProductCard product={product} />
@@ -412,11 +430,11 @@ export default function Collection() {
           <Link to="/collections" className="small-caps story-link">
             All collections
           </Link>
-          <span className="text-ink/30">·</span>
+          <span className="text-ink/30">/</span>
           <Link to="/gifting" className="small-caps story-link">
             Gifting
           </Link>
-          <span className="text-ink/30">·</span>
+          <span className="text-ink/30">/</span>
           <Link to="/about" className="small-caps story-link">
             Our heritage
           </Link>
@@ -430,6 +448,13 @@ export default function Collection() {
             handle: collection.handle,
           },
         }}
+      />
+      <JsonLd data={collectionItemListJsonLd(collection, sorted)} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          {name: 'Home', url: '/'},
+          {name: collection.title, url: `/collections/${collection.handle}`},
+        ])}
       />
     </>
   );

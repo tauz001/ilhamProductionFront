@@ -55,7 +55,7 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
   return (
     <div className="relative min-h-screen bg-ivory pt-28 pb-24 lg:pt-36">
       <UrduCalligraphy
-        word="نقش"
+        word="الہام"
         variant="antique"
         opacity={0.045}
         size="text-[180px] md:text-[260px]"
@@ -70,7 +70,7 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
           className="mb-14 flex items-end justify-between border-b border-border pb-8"
         >
           <div>
-            <p className="small-caps text-ink/50">Step 01 — Your atelier</p>
+            <p className="small-caps text-ink/50">Step 01 - Your atelier</p>
             <h1 className="mt-3 font-display text-5xl text-ink lg:text-7xl">
               The Bag
             </h1>
@@ -109,7 +109,7 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
                             String(subtotalMoney.amount),
                             currencyCode,
                           )
-                        : '—'}
+                        : '-'}
                     </dd>
                   </div>
                   <div className="flex justify-between">

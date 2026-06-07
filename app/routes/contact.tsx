@@ -1,12 +1,19 @@
 import {useState} from 'react';
 import {data, Form, useActionData, useLoaderData} from 'react-router';
 import type {Route} from './+types/contact';
-import {MessageCircle, Mail, Instagram, ChevronDown} from 'lucide-react';
+import {
+  ChevronDown,
+  ExternalLink,
+  Facebook,
+  Instagram,
+  MessageCircle,
+} from 'lucide-react';
 import {FadeUp} from '~/components/editorial/MaskedReveal';
 import {ChikanMotif} from '~/components/editorial/ChikanMotif';
 import {AnimatePresence, motion} from 'framer-motion';
 import {easeSilk} from '~/lib/motion/variants';
 import {logMissingShopifyField} from '~/lib/commerce/shopify-fields';
+import {SOCIAL_LINKS} from '~/lib/social-links';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -26,7 +33,7 @@ export async function loader({context}: Route.LoaderArgs) {
     logMissingShopifyField(
       'contact',
       'page(handle: "contact")',
-      'Create a Shopify page with handle "contact" and publish it to the Hydrogen sales channel. Put address, email, WhatsApp, and Instagram details in that page.',
+      'Create a Shopify page with handle "contact" and publish it to the Hydrogen sales channel. Put address, email, and atelier details in that page.',
     );
   }
 
@@ -37,12 +44,7 @@ export async function loader({context}: Route.LoaderArgs) {
 }
 
 export async function action({request}: Route.ActionArgs) {
-  const form = await request.formData();
-  console.log('[contact] Contact form submitted locally:', {
-    name: form.get('name'),
-    email: form.get('email'),
-    subject: form.get('subject'),
-  });
+  await request.formData();
   console.warn(
     'Missing Shopify field: contact form endpoint. Configure Shopify Forms, a CRM app, or an Oxygen-safe email endpoint before sending customer messages.',
   );
@@ -55,8 +57,8 @@ export default function Contact() {
   const [open, setOpen] = useState<number | null>(0);
   const faqs = [
     {
-      q: 'Do you ship worldwide?',
-      a: 'Available destinations and rates are confirmed at checkout before payment.',
+      q: 'Do you ship across India?',
+      a: 'All India delivery options and rates are confirmed at checkout before payment.',
     },
     {
       q: 'How long does an order take to make?',
@@ -138,18 +140,26 @@ export default function Contact() {
           </FadeUp>
 
           <div className="space-y-4">
-            <a href={shop?.primaryDomain?.url ?? '#'} className="flex items-center gap-4 group">
+            <p className="small-caps text-ink/50">Social</p>
+            <a
+              href={shop?.primaryDomain?.url ?? '#'}
+              className="flex items-center gap-4 group"
+            >
               <MessageCircle className="h-5 w-5 text-gold" strokeWidth={1.2} />
-              <span className="story-link">Shopify storefront</span>
+              <span className="story-link">Visit the storefront</span>
             </a>
-            <a href={shop?.primaryDomain?.url ?? '#'} className="flex items-center gap-4 group">
-              <Mail className="h-5 w-5 text-gold" strokeWidth={1.2} />
-              <span className="story-link">{shop?.primaryDomain?.url}</span>
-            </a>
-            <a href={shop?.primaryDomain?.url ?? '#'} className="flex items-center gap-4 group">
-              <Instagram className="h-5 w-5 text-gold" strokeWidth={1.2} />
-              <span className="story-link">{shop?.name}</span>
-            </a>
+            {SOCIAL_LINKS.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-4 group"
+              >
+                <ContactSocialIcon label={social.label} />
+                <span className="story-link">{social.label}</span>
+              </a>
+            ))}
           </div>
         </aside>
       </section>
@@ -194,6 +204,18 @@ export default function Contact() {
       </section>
     </div>
   );
+}
+
+function ContactSocialIcon({label}: {label: string}) {
+  if (label === 'Instagram') {
+    return <Instagram className="h-5 w-5 text-gold" strokeWidth={1.2} />;
+  }
+
+  if (label === 'Facebook') {
+    return <Facebook className="h-5 w-5 text-gold" strokeWidth={1.2} />;
+  }
+
+  return <ExternalLink className="h-5 w-5 text-gold" strokeWidth={1.2} />;
 }
 
 const CONTACT_QUERY = `#graphql

@@ -7,7 +7,13 @@ import type {BlogsQuery} from 'storefrontapi.generated';
 type BlogNode = BlogsQuery['blogs']['nodes'][0];
 
 export const meta: Route.MetaFunction = () => {
-  return [{title: `Hydrogen | Blogs`}];
+  return [
+    {title: 'Journal - ilham'},
+    {
+      name: 'description',
+      content: 'Stories from ilham, Lucknowi chikankari, craft, and care.',
+    },
+  ];
 };
 
 export async function loader(args: Route.LoaderArgs) {

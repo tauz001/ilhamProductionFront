@@ -36,6 +36,7 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
     : hasZeroQuantity
       ? 'This saved bag line has zero quantity. Increase it to 1 or remove it and add again.'
       : '';
+  const giftDetails = getGiftLineDetails(line);
 
   if (layout === 'drawer') {
     return (
@@ -58,6 +59,9 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
         <div className="flex-1">
           <p className="font-serif text-lg">{product.title}</p>
           <p className="text-xs text-ink/55">Size {sizeLabel}</p>
+          {giftDetails ? (
+            <GiftLineDetails compact details={giftDetails} />
+          ) : null}
           {hasIssue && (
             <p className="mt-2 text-xs text-destructive">
               {issueMessage}
@@ -119,6 +123,7 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
           Hand-embroidered over weeks in Lucknow. Each piece signed by its
           artisan.
         </p>
+        {giftDetails ? <GiftLineDetails details={giftDetails} /> : null}
         <div className="mt-auto flex flex-wrap items-center gap-4 pt-6 sm:gap-6">
           <CartLineQuantityControls line={line} />
           <CartLineRemoveControl
@@ -142,5 +147,66 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
         )}
       </div>
     </motion.li>
+  );
+}
+
+type GiftDetails = {
+  occasion?: string;
+  packaging?: string;
+  note?: string;
+  serviceFor?: string;
+};
+
+function getGiftLineDetails(line: ShopifyCartLine): GiftDetails | null {
+  const attributes = (line.attributes ?? []) as Array<{
+    key?: string;
+    value?: string | null;
+  }>;
+  const valueFor = (key: string) =>
+    attributes.find((attribute) => attribute.key === key)?.value?.trim();
+
+  const isGift =
+    valueFor('Gift order') === 'Yes' || Boolean(valueFor('Gift service for'));
+
+  if (!isGift) return null;
+
+  return {
+    occasion: valueFor('Gift occasion'),
+    packaging: valueFor('Gift packaging'),
+    note: valueFor('Gift note'),
+    serviceFor: valueFor('Gift service for'),
+  };
+}
+
+function GiftLineDetails({
+  compact = false,
+  details,
+}: {
+  compact?: boolean;
+  details: GiftDetails;
+}) {
+  const summary = [details.occasion, details.packaging]
+    .filter(Boolean)
+    .join(' / ');
+
+  if (compact) {
+    return (
+      <div className="mt-2 text-xs leading-relaxed text-ink/55">
+        <p className="small-caps text-gold">Gift order</p>
+        {summary ? <p>{summary}</p> : null}
+        {details.serviceFor ? <p>For {details.serviceFor}</p> : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 border border-gold/25 bg-gold/10 px-3 py-2 text-xs leading-relaxed text-ink/65">
+      <p className="small-caps text-gold">Gift order</p>
+      {summary ? <p className="mt-1">{summary}</p> : null}
+      {details.serviceFor ? <p>For {details.serviceFor}</p> : null}
+      {details.note ? (
+        <p className="mt-1 italic text-ink/55">Note: {details.note}</p>
+      ) : null}
+    </div>
   );
 }

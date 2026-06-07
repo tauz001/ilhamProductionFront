@@ -5,6 +5,7 @@ import {
   getVisibleCartLines,
   hasCartLineIssue,
 } from '~/lib/commerce/cart-lines';
+import {getCheckoutRedirectUrl} from '~/lib/commerce/storefront-cart';
 
 /**
  * Automatically creates a new cart based on the URL and redirects straight to checkout.
@@ -77,22 +78,6 @@ export async function loader({request, context, params}: Route.LoaderArgs) {
     });
   } else {
     throw new Error('No checkout URL found');
-  }
-}
-
-function getCheckoutRedirectUrl(
-  checkoutUrl: string,
-  context: Route.LoaderArgs['context'],
-) {
-  const checkoutDomain = context.env.PUBLIC_CHECKOUT_DOMAIN;
-  if (!checkoutDomain) return checkoutUrl;
-
-  try {
-    const url = new URL(checkoutUrl);
-    url.hostname = checkoutDomain;
-    return url.toString();
-  } catch {
-    return checkoutUrl;
   }
 }
 

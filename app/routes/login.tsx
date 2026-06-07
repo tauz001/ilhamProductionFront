@@ -8,7 +8,7 @@ import {logMissingShopifyField} from '~/lib/commerce/shopify-fields';
 
 export const meta: Route.MetaFunction = () => {
   return [
-    {title: 'Sign In — ilham'},
+    {title: 'Sign In - ilham'},
     {
       name: 'description',
       content: 'Return to your ilham atelier through Shopify Customer Accounts.',
@@ -56,7 +56,7 @@ export default function LoginPage() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
           <UrduCalligraphy
-            word="نقش"
+            word="الہام"
             variant="ivory"
             opacity={0.18}
             size="text-[34vw]"
@@ -94,7 +94,7 @@ export default function LoginPage() {
             </Link>
             <h1 className="mt-12 font-display text-5xl text-ink">Sign in</h1>
             <p className="mt-3 text-sm italic text-ink/55">
-              Return through Shopify's secure customer account flow.
+              Return through Shopify&apos;s secure customer account flow.
             </p>
 
             <a

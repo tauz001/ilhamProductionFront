@@ -18,9 +18,7 @@ export function SearchResults({
   result,
   children,
 }: Omit<SearchResultsProps, 'error' | 'type'>) {
-  if (!result?.total) {
-    return null;
-  }
+  if (!result?.total) return null;
 
   return children({...result.items, term});
 }
@@ -34,15 +32,13 @@ function SearchResultsArticles({
   term,
   articles,
 }: PartialSearchResult<'articles'>) {
-  if (!articles?.nodes.length) {
-    return null;
-  }
+  if (!articles?.nodes.length) return null;
 
   return (
-    <div className="search-result">
-      <h2>Articles</h2>
-      <div>
-        {articles?.nodes?.map((article) => {
+    <section>
+      <h2 className="small-caps text-ink/45">Journal</h2>
+      <div className="mt-4 grid gap-3">
+        {articles.nodes.map((article) => {
           const articleUrl = urlWithTrackingParams({
             baseUrl: `/blogs/${article.handle}`,
             trackingParams: article.trackingParameters,
@@ -50,29 +46,29 @@ function SearchResultsArticles({
           });
 
           return (
-            <div className="search-results-item" key={article.id}>
-              <Link prefetch="intent" to={articleUrl}>
-                {article.title}
-              </Link>
-            </div>
+            <Link
+              key={article.id}
+              prefetch="intent"
+              to={articleUrl}
+              className="block border-b border-border py-3 font-serif text-xl text-ink transition-colors hover:text-gold"
+            >
+              {article.title}
+            </Link>
           );
         })}
       </div>
-      <br />
-    </div>
+    </section>
   );
 }
 
 function SearchResultsPages({term, pages}: PartialSearchResult<'pages'>) {
-  if (!pages?.nodes.length) {
-    return null;
-  }
+  if (!pages?.nodes.length) return null;
 
   return (
-    <div className="search-result">
-      <h2>Pages</h2>
-      <div>
-        {pages?.nodes?.map((page) => {
+    <section>
+      <h2 className="small-caps text-ink/45">Pages</h2>
+      <div className="mt-4 grid gap-3">
+        {pages.nodes.map((page) => {
           const pageUrl = urlWithTrackingParams({
             baseUrl: `/pages/${page.handle}`,
             trackingParams: page.trackingParameters,
@@ -80,16 +76,18 @@ function SearchResultsPages({term, pages}: PartialSearchResult<'pages'>) {
           });
 
           return (
-            <div className="search-results-item" key={page.id}>
-              <Link prefetch="intent" to={pageUrl}>
-                {page.title}
-              </Link>
-            </div>
+            <Link
+              key={page.id}
+              prefetch="intent"
+              to={pageUrl}
+              className="block border-b border-border py-3 font-serif text-xl text-ink transition-colors hover:text-gold"
+            >
+              {page.title}
+            </Link>
           );
         })}
       </div>
-      <br />
-    </div>
+    </section>
   );
 }
 
@@ -97,65 +95,77 @@ function SearchResultsProducts({
   term,
   products,
 }: PartialSearchResult<'products'>) {
-  if (!products?.nodes.length) {
-    return null;
-  }
+  if (!products?.nodes.length) return null;
 
   return (
-    <div className="search-result">
-      <h2>Products</h2>
+    <section>
+      <h2 className="small-caps text-ink/45">Pieces</h2>
       <Pagination connection={products}>
         {({nodes, isLoading, NextLink, PreviousLink}) => {
-          const ItemsMarkup = nodes.map((product) => {
+          const itemsMarkup = nodes.map((product) => {
             const productUrl = urlWithTrackingParams({
               baseUrl: `/products/${product.handle}`,
               trackingParams: product.trackingParameters,
               term,
             });
 
-            const price = product?.selectedOrFirstAvailableVariant?.price;
-            const image = product?.selectedOrFirstAvailableVariant?.image;
+            const price = product.selectedOrFirstAvailableVariant?.price;
+            const image = product.selectedOrFirstAvailableVariant?.image;
 
             return (
-              <div className="search-results-item" key={product.id}>
-                <Link prefetch="intent" to={productUrl}>
-                  {image && (
-                    <Image data={image} alt={product.title} width={50} />
-                  )}
-                  <div>
-                    <p>{product.title}</p>
-                    <small>{price && <Money data={price} />}</small>
-                  </div>
-                </Link>
-              </div>
+              <Link
+                key={product.id}
+                prefetch="intent"
+                to={productUrl}
+                className="grid grid-cols-[72px_1fr] items-center gap-4 border-b border-border py-4 transition-colors hover:text-gold sm:grid-cols-[90px_1fr]"
+              >
+                {image ? (
+                  <Image
+                    data={image}
+                    alt={product.title}
+                    width={180}
+                    className="aspect-[3/4] w-full bg-cream object-cover"
+                  />
+                ) : (
+                  <span className="aspect-[3/4] w-full bg-cream" />
+                )}
+                <div>
+                  <p className="font-serif text-xl leading-tight text-ink">
+                    {product.title}
+                  </p>
+                  <small className="mt-2 block text-sm text-ink/55">
+                    {price && <Money data={price} />}
+                  </small>
+                </div>
+              </Link>
             );
           });
 
           return (
             <div>
-              <div>
+              <div className="mb-4 text-sm text-ink/45">
                 <PreviousLink>
-                  {isLoading ? 'Loading...' : <span>↑ Load previous</span>}
+                  {isLoading ? 'Loading...' : <span>Load previous</span>}
                 </PreviousLink>
               </div>
-              <div>
-                {ItemsMarkup}
-                <br />
-              </div>
-              <div>
+              <div className="grid gap-1">{itemsMarkup}</div>
+              <div className="mt-5 text-sm text-ink/45">
                 <NextLink>
-                  {isLoading ? 'Loading...' : <span>Load more ↓</span>}
+                  {isLoading ? 'Loading...' : <span>Load more</span>}
                 </NextLink>
               </div>
             </div>
           );
         }}
       </Pagination>
-      <br />
-    </div>
+    </section>
   );
 }
 
 function SearchResultsEmpty() {
-  return <p>No results, try a different search.</p>;
+  return (
+    <p className="max-w-lg font-serif text-2xl leading-relaxed text-ink/55">
+      No results yet. Try a fabric, silhouette, color, or occasion.
+    </p>
+  );
 }

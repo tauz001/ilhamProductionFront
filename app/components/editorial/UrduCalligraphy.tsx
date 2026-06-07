@@ -11,7 +11,7 @@ const colorMap: Record<Variant, string> = {
 };
 
 export function UrduCalligraphy({
-  word = 'نقش',
+  word = 'الہام',
   variant = 'gold',
   className = '',
   opacity = 0.09,

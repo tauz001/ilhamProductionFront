@@ -6,7 +6,15 @@ import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 
 export const meta: Route.MetaFunction = ({data}) => {
-  return [{title: `Hydrogen | ${data?.blog.title ?? ''} blog`}];
+  return [
+    {title: `${data?.blog.title ?? 'Journal'} - ilham`},
+    {
+      name: 'description',
+      content:
+        data?.blog.seo?.description ??
+        'Read ilham stories on Lucknowi chikankari, craft, and styling.',
+    },
+  ];
 };
 
 export async function loader(args: Route.LoaderArgs) {

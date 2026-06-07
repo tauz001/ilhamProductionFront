@@ -90,11 +90,6 @@ function AddToCartButtonContent({
       return;
     }
 
-    console.log('[cart] Add to cart confirmed by Shopify:', {
-      cartId: data.cart.id,
-      totalQuantity: data.cart.totalQuantity,
-    });
-
     if (!data.cart.totalQuantity) {
       console.warn(
         '[cart] Add to cart returned a cart with zero total quantity. Opening the drawer so the stale line can be removed.',

@@ -9,6 +9,19 @@ import {
   getMetafieldValue,
   logMissingShopifyField,
 } from '~/lib/commerce/shopify-fields';
+import {
+  buildCollectionFilterHref,
+  type CollectionFilterKey,
+} from '~/lib/commerce/collection-filters';
+import {
+  getProductFabricValue,
+  getProductOccasionValues,
+  productMatchesAnyText,
+  productMatchesMenuCategory,
+} from '~/lib/commerce/product-facets';
+
+const LOGO_URL =
+  'https://cdn.shopify.com/s/files/1/0820/4389/6063/files/ilham_logo_wo_bg.png?v=1780461025';
 
 const navLinks = [
   {
@@ -24,6 +37,21 @@ const navLinks = [
   },
   {label: 'Gifting', href: '/gifting'},
   {label: 'Heritage', href: '/about'},
+];
+
+const announcements = [
+  {
+    text: 'Hand-embroidered in Lucknow - all India shipping',
+    href: '/collections',
+  },
+  {
+    text: 'Occasion gifting and bulk offers - contact the atelier',
+    href: '/contact',
+  },
+  {
+    text: '14-day return or exchange on eligible pieces',
+    href: '/policies/refund-policy',
+  },
 ];
 
 const megaMenuCopy = {
@@ -80,9 +108,130 @@ const megaMenuCopy = {
   },
 } as const;
 
+type MenuLinkSeed = {
+  label: string;
+  filter?: CollectionFilterKey;
+  value?: string;
+  query?: string;
+  keywords: string[];
+};
+
+const menuMoodSeeds: Record<string, MenuLinkSeed[]> = {
+  women: [
+    {
+      label: 'Daily elegance',
+      filter: 'occasions',
+      value: 'Daily',
+      query: 'daily',
+      keywords: ['daily', 'everyday', 'casual'],
+    },
+    {
+      label: 'Party wear',
+      filter: 'occasions',
+      value: 'Party',
+      query: 'party',
+      keywords: ['party', 'evening', 'occasion'],
+    },
+    {
+      label: 'Festive',
+      filter: 'occasions',
+      value: 'Festive',
+      query: 'festive',
+      keywords: ['festive', 'festival', 'eid', 'diwali'],
+    },
+    {
+      label: 'Ethnic classics',
+      query: 'ethnic',
+      keywords: ['ethnic', 'classic', 'heritage', 'traditional'],
+    },
+    {
+      label: 'Office grace',
+      filter: 'occasions',
+      value: 'Office',
+      query: 'office',
+      keywords: ['office', 'workwear', 'work wear'],
+    },
+  ],
+  men: [
+    {
+      label: 'Everyday chikankari',
+      filter: 'occasions',
+      value: 'Daily',
+      query: 'daily',
+      keywords: ['daily', 'everyday', 'casual'],
+    },
+    {
+      label: 'Festive kurtas',
+      filter: 'occasions',
+      value: 'Festive',
+      query: 'festive',
+      keywords: ['festive', 'festival', 'eid', 'diwali'],
+    },
+    {
+      label: 'Mehfil evenings',
+      query: 'mehfil',
+      keywords: ['mehfil', 'evening', 'party', 'occasion'],
+    },
+    {
+      label: 'Ivory classics',
+      query: 'ivory',
+      keywords: ['ivory', 'white', 'cream', 'classic'],
+    },
+  ],
+  wedding: [
+    {
+      label: 'Bride side',
+      filter: 'occasions',
+      value: 'Wedding',
+      query: 'bride',
+      keywords: ['bride', 'bridal', 'wedding'],
+    },
+    {
+      label: 'Groom side',
+      filter: 'occasions',
+      value: 'Wedding',
+      query: 'groom',
+      keywords: ['groom', 'wedding', 'sherwani', 'kurta'],
+    },
+    {
+      label: 'Sangeet ready',
+      filter: 'occasions',
+      value: 'Sangeet',
+      query: 'sangeet',
+      keywords: ['sangeet', 'mehendi', 'ceremony'],
+    },
+  ],
+};
+
+const menuTypeSeeds: Record<string, MenuLinkSeed[]> = {
+  women: [
+    {label: 'Kurtis', query: 'kurti', keywords: ['kurti', 'kurtis']},
+    {label: 'Anarkalis', query: 'anarkali', keywords: ['anarkali']},
+    {label: 'Short kurtis', query: 'short kurti', keywords: ['short kurti']},
+    {label: 'Kaftans', query: 'kaftan', keywords: ['kaftan']},
+    {label: 'Sleeveless edits', query: 'sleeveless', keywords: ['sleeveless', 'spaghetti']},
+    {label: 'Sarees', query: 'saree', keywords: ['saree', 'sari']},
+  ],
+  men: [
+    {label: 'Kurtas', query: 'kurta', keywords: ['kurta']},
+    {label: 'Pathani', query: 'pathani', keywords: ['pathani']},
+    {label: 'Nawabi edits', query: 'nawabi', keywords: ['nawabi']},
+    {label: 'Embroidered shirts', query: 'shirt', keywords: ['shirt']},
+    {label: 'Layered jackets', query: 'jacket', keywords: ['jacket', 'bandi']},
+  ],
+  wedding: [
+    {label: 'Occasion sets', query: 'occasion', keywords: ['occasion', 'set']},
+    {label: 'Ivory ensembles', query: 'ivory', keywords: ['ivory', 'white']},
+    {label: 'Statement dupattas', query: 'dupatta', keywords: ['dupatta']},
+    {label: 'Lehengas', query: 'lehenga', keywords: ['lehenga']},
+  ],
+};
+
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [megaOpen, setMegaOpen] = useState<string | null>(null);
+  const [announcementVisible, setAnnouncementVisible] = useState(true);
+  const [announcementIndex, setAnnouncementIndex] = useState(0);
   const megaCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wishlist = useStore((s) => s.wishlist.length);
   const openDrawer = useStore((s) => s.openDrawer);
@@ -120,13 +269,68 @@ export function Navbar() {
     return () => cancelMegaClose();
   }, []);
 
+  useEffect(() => {
+    if (!announcementVisible || announcements.length <= 1) return;
+    const id = window.setInterval(
+      () =>
+        setAnnouncementIndex((current) => (current + 1) % announcements.length),
+      4200,
+    );
+    return () => window.clearInterval(id);
+  }, [announcementVisible]);
+
+  const dismissAnnouncement = () => {
+    setAnnouncementVisible(false);
+  };
+
+  const activeAnnouncement = announcements[announcementIndex];
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${scrolled ? 'bg-ivory/85 backdrop-blur-md border-b border-border/60' : 'bg-transparent'}`}
       onMouseEnter={cancelMegaClose}
       onMouseLeave={queueMegaClose}
     >
-      <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-6 lg:h-20 lg:px-12">
+      <AnimatePresence initial={false}>
+        {announcementVisible && (
+          <motion.div
+            initial={{height: 0, opacity: 0}}
+            animate={{height: '2.25rem', opacity: 1}}
+            exit={{height: 0, opacity: 0}}
+            transition={{duration: 0.45, ease: easeSilk}}
+            className="overflow-hidden border-b border-border/60 bg-ivory/92 text-ink shadow-[0_1px_0_oklch(0.78_0.04_75_/_0.22)] backdrop-blur-md"
+          >
+            <div className="relative mx-auto flex h-9 max-w-[1500px] items-center justify-center px-11 lg:px-12">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={activeAnnouncement.text}
+                  initial={{y: 10, opacity: 0}}
+                  animate={{y: 0, opacity: 1}}
+                  exit={{y: -10, opacity: 0}}
+                  transition={{duration: 0.45, ease: easeSilk}}
+                  className="max-w-full"
+                >
+                  <Link
+                    to={activeAnnouncement.href}
+                    className="block max-w-[calc(100vw-5.75rem)] truncate text-center small-caps text-[10px] tracking-[0.24em] text-ink/62 transition-colors hover:text-gold md:max-w-none md:tracking-[0.28em]"
+                  >
+                    {activeAnnouncement.text}
+                  </Link>
+                </motion.div>
+              </AnimatePresence>
+              <button
+                type="button"
+                onClick={dismissAnnouncement}
+                aria-label="Dismiss announcement"
+                className="absolute right-3 grid h-6 w-6 place-items-center text-ink/45 transition-colors hover:text-ink lg:right-8"
+              >
+                <X className="h-3.5 w-3.5" strokeWidth={1.3} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className="relative mx-auto flex h-16 max-w-[1500px] items-center justify-between px-6 lg:h-20 lg:px-12">
         <button
           className="flex h-8 w-8 items-center justify-center text-ink lg:hidden"
           aria-label="Open menu"
@@ -151,10 +355,15 @@ export function Navbar() {
 
         <Link
           to="/"
-          className="font-display text-2xl tracking-[0.18em] text-ink lg:text-[28px]"
-          aria-label="ilham — home"
+          className="absolute left-1/2 flex h-16 -translate-x-1/2 items-center justify-center lg:static lg:h-20 lg:translate-x-0"
+          aria-label="ilham home"
         >
-          ilham
+          <img
+            src={LOGO_URL}
+            alt="ilham"
+            className="h-14 w-auto scale-[1.18] object-contain lg:h-[4.5rem] lg:scale-[1.08]"
+            loading="eager"
+          />
         </Link>
 
         <div className="flex flex-1 items-center justify-end gap-5">
@@ -235,6 +444,7 @@ export function Navbar() {
 function MegaMenu({category, onClose}: {category: string; onClose: () => void}) {
   const layoutCommerce = useLayoutCommerce();
   const collections = layoutCommerce?.collections?.nodes ?? [];
+  const products = layoutCommerce?.products?.nodes ?? [];
   const cat = category.toLowerCase() as keyof typeof megaMenuCopy;
   const content = megaMenuCopy[cat] ?? megaMenuCopy.women;
   const list = collections.filter(
@@ -246,6 +456,22 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
   const feature = list.find((c) => c.image?.url) ?? list[0];
   const categoryHref =
     cat === 'wedding' ? '/collections/wedding-edit' : `/collections/${cat}`;
+  const categoryHandle = cat === 'wedding' ? 'wedding-edit' : cat;
+  const scopedProducts = products.filter((product) =>
+    productMatchesMenuCategory(product, cat),
+  );
+  const menuProducts = scopedProducts;
+  const moodLinks = buildMenuSeedLinks(
+    menuMoodSeeds[cat] ?? [],
+    menuProducts,
+    categoryHandle,
+  );
+  const typeLinks = buildMenuSeedLinks(
+    menuTypeSeeds[cat] ?? [],
+    menuProducts,
+    categoryHandle,
+  );
+  const fabricLinks = buildFabricLinks(menuProducts, categoryHandle);
 
   if (!collections.length) {
     logMissingShopifyField(
@@ -281,38 +507,77 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
       </div>
       <div className="col-span-3 border-l border-border pl-8">
         <p className="small-caps text-ink/45">Shop by mood</p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          {content.moods.map((keyword) => (
-            <Link
-              key={keyword}
-              to={searchHref(`${category} ${keyword}`)}
-              onClick={onClose}
-              className="border border-border bg-cream/45 px-3 py-2 text-sm text-ink/70 transition-colors hover:border-gold hover:text-gold"
-            >
-              {keyword}
-            </Link>
-          ))}
-        </div>
+        {moodLinks.length ? (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {moodLinks.map((link) => (
+              <Link
+                key={link.label}
+                to={link.href}
+                onClick={onClose}
+                className="border border-border bg-cream/45 px-3 py-2 text-sm text-ink/70 transition-colors hover:border-gold hover:text-gold"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-5 text-sm italic leading-relaxed text-ink/45">
+            Add occasion tags or metafields to products and this section will
+            fill itself.
+          </p>
+        )}
+
+        {fabricLinks.length ? (
+          <div className="mt-7">
+            <p className="small-caps text-ink/40">Fabrics</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {fabricLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  onClick={onClose}
+                  className="border border-border/80 px-3 py-1.5 text-xs text-ink/55 transition-colors hover:border-gold hover:text-gold"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="col-span-3 border-l border-border pl-8">
         <p className="small-caps text-ink/45">Silhouettes</p>
         <div className="mt-5 grid gap-3">
-          {content.types.map((type) => (
+          {typeLinks.map((type) => (
             <Link
-              key={type}
-              to={searchHref(`${category} ${type}`)}
+              key={type.label}
+              to={type.href}
               onClick={onClose}
               className="group flex items-baseline justify-between gap-4 border-b border-border pb-2"
             >
               <span className="font-serif text-xl text-ink transition-colors group-hover:text-gold">
-                {type}
+                {type.label}
               </span>
               <span className="text-xs text-ink/35 transition-colors group-hover:text-gold">
                 View
               </span>
             </Link>
           ))}
+          {!typeLinks.length && (
+            <Link
+              to={categoryHref}
+              onClick={onClose}
+              className="group flex items-baseline justify-between gap-4 border-b border-border pb-2"
+            >
+              <span className="font-serif text-xl text-ink transition-colors group-hover:text-gold">
+                Full edit
+              </span>
+              <span className="text-xs text-ink/35 transition-colors group-hover:text-gold">
+                View
+              </span>
+            </Link>
+          )}
         </div>
 
         {collectionLinks.length ? (
@@ -357,7 +622,12 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
         </Link>
         ) : (
           <div className="flex h-full min-h-[220px] flex-col justify-end border border-border bg-cream/35 p-6">
-            <p className="small-caps text-gold">ilham</p>
+            <img
+              src={LOGO_URL}
+              alt="ilham"
+              className="h-10 w-fit object-contain"
+              loading="lazy"
+            />
             <p className="mt-5 font-serif text-3xl italic leading-tight text-ink/75">
               Hand embroidery, edited for the moment you are dressing for.
             </p>
@@ -368,8 +638,94 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
   );
 }
 
-function searchHref(term: string) {
-  return `/search?q=${encodeURIComponent(term.toLowerCase())}`;
+function buildMenuSeedLinks(
+  seeds: MenuLinkSeed[],
+  products: any[],
+  collectionHandle: string,
+) {
+  return seeds
+    .map((seed) => {
+      const matchingProducts = products.filter((product) =>
+        productMatchesSeed(product, seed),
+      );
+
+      if (!matchingProducts.length) return null;
+
+      const href =
+        seed.filter &&
+        seed.value &&
+        seedHasDirectFilterMatch(seed, matchingProducts)
+          ? buildCollectionFilterHref({
+              handle: collectionHandle,
+              filter: seed.filter,
+              value: seed.value,
+            })
+          : buildCollectionFilterHref({
+              handle: collectionHandle,
+              q: seed.query ?? seed.label,
+            });
+
+      return {label: seed.label, href, count: matchingProducts.length};
+    })
+    .filter(Boolean) as {label: string; href: string; count: number}[];
+}
+
+function seedHasDirectFilterMatch(seed: MenuLinkSeed, products: any[]) {
+  if (seed.filter === 'fabrics' && seed.value) {
+    return products.some(
+      (product) =>
+        getProductFabricValue(product).toLowerCase() ===
+        seed.value?.toLowerCase(),
+    );
+  }
+
+  if (seed.filter === 'occasions' && seed.value) {
+    return products.some((product) =>
+      getProductOccasionValues(product).some(
+        (occasion) => occasion.toLowerCase() === seed.value?.toLowerCase(),
+      ),
+    );
+  }
+
+  return false;
+}
+
+function buildFabricLinks(products: any[], collectionHandle: string) {
+  const counts = new Map<string, number>();
+
+  products.forEach((product) => {
+    const fabric = getProductFabricValue(product);
+    if (!fabric) return;
+    counts.set(fabric, (counts.get(fabric) ?? 0) + 1);
+  });
+
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 4)
+    .map(([label, count]) => ({
+      label,
+      count,
+      href: buildCollectionFilterHref({
+        handle: collectionHandle,
+        filter: 'fabrics',
+        value: label,
+      }),
+    }));
+}
+
+function productMatchesSeed(product: any, seed: MenuLinkSeed) {
+  if (seed.filter === 'fabrics' && seed.value) {
+    return getProductFabricValue(product).toLowerCase() === seed.value.toLowerCase();
+  }
+
+  if (seed.filter === 'occasions' && seed.value) {
+    const occasions = getProductOccasionValues(product).map((value) =>
+      value.toLowerCase(),
+    );
+    if (occasions.includes(seed.value.toLowerCase())) return true;
+  }
+
+  return productMatchesAnyText(product, seed.keywords);
 }
 
 function useLayoutCommerce() {
@@ -436,7 +792,7 @@ export function MobileMenuDrawer() {
               aria-hidden
               className="font-urdu pointer-events-none absolute -right-6 top-24 select-none text-[28vh] leading-none text-gold/[0.07]"
             >
-              نقش
+              الہام
             </span>
 
             <motion.div
@@ -445,9 +801,14 @@ export function MobileMenuDrawer() {
               animate={{opacity: 1, y: 0}}
               transition={{duration: 0.6, delay: 0.25, ease: easeSilk}}
             >
-              <span className="font-display text-2xl tracking-[0.18em]">
-                ilham
-              </span>
+              <Link to="/" onClick={close} aria-label="ilham home">
+                <img
+                  src={LOGO_URL}
+                  alt="ilham"
+                  className="h-14 w-auto scale-[1.12] object-contain"
+                  loading="eager"
+                />
+              </Link>
               <button onClick={close} aria-label="Close menu">
                 <X className="h-5 w-5" strokeWidth={1.2} />
               </button>
@@ -496,7 +857,7 @@ export function MobileMenuDrawer() {
             >
               <p className="small-caps text-ink/50">Atelier, Lucknow</p>
               <p className="mt-3 font-serif text-lg italic text-ink/80">
-                "Every thread carries a story."
+                Every thread carries a story.
               </p>
             </motion.div>
           </motion.aside>

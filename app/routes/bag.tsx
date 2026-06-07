@@ -4,13 +4,13 @@ import {BagPage, type BagRecommendation} from '~/components/commerce/BagPage';
 
 export const meta: Route.MetaFunction = () => {
   return [
-    {title: 'The Bag — ilham'},
+    {title: 'The Bag - ilham'},
     {
       name: 'description',
       content:
         'Review the hand-embroidered pieces in your bag, gift wrapping, and shipping with ilham.',
     },
-    {property: 'og:title', content: 'The Bag — ilham'},
+    {property: 'og:title', content: 'The Bag - ilham'},
     {
       property: 'og:description',
       content:

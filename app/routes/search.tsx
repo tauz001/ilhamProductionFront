@@ -14,7 +14,14 @@ import type {
 } from 'storefrontapi.generated';
 
 export const meta: Route.MetaFunction = () => {
-  return [{title: `Hydrogen | Search`}];
+  return [
+    {title: 'Search - ilham'},
+    {
+      name: 'description',
+      content:
+        'Search ilham chikankari pieces, collections, gifting edits, and heritage notes.',
+    },
+  ];
 };
 
 export async function loader({request, context}: Route.LoaderArgs) {
@@ -41,39 +48,53 @@ export default function SearchPage() {
   if (type === 'predictive') return null;
 
   return (
-    <div className="search">
-      <h1>Search</h1>
-      <SearchForm>
-        {({inputRef}) => (
-          <>
-            <input
-              defaultValue={term}
-              name="q"
-              placeholder="Search…"
-              ref={inputRef}
-              type="search"
-            />
-            &nbsp;
-            <button type="submit">Search</button>
-          </>
-        )}
-      </SearchForm>
-      {error && <p style={{color: 'red'}}>{error}</p>}
-      {!term || !result?.total ? (
-        <SearchResults.Empty />
-      ) : (
-        <SearchResults result={result} term={term}>
-          {({articles, pages, products, term}) => (
-            <div>
-              <SearchResults.Products products={products} term={term} />
-              <SearchResults.Pages pages={pages} term={term} />
-              <SearchResults.Articles articles={articles} term={term} />
-            </div>
+    <main className="min-h-screen bg-ivory px-6 pt-32 pb-20 text-ink lg:px-12 lg:pt-40">
+      <div className="mx-auto max-w-5xl">
+        <p className="small-caps text-ink/45">Find your piece</p>
+        <h1 className="mt-4 font-display text-5xl leading-none md:text-7xl">
+          Search the atelier
+        </h1>
+
+        <SearchForm className="mt-8 flex max-w-2xl border border-border bg-cream/35">
+          {({inputRef}) => (
+            <>
+              <input
+                defaultValue={term}
+                name="q"
+                placeholder="Anarkali, saree, ivory..."
+                ref={inputRef}
+                type="search"
+                className="min-w-0 flex-1 bg-transparent px-5 py-4 font-serif text-xl outline-none placeholder:text-ink/35"
+              />
+              <button
+                type="submit"
+                className="border-l border-border px-5 small-caps text-[10px] text-ink transition-colors hover:bg-ink hover:text-ivory"
+              >
+                Search
+              </button>
+            </>
           )}
-        </SearchResults>
-      )}
-      <Analytics.SearchView data={{searchTerm: term, searchResults: result}} />
-    </div>
+        </SearchForm>
+
+        {error && <p className="mt-5 text-sm text-red-700">{error}</p>}
+        {!term || !result?.total ? (
+          <div className="mt-12">
+            <SearchResults.Empty />
+          </div>
+        ) : (
+          <SearchResults result={result} term={term}>
+            {({articles, pages, products, term}) => (
+              <div className="mt-12 space-y-12">
+                <SearchResults.Products products={products} term={term} />
+                <SearchResults.Pages pages={pages} term={term} />
+                <SearchResults.Articles articles={articles} term={term} />
+              </div>
+            )}
+          </SearchResults>
+        )}
+        <Analytics.SearchView data={{searchTerm: term, searchResults: result}} />
+      </div>
+    </main>
   );
 }
 

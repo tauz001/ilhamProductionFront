@@ -2,6 +2,7 @@ type MetafieldLike = {
   key?: string | null;
   namespace?: string | null;
   value?: string | null;
+  type?: string | null;
   reference?: unknown;
 } | null;
 
@@ -34,9 +35,14 @@ export function getMetafieldValue(
     ? owner?.metafields
     : owner?.metafields?.nodes;
 
-  const metafield = metafields?.find(
-    (field) => field?.key === key && field.namespace === namespace,
-  );
+  const metafield =
+    metafields?.find(
+      (field) => field?.key === key && field.namespace === namespace,
+    ) ??
+    metafields?.find(
+      (field) =>
+        field?.key === `${namespace}_${key}` && field.namespace === namespace,
+    );
 
   return metafield?.value ?? null;
 }
@@ -47,6 +53,7 @@ export function getMetafieldImage(
   namespace = 'custom',
 ):
   | {
+      id?: string | null;
       url?: string | null;
       altText?: string | null;
       width?: number | null;
@@ -57,12 +64,18 @@ export function getMetafieldImage(
     ? owner?.metafields
     : owner?.metafields?.nodes;
 
-  const metafield = metafields?.find(
-    (field) => field?.key === key && field.namespace === namespace,
-  );
+  const metafield =
+    metafields?.find(
+      (field) => field?.key === key && field.namespace === namespace,
+    ) ??
+    metafields?.find(
+      (field) =>
+        field?.key === `${namespace}_${key}` && field.namespace === namespace,
+    );
   const reference = metafield?.reference as
     | {
         image?: {
+          id?: string | null;
           url?: string | null;
           altText?: string | null;
           width?: number | null;
@@ -72,7 +85,20 @@ export function getMetafieldImage(
     | null
     | undefined;
 
-  return reference?.image ?? null;
+  if (reference?.image?.url) {
+    return reference.image;
+  }
+
+  if (metafield?.value && /^https?:\/\//i.test(metafield.value)) {
+    return {
+      url: metafield.value,
+      altText: null,
+      width: null,
+      height: null,
+    };
+  }
+
+  return null;
 }
 
 export function parseListField(value: string | null | undefined): string[] {

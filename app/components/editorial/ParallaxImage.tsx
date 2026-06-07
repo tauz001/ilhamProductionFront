@@ -3,6 +3,7 @@ import {motion, useScroll, useTransform} from 'framer-motion';
 
 type Props = {
   src: string;
+  mobileSrc?: string;
   alt: string;
   className?: string;
   imgClassName?: string;
@@ -14,6 +15,7 @@ type Props = {
 
 export function ParallaxImage({
   src,
+  mobileSrc,
   alt,
   className = '',
   imgClassName = '',
@@ -33,17 +35,42 @@ export function ParallaxImage({
     [`-${strength * 100}%`, `${strength * 100}%`],
   );
 
+  const imageClassName = `h-[120%] w-full object-cover will-change-transform ${imgClassName}`;
+
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`}>
-      <motion.img
-        src={src}
-        alt={alt}
-        loading={loading}
-        width={width}
-        height={height}
-        className={`h-[120%] w-full object-cover will-change-transform ${imgClassName}`}
-        style={{y}}
-      />
+      {mobileSrc ? (
+        <>
+          <motion.img
+            src={mobileSrc}
+            alt={alt}
+            loading={loading}
+            width={width}
+            height={height}
+            className={`${imageClassName} md:hidden`}
+            style={{y}}
+          />
+          <motion.img
+            src={src}
+            alt={alt}
+            loading={loading}
+            width={width}
+            height={height}
+            className={`${imageClassName} hidden md:block`}
+            style={{y}}
+          />
+        </>
+      ) : (
+        <motion.img
+          src={src}
+          alt={alt}
+          loading={loading}
+          width={width}
+          height={height}
+          className={imageClassName}
+          style={{y}}
+        />
+      )}
     </div>
   );
 }

@@ -10,15 +10,19 @@ import {ParallaxImage} from '~/components/editorial/ParallaxImage';
 import {UrduCalligraphy} from '~/components/editorial/UrduCalligraphy';
 import {ProductCard} from '~/components/commerce/ProductCard';
 import {easeSilk} from '~/lib/motion/variants';
-import {logMissingShopifyField, tagIncludes} from '~/lib/commerce/shopify-fields';
+import {
+  getMetafieldImage,
+  logMissingShopifyField,
+  tagIncludes,
+} from '~/lib/commerce/shopify-fields';
 
 export const meta: Route.MetaFunction = () => {
   return [
-    {title: 'ilham — Lucknowi Chikankari Atelier'},
+    {title: 'ilham - Lucknowi Chikankari Atelier'},
     {
       name: 'description',
       content:
-        'Heirloom Lucknowi chikankari, hand-embroidered over weeks by master artisans. Anarkalis, sarees, kurtas, wedding edit and luxury gifting, shipped worldwide.',
+        'Heirloom Lucknowi chikankari, hand-embroidered over weeks by master artisans. Anarkalis, sarees, kurtas, wedding edit and luxury gifting, shipped across India.',
     },
   ];
 };
@@ -27,6 +31,51 @@ export async function loader({context}: Route.LoaderArgs) {
   const data = await context.storefront.query(`
     #graphql
     query Homepage {
+      shop {
+        metafields(identifiers: [
+          {namespace: "custom", key: "homepage_hero_1"},
+          {namespace: "custom", key: "custom_homepage_hero_1"},
+          {namespace: "custom", key: "homepage_hero_1_mobile"},
+          {namespace: "custom", key: "custom_homepage_hero_1_mobile"},
+          {namespace: "custom", key: "homepage_hero_2"},
+          {namespace: "custom", key: "custom_homepage_hero_2"},
+          {namespace: "custom", key: "homepage_hero_2_mobile"},
+          {namespace: "custom", key: "custom_homepage_hero_2_mobile"},
+          {namespace: "custom", key: "homepage_hero_3"},
+          {namespace: "custom", key: "custom_homepage_hero_3"},
+          {namespace: "custom", key: "homepage_hero_3_mobile"},
+          {namespace: "custom", key: "custom_homepage_hero_3_mobile"},
+          {namespace: "custom", key: "homepage_hero_4"},
+          {namespace: "custom", key: "custom_homepage_hero_4"},
+          {namespace: "custom", key: "homepage_hero_4_mobile"},
+          {namespace: "custom", key: "custom_homepage_hero_4_mobile"},
+          {namespace: "custom", key: "homepage_women_banner"},
+          {namespace: "custom", key: "custom_homepage_women_banner"},
+          {namespace: "custom", key: "homepage_men_banner"},
+          {namespace: "custom", key: "custom_homepage_men_banner"},
+          {namespace: "custom", key: "homepage_wedding_banner"},
+          {namespace: "custom", key: "custom_homepage_wedding_banner"},
+          {namespace: "custom", key: "homepage_wdding_banner"},
+          {namespace: "custom", key: "custom_homepage_wdding_banner"}
+        ]) {
+          key
+          namespace
+          value
+          type
+          reference {
+            ... on MediaImage {
+              image {
+                id
+                url
+                altText
+                width
+                height
+              }
+            }
+          }
+        }
+      }
+
       products(first: 12) {
         nodes {
           id
@@ -125,7 +174,7 @@ export async function loader({context}: Route.LoaderArgs) {
 }
 
 export default function Home() {
-  const {products, collections} = useLoaderData<typeof loader>();
+  const {products, collections, shop} = useLoaderData<typeof loader>();
 
 const allProducts = products.nodes;
 const allCollections = collections.nodes;
@@ -151,6 +200,34 @@ const bestsellers = useMemo(
   [allProducts],
 );
   const [slide, setSlide] = useState(0);
+  const womenCollection = allCollections.find(
+    (c: any) => c.handle === 'women',
+  );
+  const menCollection = allCollections.find((c: any) => c.handle === 'men');
+  const weddingCollection = allCollections.find(
+    (c: any) => c.handle === 'wedding-edit',
+  );
+  const womenBannerImage = getMetafieldImage(shop, 'homepage_women_banner');
+  const menBannerImage = getMetafieldImage(shop, 'homepage_men_banner');
+  const weddingBannerImage =
+    getMetafieldImage(shop, 'homepage_wedding_banner') ??
+    getMetafieldImage(shop, 'homepage_wdding_banner');
+  const womenBanner =
+    womenBannerImage?.url ??
+    womenCollection?.image?.url ??
+    allProducts[0]?.images?.nodes?.[0]?.url ??
+    '';
+  const menBanner =
+    menBannerImage?.url ??
+    menCollection?.image?.url ??
+    allProducts[1]?.images?.nodes?.[0]?.url ??
+    allProducts[0]?.images?.nodes?.[0]?.url ??
+    '';
+  const weddingBanner =
+    weddingBannerImage?.url ??
+    weddingCollection?.image?.url ??
+    allProducts[1]?.images?.nodes?.[0]?.url ??
+    '';
 
   if (!newArrivals.length) {
     logMissingShopifyField(
@@ -169,18 +246,41 @@ const bestsellers = useMemo(
   }
 
   const heroSlides = useMemo(() => {
+    const editableSlides = [1, 2, 3, 4]
+      .map((position) => {
+        const desktop = getMetafieldImage(shop, `homepage_hero_${position}`);
+        const mobile = getMetafieldImage(
+          shop,
+          `homepage_hero_${position}_mobile`,
+        );
+
+        return {
+          src: desktop?.url ?? mobile?.url ?? '',
+          mobileSrc: mobile?.url ?? desktop?.url ?? '',
+          alt:
+            desktop?.altText ??
+            mobile?.altText ??
+            `ilham homepage hero ${position}`,
+        };
+      })
+      .filter((image) => Boolean(image.src));
+
+    if (editableSlides.length > 0) {
+      return editableSlides;
+    }
+
     const womenCover = allCollections.find((c: any) => c.handle === 'women')?.image?.url;
     const weddingCover = allCollections.find((c: any) => c.handle === 'wedding-edit')?.image?.url;
     const giftingCover = allCollections.find((c: any) => c.handle === 'luxury-gifting')?.image?.url;
     const p0 = allProducts[0]?.images?.nodes?.[0]?.url
     const p1 = allProducts[1]?.images?.nodes?.[0]?.url
     return [
-      {src: p0 ?? womenCover ?? '', alt: 'ilham hero'},
-      {src: weddingCover ?? p1 ?? '', alt: 'Wedding edit'},
-      {src: womenCover ?? p1 ?? '', alt: "Women's atelier"},
-      {src: giftingCover ?? p0 ?? '', alt: 'Luxury gifting'},
+      {src: p0 ?? womenCover ?? '', mobileSrc: p0 ?? womenCover ?? '', alt: 'ilham hero'},
+      {src: weddingCover ?? p1 ?? '', mobileSrc: weddingCover ?? p1 ?? '', alt: 'Wedding edit'},
+      {src: womenCover ?? p1 ?? '', mobileSrc: womenCover ?? p1 ?? '', alt: "Women's atelier"},
+      {src: giftingCover ?? p0 ?? '', mobileSrc: giftingCover ?? p0 ?? '', alt: 'Luxury gifting'},
     ].filter((s) => Boolean(s.src));
-  }, [allProducts, allCollections]);
+  }, [allProducts, allCollections, shop]);
 
 
   useEffect(() => {
@@ -196,10 +296,8 @@ const bestsellers = useMemo(
     <>
       <section className="relative h-[100svh] min-h-[680px] w-full overflow-hidden bg-ink">
         <AnimatePresence mode="sync">
-          <motion.img
+          <motion.picture
             key={slide}
-            src={heroSlides[slide]?.src}
-            alt={heroSlides[slide]?.alt}
             className="absolute inset-0 h-full w-full object-cover"
             initial={{opacity: 0, scale: 1.08}}
             animate={{opacity: 1, scale: 1}}
@@ -208,7 +306,17 @@ const bestsellers = useMemo(
               opacity: {duration: 1.8, ease: easeSilk},
               scale: {duration: 6.5, ease: 'linear'},
             }}
-          />
+          >
+            <source
+              media="(max-width: 767px)"
+              srcSet={heroSlides[slide]?.mobileSrc ?? heroSlides[slide]?.src}
+            />
+            <img
+              src={heroSlides[slide]?.src}
+              alt={heroSlides[slide]?.alt}
+              className="h-full w-full object-cover"
+            />
+          </motion.picture>
         </AnimatePresence>
         <div className="absolute inset-0 bg-gradient-to-b from-ink/30 via-transparent to-ink/70" />
         <div className="absolute inset-0 vignette" />
@@ -220,7 +328,7 @@ const bestsellers = useMemo(
             animate={{opacity: 1, y: 0}}
             transition={{duration: 1.4, ease: easeSilk, delay: 0.6}}
           >
-            Lucknow · Est. memory
+            Lucknow / Est. memory
           </motion.p>
           <h1 className="mt-6 font-display text-[14vw] leading-[0.92] tracking-[0.02em] text-ivory md:text-[8vw]">
             <span className="block overflow-hidden">
@@ -250,7 +358,7 @@ const bestsellers = useMemo(
               to="/gifting"
               className="small-caps text-ivory/90 hover:text-gold transition-colors story-link"
             >
-              Gift Worldwide →
+              Gift across India -&gt;
             </Link>
           </motion.div>
 
@@ -285,7 +393,7 @@ const bestsellers = useMemo(
             >
               <span>Hand-embroidered in Lucknow</span>
               <ChikanMotif className="h-4 w-16 text-gold" />
-              <span>Shipped worldwide</span>
+              <span>Delivered across India</span>
               <ChikanMotif className="h-4 w-16 text-gold" />
               <span>40+ artisan hours per piece</span>
               <ChikanMotif className="h-4 w-16 text-gold" />
@@ -310,20 +418,20 @@ const bestsellers = useMemo(
           </p>
         </FadeUp>
         <h2 className="relative mt-10 font-display text-5xl leading-[1.05] text-ink md:text-7xl text-balance">
-          A garment is never <em className="italic font-serif">finished</em> —
+          A garment is never <em className="italic font-serif">finished</em> -
           only set down by the hands that made it.
         </h2>
         <FadeUp delay={0.2}>
           <p className="relative mx-auto mt-10 max-w-2xl text-base leading-relaxed text-ink/65">
             ilham translates the old Persian word for <em>imprint</em>. Every
             piece in our atelier is the imprint of a woman in a quiet courtyard,
-            a needle in unhurried light, a motif recalled from a grandmother's
+            a needle in unhurried light, a motif recalled from a grandmother&apos;s
             memory.
           </p>
         </FadeUp>
       </section>
 
-      <section className="relative mx-auto max-w-[1500px] px-6 pb-32 lg:px-12 overflow-hidden">
+      <section className="relative mx-auto max-w-[1500px] overflow-hidden px-4 pb-28 sm:px-6 lg:px-12">
         <UrduCalligraphy
           word="جدید"
           variant="antique"
@@ -342,10 +450,10 @@ const bestsellers = useMemo(
             to="/collections/new-arrivals"
             className="small-caps story-link hidden md:inline-block"
           >
-            View all →
+            View all -&gt;
           </Link>
         </div>
-        <div className="relative grid grid-cols-2 gap-x-6 gap-y-14 md:grid-cols-3">
+        <div className="relative grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-14 md:grid-cols-3">
           {newArrivals.map((p: any) => (
             <FadeUp key={p.handle}>
               <ProductCard product={p} />
@@ -357,13 +465,15 @@ const bestsellers = useMemo(
       <section className="grid gap-px bg-border md:grid-cols-2">
         {[
           {
-            img: allCollections.find((c: any) => c.handle === 'women')?.image?.url ?? '',
+            img: womenBanner,
+            alt: womenBannerImage?.altText ?? 'Women chikankari banner',
             title: 'Women',
             tagline: 'Anarkalis, sarees, co-ords',
             handle: 'women',
           },
           {
-            img: allCollections.find((c: any) => c.handle === 'men')?.image?.url ?? '',
+            img: menBanner,
+            alt: menBannerImage?.altText ?? 'Men chikankari banner',
             title: 'Men',
             tagline: 'Kurtas, nawabi, pathani',
             handle: 'men',
@@ -376,9 +486,9 @@ const bestsellers = useMemo(
           >
             <ParallaxImage
               src={c.img}
-              alt={c.title}
+              alt={c.alt}
               className="absolute inset-0"
-              imgClassName="brightness-90 group-hover:brightness-100 transition-[filter] duration-[900ms]"
+              imgClassName="!h-[150%] brightness-90 object-center transition-[filter] duration-[900ms] group-hover:brightness-100 max-md:!h-[170%]"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/60" />
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-ivory">
@@ -387,41 +497,43 @@ const bestsellers = useMemo(
                 {c.title}
               </h3>
               <span className="mt-8 small-caps border border-ivory/60 px-8 py-3 group-hover:bg-ivory group-hover:text-ink transition-colors">
-                Discover →
+                Discover -&gt;
               </span>
             </div>
           </Link>
         ))}
       </section>
 
-      <section className="relative h-[100svh] min-h-[640px] overflow-hidden bg-ink">
-        <ParallaxImage
-          src={allCollections.find((c: any) => c.handle === 'wedding-edit')?.image?.url ?? ''}
-          alt="The Wedding Edit"
-          className="absolute inset-0"
-          strength={0.12}
-          imgClassName="brightness-[0.78]"
-        />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-ivory px-6">
+      <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden bg-ink text-ivory md:h-[100svh] md:min-h-[640px]">
+        <picture className="absolute inset-0 block h-full w-full">
+          <img
+            src={weddingBanner}
+            alt={weddingBannerImage?.altText ?? 'The Wedding Edit'}
+            className="h-full w-full object-cover brightness-[0.86] md:brightness-[0.78]"
+            loading="lazy"
+          />
+        </picture>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/15 via-ink/20 to-ink/82 md:from-ink/25 md:via-ink/10 md:to-ink/70" />
+        <div className="relative z-10 mx-auto flex min-h-[calc(100svh-4rem)] max-w-4xl flex-col items-center justify-end px-6 pb-14 pt-52 text-center md:h-full md:justify-center md:py-0">
           <p className="small-caps text-ivory/70">The Wedding Edit</p>
-          <h2 className="mt-8 font-display text-6xl md:text-8xl">
+          <h2 className="mt-6 max-w-3xl font-display text-5xl leading-[0.98] md:mt-8 md:text-8xl">
             Heirlooms before{' '}
             <em className="italic font-serif">they are worn.</em>
           </h2>
-          <p className="mt-6 max-w-xl text-ivory/70 leading-relaxed">
-            For the bride, the witness, the mother who folds away tomorrow's
+          <p className="mt-5 max-w-xl text-sm leading-relaxed text-ivory/70 md:mt-6 md:text-base">
+            For the bride, the witness, the mother who folds away tomorrow&apos;s
             memory tonight.
           </p>
           <Link
             to="/collections/wedding-edit"
-            className="mt-12 small-caps border border-ivory px-10 py-4 hover:bg-ivory hover:text-ink transition-colors"
+            className="mt-9 inline-flex min-h-12 items-center justify-center border border-ivory px-9 small-caps text-[10px] transition-colors hover:bg-ivory hover:text-ink md:mt-12 md:px-10 md:py-4"
           >
-            Enter the edit
+            Shop wedding edit
           </Link>
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1500px] px-6 py-32 lg:px-12">
+      <section className="mx-auto max-w-[1500px] px-4 py-28 sm:px-6 lg:px-12 lg:py-32">
         <div className="mb-14 flex items-end justify-between border-b border-border pb-6">
           <div>
             <p className="small-caps text-ink/50">Returned to, again and again</p>
@@ -433,10 +545,10 @@ const bestsellers = useMemo(
             to="/collections/best-sellers"
             className="small-caps story-link hidden md:inline-block"
           >
-            View all →
+            View all -&gt;
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-14 md:grid-cols-3">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-14 md:grid-cols-3">
           {bestsellers.map((p: any) => (
             <FadeUp key={p.handle}>
               <ProductCard product={p} />

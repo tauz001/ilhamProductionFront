@@ -8,6 +8,7 @@ import {AddToCartButton} from '~/components/AddToCartButton';
 import {ProductAssurancePanel} from '~/components/commerce/ProductAssurancePanel';
 import {ProductCard} from '~/components/commerce/ProductCard';
 import {ProductImageCarousel} from '~/components/commerce/ProductImageCarousel';
+import {JsonLd} from '~/components/seo/JsonLd';
 import {FadeUp} from '~/components/editorial/MaskedReveal';
 import {ChikanMotif} from '~/components/editorial/ChikanMotif';
 import {useStore} from '~/lib/commerce/cart-store';
@@ -21,14 +22,15 @@ import {
   parseListField,
 } from '~/lib/commerce/shopify-fields';
 import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
+import {breadcrumbJsonLd, productJsonLd} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = ({data}) => {
   const product = data?.product;
   return [
     {
       title: product
-        ? `${product.title} — ilham`
-        : 'Product — ilham',
+        ? `${product.title} - ilham`
+        : 'Product - ilham',
     },
     {
       name: 'description',
@@ -210,13 +212,13 @@ export default function Product() {
             </p>
           )}
           <p className="mt-1 text-xs text-ink/45">
-            Inclusive of all taxes · Checkout and shipping calculated by Shopify
+            Inclusive of all taxes. Checkout and shipping calculated by Shopify
           </p>
           <div className="mt-5 h-px bg-border" />
 
           {occasions.length > 0 && (
             <p className="mt-5 text-xs italic text-ink/50">
-              {occasions.join(' · ')}
+              {occasions.join(' / ')}
             </p>
           )}
 
@@ -430,6 +432,13 @@ export default function Product() {
             },
           ],
         }}
+      />
+      <JsonLd data={productJsonLd(product, selectedVariant)} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          {name: 'Home', url: '/'},
+          {name: product.title, url: `/products/${product.handle}`},
+        ])}
       />
     </div>
   );

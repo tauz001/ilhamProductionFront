@@ -11,12 +11,15 @@ import {
   useRouteLoaderData,
 } from 'react-router';
 import type {Route} from './+types/root';
-import favicon from '~/assets/favicon.svg';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
 import tailwindCss from './styles/tailwind.css?url';
 import {PageLayout} from './components/PageLayout';
+import {organizationJsonLd} from './lib/seo';
 
 export type RootLoader = typeof loader;
+
+const FAVICON_URL =
+  'https://cdn.shopify.com/s/files/1/0820/4389/6063/files/ilham_logo.png?v=1780686255';
 
 /**
  * This is important to avoid re-fetching root queries on sub-navigations
@@ -60,7 +63,7 @@ export function links() {
       rel: 'preconnect',
       href: 'https://shop.app',
     },
-    {rel: 'icon', type: 'image/svg+xml', href: favicon},
+    {rel: 'icon', type: 'image/png', href: FAVICON_URL},
   ];
 }
 
@@ -233,7 +236,10 @@ const LAYOUT_COMMERCE_QUERY = `#graphql
           }
         }
         metafields(identifiers: [
-          {namespace: "custom", key: "subtitle"}
+          {namespace: "custom", key: "subtitle"},
+          {namespace: "custom", key: "fabric"},
+          {namespace: "custom", key: "color"},
+          {namespace: "custom", key: "occasions"}
         ]) {
           key
           namespace
@@ -252,7 +258,15 @@ export function Layout({children}: {children?: React.ReactNode}) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta
+          name="google-site-verification"
+          content="i0Gw9J8h_fjGAAJmMTQpnbZpsYRQGxw-OmI_YF9XWqE"
+        />
         <link rel="stylesheet" href={tailwindCss}></link>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{__html: JSON.stringify(organizationJsonLd())}}
+        />
         <Meta />
         <Links />
       </head>

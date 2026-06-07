@@ -36,11 +36,14 @@ export function ProductCard({
     product.priceRange?.minVariantPrice;
 
   const subtitle = getMetafieldValue(product, 'subtitle');
-  const variant =
-    product.variants?.nodes?.find(isVariantPurchasable) ??
-    product.variants?.nodes?.[0];
+  const variants = product.variants?.nodes ?? [];
+  const purchasableVariants = variants.filter(isVariantPurchasable);
+  const variant = purchasableVariants[0] ?? variants[0];
   const variantId = variant?.id;
-  const canAddToBag = Boolean(variantId && isVariantPurchasable(variant));
+  const requiresVariantSelection = shouldChooseVariantOnPdp(variants);
+  const canAddToBag = Boolean(
+    variantId && isVariantPurchasable(variant) && !requiresVariantSelection,
+  );
   const isNew =
     tagIncludes(product.tags, 'new-arrival') ||
     tagIncludes(product.tags, 'new');
@@ -79,7 +82,7 @@ export function ProductCard({
 
     return (
       <div
-        className="group block"
+        className="group block min-w-0"
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => {
           setHovering(false);
@@ -140,17 +143,17 @@ export function ProductCard({
           )}
     
           <div className="absolute inset-x-0 bottom-0 z-20 px-4 pb-4 translate-y-full opacity-0 transition-all duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100">
-            {canAddToBag && (
+            {canAddToBag ? (
               <AddToCartButton
-              className="block w-full"
-              lines={[
-                {
-                  merchandiseId: variantId,
-                  quantity: 1,
-                  selectedVariant: variant,
-                },
-              ]}
-              onClick={() => openDrawer('cart')}
+                className="block w-full"
+                lines={[
+                  {
+                    merchandiseId: variantId,
+                    quantity: 1,
+                    selectedVariant: variant,
+                  },
+                ]}
+                onClick={() => openDrawer('cart')}
               >
                 <div className="flex h-14 w-full items-center justify-center gap-3 border border-ivory/15 bg-ink/95 text-ivory shadow-[0_16px_36px_rgba(0,0,0,0.22)] backdrop-blur-sm small-caps hover:border-gold hover:bg-gold transition-colors cursor-pointer">
                   <ShoppingBag
@@ -160,24 +163,31 @@ export function ProductCard({
                   Add to bag
                 </div>
               </AddToCartButton>
+            ) : (
+              <Link
+                to={`/products/${product.handle}`}
+                className="flex h-14 w-full items-center justify-center border border-ivory/15 bg-ink/95 text-ivory shadow-[0_16px_36px_rgba(0,0,0,0.22)] backdrop-blur-sm small-caps transition-colors hover:border-gold hover:bg-gold"
+              >
+                Choose piece
+              </Link>
             )}
           </div>
         </div>
     
-        <div className="mt-5 flex items-baseline justify-between gap-3">
+        <div className="mt-4 flex min-w-0 flex-col gap-1.5 sm:mt-5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
           <div className="min-w-0">
             <Link to={`/products/${product.handle}`}>
-              <p className="font-serif text-xl leading-tight text-ink transition-colors hover:text-gold">
+              <p className="line-clamp-2 overflow-hidden font-serif text-base leading-[1.08] text-ink transition-colors [-webkit-box-orient:vertical] [-webkit-line-clamp:2] [display:-webkit-box] hover:text-gold sm:text-xl sm:leading-tight">
                 {product.title}
               </p>
             </Link>
     
-            <p className="text-xs italic text-ink/55">
+            <p className="mt-1 line-clamp-1 text-[11px] italic text-ink/55 sm:text-xs">
               {subtitle}
             </p>
           </div>
     
-          <p className="shrink-0 text-sm text-ink/80 whitespace-nowrap">
+          <p className="self-start whitespace-nowrap text-sm text-ink/80 sm:shrink-0">
             {price ? formatMoney(price.amount, price.currencyCode) : ''}
           </p>
         </div>
@@ -197,4 +207,19 @@ function getHoverImages(product: any) {
   });
 
   return images.slice(0, 3);
+}
+
+function shouldChooseVariantOnPdp(variants: any[]) {
+  const purchasable = variants.filter(isVariantPurchasable);
+  if (purchasable.length > 1) return true;
+
+  return Boolean(
+    purchasable[0]?.selectedOptions?.some(
+      (option: {name: string; value: string}) =>
+        !(
+          option.name.toLowerCase() === 'title' &&
+          option.value.toLowerCase() === 'default title'
+        ),
+    ),
+  );
 }

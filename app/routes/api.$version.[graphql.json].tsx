@@ -1,11 +1,8 @@
 import type {Route} from './+types/api.$version.[graphql.json]';
 
 export async function action({params, context, request}: Route.ActionArgs) {
-  const checkoutDomain =
-    context.env.PUBLIC_CHECKOUT_DOMAIN ?? context.env.PUBLIC_STORE_DOMAIN;
-
   const response = await fetch(
-    `https://${checkoutDomain}/api/${params.version}/graphql.json`,
+    `https://${context.env.PUBLIC_STORE_DOMAIN}/api/${params.version}/graphql.json`,
     {
       method: 'POST',
       body: request.body,
