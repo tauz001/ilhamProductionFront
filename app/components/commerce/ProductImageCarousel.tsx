@@ -2,11 +2,18 @@ import {useEffect, useMemo, useRef, useState} from 'react';
 import {ChevronLeft, ChevronRight, Maximize2, X} from 'lucide-react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {easeSilk} from '~/lib/motion/variants';
+import {
+  PDP_IMAGE_WIDTHS,
+  shopifyImageUrl,
+  shopifySrcSet,
+} from '~/lib/commerce/image';
 
 type ProductMediaImage = {
   id?: string | null;
   url?: string | null;
   altText?: string | null;
+  width?: number | null;
+  height?: number | null;
 };
 
 type ProductImageCarouselProps = {
@@ -149,8 +156,15 @@ export function ProductImageCarousel({
               aria-label={`Open ${productTitle} image ${activeIndex + 1}`}
             >
               <img
-                src={activeImage.url}
+                src={shopifyImageUrl(activeImage.url, 1280)}
+                srcSet={shopifySrcSet(activeImage.url, PDP_IMAGE_WIDTHS)}
+                sizes="(min-width: 768px) 58vw, 100vw"
                 alt={activeImage.altText ?? productTitle}
+                loading="eager"
+                decoding="async"
+                fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
+                width={activeImage.width ?? undefined}
+                height={activeImage.height ?? undefined}
                 className="h-full w-full object-contain"
               />
               <span className="absolute right-4 top-4 grid h-10 w-10 place-items-center border border-ivory/60 bg-ivory/70 text-ink backdrop-blur">
@@ -194,8 +208,13 @@ export function ProductImageCarousel({
                   aria-label={`Show ${productTitle} image ${index + 1}`}
                 >
                   <img
-                    src={image.url ?? ''}
-                    alt={image.altText ?? productTitle}
+                    src={shopifyImageUrl(image.url, 160)}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
+                    width={image.width ?? undefined}
+                    height={image.height ?? undefined}
                     className="h-full w-full object-cover"
                   />
                 </button>
@@ -255,8 +274,11 @@ export function ProductImageCarousel({
             )}
 
             <img
-              src={slides[zoomIndex].url ?? ''}
+              src={shopifyImageUrl(slides[zoomIndex].url, 2048)}
               alt={slides[zoomIndex].altText ?? productTitle}
+              decoding="async"
+              width={slides[zoomIndex].width ?? undefined}
+              height={slides[zoomIndex].height ?? undefined}
               className="max-h-full max-w-full object-contain"
             />
 

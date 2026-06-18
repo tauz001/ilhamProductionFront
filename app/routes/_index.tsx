@@ -16,26 +16,12 @@ import {
   tagIncludes,
 } from '~/lib/commerce/shopify-fields';
 import {canonicalUrl} from '~/lib/seo';
-
-const SHOPIFY_HERO_WIDTHS = [640, 960, 1280, 1600, 2048];
-const SHOPIFY_MOBILE_HERO_WIDTHS = [480, 720, 960, 1200];
-
-function sizedShopifyImageUrl(src: string | undefined, width: number) {
-  if (!src || !src.includes('cdn.shopify.com')) return src ?? '';
-
-  const [base, query = ''] = src.split('?');
-  const params = new URLSearchParams(query);
-  params.set('width', String(width));
-  return `${base}?${params.toString()}`;
-}
-
-function shopifySrcSet(src: string | undefined, widths: number[]) {
-  if (!src) return '';
-
-  return widths
-    .map((width) => `${sizedShopifyImageUrl(src, width)} ${width}w`)
-    .join(', ');
-}
+import {
+  HERO_IMAGE_WIDTHS,
+  MOBILE_HERO_IMAGE_WIDTHS,
+  shopifyImageUrl,
+  shopifySrcSet,
+} from '~/lib/commerce/image';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -337,7 +323,7 @@ const bestsellers = useMemo(
               media="(max-width: 767px)"
               srcSet={shopifySrcSet(
                 currentHeroMobile,
-                SHOPIFY_MOBILE_HERO_WIDTHS,
+                MOBILE_HERO_IMAGE_WIDTHS,
               )}
               sizes="100vw"
             />
@@ -345,12 +331,12 @@ const bestsellers = useMemo(
               media="(min-width: 768px)"
               srcSet={shopifySrcSet(
                 currentHeroDesktop,
-                SHOPIFY_HERO_WIDTHS,
+                HERO_IMAGE_WIDTHS,
               )}
               sizes="100vw"
             />
             <img
-              src={sizedShopifyImageUrl(currentHeroDesktop, 1600)}
+              src={shopifyImageUrl(currentHeroDesktop, 1600)}
               alt={currentHero?.alt}
               loading="eager"
               decoding="async"
@@ -548,10 +534,15 @@ const bestsellers = useMemo(
       <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden bg-ink text-ivory md:h-[100svh] md:min-h-[640px]">
         <picture className="absolute inset-0 block h-full w-full">
           <img
-            src={weddingBanner}
+            src={shopifyImageUrl(weddingBanner, 1600)}
+            srcSet={shopifySrcSet(weddingBanner, HERO_IMAGE_WIDTHS)}
+            sizes="100vw"
             alt={weddingBannerImage?.altText ?? 'The Wedding Edit'}
             className="h-full w-full object-cover brightness-[0.86] md:brightness-[0.78]"
             loading="lazy"
+            decoding="async"
+            width={weddingBannerImage?.width ?? undefined}
+            height={weddingBannerImage?.height ?? undefined}
           />
         </picture>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/15 via-ink/20 to-ink/82 md:from-ink/25 md:via-ink/10 md:to-ink/70" />

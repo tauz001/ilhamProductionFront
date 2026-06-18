@@ -56,10 +56,18 @@
 - Added intent prefetch to primary Navbar, homepage, and product-card links.
 - Deferred PDP recommendations behind layout-stable skeleton cards.
 - ESLint and TypeScript passed after the performance foundation changes.
+- Replaced the two-element mobile/desktop parallax implementation with one
+  responsive `picture` resource selection.
+- Marked About and Gifting hero images eager/high-priority with dimensions.
+- Product cards now render one image initially, load the second on hover/focus,
+  and request the third only when the gallery timer advances.
+- Added shared Shopify CDN width/srcset helpers and applied bounded responsive
+  widths to home, gifting, PDP gallery, thumbnails, zoom, and artisan imagery.
+- ESLint and TypeScript passed after responsive image changes.
 
 ## In Progress
 
-- Image loading and responsive media.
+- Collection payload and pagination strategy.
 
 ## Pending
 
@@ -80,9 +88,11 @@
 - `npm.cmd run lint` - passed after performance foundation.
 - `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
   performance foundation.
+- `npm.cmd run lint` - passed after responsive image changes.
+- `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
+  responsive image changes.
 
 ## Next Step
 
-Replace duplicate parallax image elements with responsive picture sources,
-prioritize the About and Gifting heroes, and make product cards load secondary
-images only after hover/focus intent.
+Reduce collection product/variant payloads without losing catalog access or
+URL-based filters, then verify the collection experience before feature work.

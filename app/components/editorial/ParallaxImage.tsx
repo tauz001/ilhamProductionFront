@@ -1,5 +1,11 @@
 import {useRef} from 'react';
 import {motion, useScroll, useTransform} from 'framer-motion';
+import {
+  HERO_IMAGE_WIDTHS,
+  MOBILE_HERO_IMAGE_WIDTHS,
+  shopifyImageUrl,
+  shopifySrcSet,
+} from '~/lib/commerce/image';
 
 type Props = {
   src: string;
@@ -9,6 +15,8 @@ type Props = {
   imgClassName?: string;
   strength?: number;
   loading?: 'lazy' | 'eager';
+  fetchPriority?: 'high' | 'low' | 'auto';
+  sizes?: string;
   width?: number;
   height?: number;
 };
@@ -21,6 +29,8 @@ export function ParallaxImage({
   imgClassName = '',
   strength = 0.18,
   loading = 'lazy',
+  fetchPriority = 'auto',
+  sizes = '100vw',
   width,
   height,
 }: Props) {
@@ -39,38 +49,28 @@ export function ParallaxImage({
 
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`}>
-      {mobileSrc ? (
-        <>
-          <motion.img
-            src={mobileSrc}
-            alt={alt}
-            loading={loading}
-            width={width}
-            height={height}
-            className={`${imageClassName} md:hidden`}
-            style={{y}}
+      <picture className="block h-full w-full">
+        {mobileSrc ? (
+          <source
+            media="(max-width: 767px)"
+            srcSet={shopifySrcSet(mobileSrc, MOBILE_HERO_IMAGE_WIDTHS)}
+            sizes={sizes}
           />
-          <motion.img
-            src={src}
-            alt={alt}
-            loading={loading}
-            width={width}
-            height={height}
-            className={`${imageClassName} hidden md:block`}
-            style={{y}}
-          />
-        </>
-      ) : (
+        ) : null}
         <motion.img
-          src={src}
+          src={shopifyImageUrl(src, 1600)}
+          srcSet={shopifySrcSet(src, HERO_IMAGE_WIDTHS)}
+          sizes={sizes}
           alt={alt}
           loading={loading}
+          decoding="async"
+          fetchPriority={fetchPriority}
           width={width}
           height={height}
           className={imageClassName}
           style={{y}}
         />
-      )}
+      </picture>
     </div>
   );
 }

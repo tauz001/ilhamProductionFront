@@ -24,6 +24,11 @@ import {
 } from '~/lib/commerce/shopify-fields';
 import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
 import {getWashCareForFabric} from '~/lib/commerce/product-guidance';
+import {
+  PDP_IMAGE_WIDTHS,
+  shopifyImageUrl,
+  shopifySrcSet,
+} from '~/lib/commerce/image';
 import {breadcrumbJsonLd, canonicalUrl, productJsonLd} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = ({data}) => {
@@ -393,9 +398,15 @@ export default function Product() {
           {artisanImage?.url && (
             <div className="aspect-[4/5] overflow-hidden">
               <img
-                src={artisanImage.url}
+                src={shopifyImageUrl(artisanImage.url, 1280)}
+                srcSet={shopifySrcSet(artisanImage.url, PDP_IMAGE_WIDTHS)}
+                sizes="(min-width: 768px) 50vw, 100vw"
                 alt={artisan ? `${artisan}, artisan` : 'Artisan'}
                 className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+                width={artisanImage.width ?? undefined}
+                height={artisanImage.height ?? undefined}
               />
             </div>
           )}

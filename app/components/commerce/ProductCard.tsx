@@ -10,16 +10,23 @@ import {
   tagIncludes,
 } from '~/lib/commerce/shopify-fields';
 import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
+import {
+  CARD_IMAGE_WIDTHS,
+  shopifyImageUrl,
+  shopifySrcSet,
+} from '~/lib/commerce/image';
 
 type Props = {
   product: any;
   index?: number;
   aspect?: 'tall' | 'square';
+  priority?: boolean;
 };
 
 export function ProductCard({
   product,
   aspect = 'tall',
+  priority = false,
 }: Props) {
   const wishlist = useStore((s) => s.wishlist);
   const toggle = useStore((s) => s.toggleWishlist);
@@ -29,6 +36,7 @@ export function ProductCard({
   const hoverImages = getHoverImages(product);
   const firstImage = hoverImages[0];
   const [hovering, setHovering] = useState(false);
+  const [imageIntent, setImageIntent] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const activeImageIndex = hovering ? imageIndex : 0;
 
@@ -90,12 +98,24 @@ export function ProductCard({
       <div
         className="group block min-w-0"
         onMouseEnter={() => {
+          setImageIntent(true);
           setHovering(true);
           setImageIndex(hoverImages.length > 1 ? 1 : 0);
         }}
         onMouseLeave={() => {
           setHovering(false);
           setImageIndex(0);
+        }}
+        onFocusCapture={() => {
+          setImageIntent(true);
+          setHovering(true);
+          setImageIndex(hoverImages.length > 1 ? 1 : 0);
+        }}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) {
+            setHovering(false);
+            setImageIndex(0);
+          }
         }}
       >
         <div
@@ -112,19 +132,28 @@ export function ProductCard({
             className="absolute inset-0 z-10"
           />
 
-          {hoverImages.map((image: any, i: number) => (
-            <img
-              key={image.id ?? image.url}
-              src={image.url}
-              alt={image.altText ?? product.title}
-              loading="lazy"
-              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-in-out ${
-                i === activeImageIndex
-                  ? 'opacity-100'
-                  : 'opacity-0'
-              }`}
-            />
-          ))}
+          {hoverImages.map((image: any, i: number) => {
+            if (i > 0 && !imageIntent) return null;
+            if (i > 1 && imageIndex < i) return null;
+
+            return (
+              <img
+                key={image.id ?? image.url}
+                src={shopifyImageUrl(image.url, 640)}
+                srcSet={shopifySrcSet(image.url, CARD_IMAGE_WIDTHS)}
+                sizes="(min-width: 1024px) 24vw, (min-width: 768px) 33vw, 50vw"
+                alt={i === 0 ? image.altText ?? product.title : ''}
+                loading={i === 0 && priority ? 'eager' : 'lazy'}
+                decoding="async"
+                fetchPriority={i === 0 && priority ? 'high' : 'low'}
+                width={image.width ?? undefined}
+                height={image.height ?? undefined}
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-in-out ${
+                  i === activeImageIndex ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+            );
+          })}
     
           <button
             type="button"

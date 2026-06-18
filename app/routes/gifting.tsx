@@ -15,6 +15,11 @@ import {
 import {useStore} from '~/lib/commerce/cart-store';
 import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
 import {canonicalUrl} from '~/lib/seo';
+import {
+  CARD_IMAGE_WIDTHS,
+  shopifyImageUrl,
+  shopifySrcSet,
+} from '~/lib/commerce/image';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -245,6 +250,10 @@ export default function Gifting() {
           alt={giftingHeroImage?.altText ?? 'ilham gifting'}
           className="absolute inset-0"
           imgClassName="!h-[150%] brightness-[0.78] object-center max-md:!h-[175%] max-md:object-top"
+          loading="eager"
+          fetchPriority="high"
+          width={giftingHeroImage?.width ?? undefined}
+          height={giftingHeroImage?.height ?? undefined}
         />
         <div className="absolute inset-0 flex flex-col items-center justify-end pb-24 text-center text-ivory px-6">
           <p className="small-caps text-ivory/70">Luxury Gifting</p>
@@ -275,10 +284,13 @@ export default function Gifting() {
           >
             <div className="aspect-[4/5] overflow-hidden">
               <img
-                src={f.img}
+                src={shopifyImageUrl(f.img, 960)}
+                srcSet={shopifySrcSet(f.img, CARD_IMAGE_WIDTHS)}
+                sizes="(min-width: 768px) 50vw, 100vw"
                 alt={f.title}
                 className="h-full w-full object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
                 loading="lazy"
+                decoding="async"
               />
             </div>
             <div className="p-8 md:p-12">
@@ -321,9 +333,11 @@ export default function Gifting() {
                     <div className="aspect-[3/4] w-24 shrink-0 overflow-hidden bg-cream">
                       {selectedProductImage?.url ? (
                         <img
-                          src={selectedProductImage.url}
+                          src={shopifyImageUrl(selectedProductImage.url, 320)}
                           alt={selectedProductImage.altText ?? selectedProduct.title}
                           className="h-full w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
                         />
                       ) : null}
                     </div>
@@ -552,10 +566,13 @@ function ProductPickerModal({
                 <div className="aspect-[3/4] overflow-hidden bg-cream">
                   {image?.url ? (
                     <img
-                      src={image.url}
+                      src={shopifyImageUrl(image.url, 480)}
+                      srcSet={shopifySrcSet(image.url, CARD_IMAGE_WIDTHS)}
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                       alt={image.altText ?? product.title}
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                       loading="lazy"
+                      decoding="async"
                     />
                   ) : null}
                 </div>

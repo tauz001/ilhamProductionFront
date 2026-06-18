@@ -423,9 +423,9 @@ export default function Collection() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-5 sm:gap-y-12 md:grid-cols-3 md:gap-x-6 md:gap-y-14 lg:grid-cols-4">
-            {sorted.map((product: any) => (
+            {sorted.map((product: any, index: number) => (
               <FadeUp key={product.handle}>
-                <ProductCard product={product} />
+                <ProductCard product={product} priority={index < 4} />
               </FadeUp>
             ))}
           </div>

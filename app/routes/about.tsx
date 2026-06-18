@@ -104,6 +104,10 @@ export default function About() {
             alt={hero.altText ?? 'Lucknow chikankari heritage'}
             className="absolute inset-0"
             imgClassName="brightness-[0.62]"
+            loading="eager"
+            fetchPriority="high"
+            width={hero.width ?? undefined}
+            height={hero.height ?? undefined}
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-ink/20 via-ink/5 to-ink/52 md:from-ink/25 md:via-ink/10 md:to-ink/78" />
