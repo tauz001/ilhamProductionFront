@@ -72,10 +72,16 @@ export function ProductCard({
 
   useEffect(() => {
     if (!hovering || hoverImages.length < 2) return;
+    if (hoverImages.length === 2) return;
 
+    // On hover the second image appears immediately; this timer then loops the
+    // remaining gallery images slowly so the card feels alive, not jumpy.
     const timer = window.setInterval(() => {
-      setImageIndex((current) => (current + 1) % hoverImages.length);
-    }, 1800);
+      setImageIndex((current) => {
+        const next = current + 1;
+        return next >= hoverImages.length ? 1 : next;
+      });
+    }, 3000);
 
     return () => window.clearInterval(timer);
   }, [hoverImages.length, hovering]);
@@ -83,7 +89,10 @@ export function ProductCard({
     return (
       <div
         className="group block min-w-0"
-        onMouseEnter={() => setHovering(true)}
+        onMouseEnter={() => {
+          setHovering(true);
+          setImageIndex(hoverImages.length > 1 ? 1 : 0);
+        }}
         onMouseLeave={() => {
           setHovering(false);
           setImageIndex(0);
@@ -108,7 +117,7 @@ export function ProductCard({
               src={image.url}
               alt={image.altText ?? product.title}
               loading="lazy"
-              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1400ms] ease-in-out ${
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-in-out ${
                 i === activeImageIndex
                   ? 'opacity-100'
                   : 'opacity-0'

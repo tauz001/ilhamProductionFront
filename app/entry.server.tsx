@@ -22,6 +22,16 @@ export default async function handleRequest(
       checkoutDomain,
       storeDomain: context.env.PUBLIC_STORE_DOMAIN,
     },
+    styleSrc: ['https://fonts.googleapis.com'],
+    fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdn.shopify.com'],
+    imgSrc: [
+      "'self'",
+      'data:',
+      'blob:',
+      'https://cdn.shopify.com',
+      'https://shopify.com',
+      'https://*.shopify.com',
+    ],
   });
 
   const body = await renderToReadableStream(

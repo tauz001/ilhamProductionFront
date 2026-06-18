@@ -7,6 +7,11 @@ type Estimate = {
   etaText?: string;
   codAvailable?: boolean;
   prepaidAvailable?: boolean;
+  sameDay?: {
+    eligible: boolean;
+    fee: number;
+    message: string;
+  };
 };
 
 type EstimateResponse = {
@@ -157,6 +162,11 @@ export function DeliveryEstimator({
             <p className="mt-2 flex items-center gap-2 font-serif text-lg text-ink">
               <Truck className="h-4 w-4 text-gold" strokeWidth={1.4} />
               {estimate.etaText}
+            </p>
+          )}
+          {estimate?.sameDay?.eligible && (
+            <p className="mt-3 border border-gold/35 bg-gold/10 px-3 py-2 text-xs leading-relaxed text-ink/70">
+              {estimate.sameDay.message}
             </p>
           )}
           {estimate && (estimate.codAvailable || estimate.prepaidAvailable) && (

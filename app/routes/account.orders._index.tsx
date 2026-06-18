@@ -23,7 +23,7 @@ import type {
   OrderItemFragment,
 } from 'customer-accountapi.generated';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
-import {encodeOrderRouteId} from '~/lib/customer-account/order-route-id';
+import {getOrderRouteId} from '~/lib/customer-account/order-route-id';
 
 type OrdersLoaderData = {
   customer: CustomerOrdersFragment;
@@ -214,7 +214,7 @@ function OrderSearchForm({
 
 function OrderItem({order}: {order: OrderItemFragment}) {
   const fulfillmentStatus = flattenConnection(order.fulfillments)[0]?.status;
-  const orderHref = `/account/orders/${encodeOrderRouteId(order.id)}`;
+  const orderHref = `/account/orders/${getOrderRouteId(order.id)}`;
 
   return (
     <article className="grid gap-5 border border-border bg-ivory/75 p-5 transition-colors hover:border-gold/70 md:grid-cols-[1fr_auto] md:items-center">

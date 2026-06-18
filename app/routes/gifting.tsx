@@ -14,6 +14,7 @@ import {
 } from '~/lib/commerce/shopify-fields';
 import {useStore} from '~/lib/commerce/cart-store';
 import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
+import {canonicalUrl} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -23,6 +24,7 @@ export const meta: Route.MetaFunction = () => {
       content:
         'Gift Lucknowi chikankari across India. Hand-bound boxes, handwritten notes, occasion curation.',
     },
+    {tagName: 'link', rel: 'canonical', href: canonicalUrl('/gifting')},
   ];
 };
 

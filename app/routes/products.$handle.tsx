@@ -8,6 +8,7 @@ import {AddToCartButton} from '~/components/AddToCartButton';
 import {ProductAssurancePanel} from '~/components/commerce/ProductAssurancePanel';
 import {ProductCard} from '~/components/commerce/ProductCard';
 import {ProductImageCarousel} from '~/components/commerce/ProductImageCarousel';
+import {SizeAndFitGuide} from '~/components/commerce/SizeAndFitGuide';
 import {JsonLd} from '~/components/seo/JsonLd';
 import {FadeUp} from '~/components/editorial/MaskedReveal';
 import {ChikanMotif} from '~/components/editorial/ChikanMotif';
@@ -22,7 +23,8 @@ import {
   parseListField,
 } from '~/lib/commerce/shopify-fields';
 import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
-import {breadcrumbJsonLd, productJsonLd} from '~/lib/seo';
+import {getWashCareForFabric} from '~/lib/commerce/product-guidance';
+import {breadcrumbJsonLd, canonicalUrl, productJsonLd} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = ({data}) => {
   const product = data?.product;
@@ -40,6 +42,11 @@ export const meta: Route.MetaFunction = ({data}) => {
     {
       property: 'og:image',
       content: product?.featuredImage?.url ?? product?.images?.nodes?.[0]?.url,
+    },
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: product ? canonicalUrl(`/products/${product.handle}`) : canonicalUrl('/products'),
     },
   ];
 };
@@ -102,7 +109,10 @@ export default function Product() {
   const subtitle = getRequiredMetafield(product, 'subtitle');
   const fabric = getRequiredMetafield(product, 'fabric');
   const care = getRequiredMetafield(product, 'care');
-  const washCare = getMetafieldValue(product, 'wash_care') ?? care;
+  const washCare = getWashCareForFabric(
+    fabric,
+    getMetafieldValue(product, 'wash_care') ?? care,
+  );
   const craftHours = getRequiredMetafield(product, 'craft_hours');
   const artisan = getRequiredMetafield(product, 'artisan');
   const origin = getRequiredMetafield(product, 'origin');
@@ -161,7 +171,7 @@ export default function Product() {
     {
       id: 'fabric',
       title: 'Fabric & care',
-      body: [fabric, care].filter(Boolean).join('. '),
+      body: [fabric, washCare].filter(Boolean).join('. '),
     },
     {
       id: 'craft',
@@ -254,6 +264,11 @@ export default function Product() {
               ))}
             </div>
           )}
+
+          <SizeAndFitGuide
+            product={product}
+            selectedSize={getOptionValue(selectedVariant, 'Size')}
+          />
 
           <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex h-12 w-full items-center justify-center border border-border sm:w-auto">

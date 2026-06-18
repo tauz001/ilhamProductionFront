@@ -14,6 +14,7 @@ import {AnimatePresence, motion} from 'framer-motion';
 import {easeSilk} from '~/lib/motion/variants';
 import {logMissingShopifyField} from '~/lib/commerce/shopify-fields';
 import {SOCIAL_LINKS} from '~/lib/social-links';
+import {canonicalUrl} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -22,6 +23,7 @@ export const meta: Route.MetaFunction = () => {
       name: 'description',
       content: 'Reach the ilham atelier.',
     },
+    {tagName: 'link', rel: 'canonical', href: canonicalUrl('/contact')},
   ];
 };
 

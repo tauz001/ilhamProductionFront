@@ -1,4 +1,8 @@
 import type {Route} from './+types/api.delivery-estimate';
+import {
+  isLucknowSameDayPincode,
+  SAME_DAY_DELIVERY_FEE_INR,
+} from '~/lib/commerce/product-guidance';
 
 type ShiprocketCourier = {
   courier_name?: string;
@@ -28,6 +32,7 @@ export async function loader({request, context}: Route.LoaderArgs) {
   const pincode = url.searchParams.get('pincode')?.trim() ?? '';
   const amount = Number(url.searchParams.get('amount') ?? 0);
   const env = context.env as unknown as ShiprocketEnv;
+  const sameDay = getSameDayEstimate(pincode);
 
   if (!/^\d{6}$/.test(pincode)) {
     return json(
@@ -45,7 +50,7 @@ export async function loader({request, context}: Route.LoaderArgs) {
       configured: false,
       serviceable: undefined,
       message: 'Delivery timelines are confirmed at checkout for your pincode.',
-      estimate: {checkedPincode: pincode},
+      estimate: {checkedPincode: pincode, sameDay},
     });
   }
 
@@ -63,7 +68,7 @@ export async function loader({request, context}: Route.LoaderArgs) {
         Authorization: `Bearer ${token}`,
       },
     });
-    const payload = (await response.json()) as any;
+    const payload = (await response.json().catch(() => ({}))) as any;
 
     if (!response.ok) {
       console.error('[delivery-estimate] Shiprocket serviceability failed:', {
@@ -75,7 +80,7 @@ export async function loader({request, context}: Route.LoaderArgs) {
           configured: true,
           serviceable: false,
           message: 'Could not check this pincode right now.',
-          estimate: {checkedPincode: pincode},
+          estimate: {checkedPincode: pincode, sameDay},
         },
         502,
       );
@@ -97,6 +102,7 @@ export async function loader({request, context}: Route.LoaderArgs) {
         codAvailable: couriers.some((courier) => Boolean(courier.cod)),
         prepaidAvailable: couriers.length > 0,
         etaText,
+        sameDay,
       },
     });
   } catch (error) {
@@ -106,11 +112,23 @@ export async function loader({request, context}: Route.LoaderArgs) {
         configured: true,
         serviceable: false,
         message: 'Could not check this pincode right now.',
-        estimate: {checkedPincode: pincode},
+        estimate: {checkedPincode: pincode, sameDay},
       },
       502,
     );
   }
+}
+
+function getSameDayEstimate(pincode: string) {
+  const eligible = isLucknowSameDayPincode(pincode);
+
+  return {
+    eligible,
+    fee: eligible ? SAME_DAY_DELIVERY_FEE_INR : 0,
+    message: eligible
+      ? `Same-day Lucknow delivery is available for Rs. ${SAME_DAY_DELIVERY_FEE_INR} extra.`
+      : 'Same-day delivery is currently available only for Lucknow 226xxx pincodes.',
+  };
 }
 
 function isShiprocketConfigured(env: ShiprocketEnv) {
@@ -146,7 +164,7 @@ async function getShiprocketToken(env: ShiprocketEnv) {
       }),
     },
   );
-  const payload = (await response.json()) as {token?: string};
+  const payload = (await response.json().catch(() => ({}))) as {token?: string};
 
   if (!response.ok || !payload.token) {
     throw new Error('Shiprocket authentication failed.');

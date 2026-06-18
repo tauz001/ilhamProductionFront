@@ -7,8 +7,10 @@ import {
   useActionData,
   useNavigation,
   useOutletContext,
+  useSearchParams,
 } from 'react-router';
 import type {Route} from './+types/account.profile';
+import {CheckoutFeedbackModal} from '~/components/account/CheckoutFeedbackModal';
 
 export type ActionResponse = {
   error: string | null;
@@ -81,12 +83,17 @@ export async function action({request, context}: Route.ActionArgs) {
 
 export default function AccountProfile() {
   const account = useOutletContext<{customer: CustomerFragment}>();
+  const [searchParams] = useSearchParams();
   const {state} = useNavigation();
   const action = useActionData<ActionResponse>();
   const customer = action?.customer ?? account?.customer;
+  const showFeedbackModal =
+    searchParams.get('order_feedback') === '1' ||
+    searchParams.get('feedback') === 'checkout';
 
   return (
     <div>
+      <CheckoutFeedbackModal open={showFeedbackModal} />
       <div className="mb-8">
         <p className="small-caps text-ink/45">Profile</p>
         <h2 className="mt-2 font-display text-4xl text-ink md:text-5xl">

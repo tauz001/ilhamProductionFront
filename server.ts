@@ -12,6 +12,22 @@ export default {
     executionContext: ExecutionContext,
   ): Promise<Response> {
     try {
+      const checkoutHost = (env as any).PUBLIC_CHECKOUT_DOMAIN;
+      const primaryHost = (env as any).PUBLIC_PRIMARY_DOMAIN ?? 'ilhamchikankari.com';
+      const requestUrl = new URL(request.url);
+
+      // Shopify owns hosted checkout paths. Normal storefront paths should
+      // never be indexed or browsed on the checkout subdomain.
+      if (
+        checkoutHost &&
+        requestUrl.hostname === checkoutHost &&
+        !requestUrl.pathname.startsWith('/cart/') &&
+        !requestUrl.pathname.startsWith('/checkouts/')
+      ) {
+        requestUrl.hostname = primaryHost;
+        return Response.redirect(requestUrl.toString(), 301);
+      }
+
       const hydrogenContext = await createHydrogenRouterContext(
         request,
         env,

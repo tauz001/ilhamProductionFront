@@ -51,22 +51,33 @@ export function ProductImageCarousel({
   useEffect(() => {
     if (zoomIndex === null) return;
 
+    // Keep keyboard navigation self-contained so the listener always uses the
+    // latest image count without depending on the click-handler helper below.
+    const moveZoomFromKeyboard = (direction: 'next' | 'prev') => {
+      setZoomIndex((current) => {
+        const safeCurrent = current ?? activeIndex;
+        return direction === 'next'
+          ? getNextIndex(safeCurrent, slides.length)
+          : getPreviousIndex(safeCurrent, slides.length);
+      });
+    };
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setZoomIndex(null);
       }
       if (event.key === 'ArrowRight' && hasMultipleImages) {
-        moveZoom('next');
+        moveZoomFromKeyboard('next');
       }
       if (event.key === 'ArrowLeft' && hasMultipleImages) {
-        moveZoom('prev');
+        moveZoomFromKeyboard('prev');
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
 
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [hasMultipleImages, slides.length, zoomIndex]);
+  }, [activeIndex, hasMultipleImages, slides.length, zoomIndex]);
 
   const move = (direction: 'next' | 'prev') => {
     setHasInteracted((current) => !current);

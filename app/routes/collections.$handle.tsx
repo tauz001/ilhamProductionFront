@@ -28,7 +28,7 @@ import {
 } from '~/lib/commerce/collection-filters';
 import {productMatchesText} from '~/lib/commerce/product-facets';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import {breadcrumbJsonLd, collectionItemListJsonLd} from '~/lib/seo';
+import {breadcrumbJsonLd, canonicalUrl, collectionItemListJsonLd} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = ({data}) => {
   const collection = data?.collection;
@@ -43,6 +43,13 @@ export const meta: Route.MetaFunction = ({data}) => {
       content: collection ? `${collection.title} - ilham` : 'ilham',
     },
     {property: 'og:image', content: collection?.image?.url},
+    {
+      tagName: 'link',
+      rel: 'canonical',
+      href: collection
+        ? canonicalUrl(`/collections/${collection.handle}`)
+        : canonicalUrl('/collections'),
+    },
   ];
 };
 
@@ -58,6 +65,18 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
     const {products} = await storefront.query(NEW_ARRIVALS_QUERY);
     const collection = createNewArrivalsCollection(
       (products?.nodes ?? []).filter(isNewProduct),
+    );
+
+    logCollectionRequirements(collection);
+
+    return {collection};
+  }
+
+  if (handle === 'best-sellers') {
+    const {products} = await storefront.query(BEST_SELLERS_QUERY);
+    const bestSellers = (products?.nodes ?? []).filter(isBestSellerProduct);
+    const collection = createBestSellersCollection(
+      bestSellers.length ? bestSellers : (products?.nodes ?? []),
     );
 
     logCollectionRequirements(collection);
@@ -829,6 +848,15 @@ function isNewProduct(product: any) {
   return tagIncludes(product.tags, 'new-arrival') || tagIncludes(product.tags, 'new');
 }
 
+function isBestSellerProduct(product: any) {
+  return (
+    tagIncludes(product.tags, 'best-seller') ||
+    tagIncludes(product.tags, 'best-sellers') ||
+    tagIncludes(product.tags, 'bestseller') ||
+    tagIncludes(product.tags, 'bestsellers')
+  );
+}
+
 function createNewArrivalsCollection(products: any[]) {
   const image =
     products.find((product) => product.featuredImage?.url)?.featuredImage ??
@@ -852,6 +880,36 @@ function createNewArrivalsCollection(products: any[]) {
         key: 'category',
         namespace: 'custom',
         value: 'New arrivals',
+      },
+    ],
+    products: {
+      nodes: products,
+    },
+  };
+}
+
+function createBestSellersCollection(products: any[]) {
+  const image =
+    products.find((product) => product.featuredImage?.url)?.featuredImage ??
+    products.find((product) => product.images?.nodes?.[0]?.url)?.images?.nodes?.[0] ??
+    null;
+
+  return {
+    id: 'virtual-best-sellers',
+    handle: 'best-sellers',
+    title: 'Best Sellers',
+    description: 'The pieces customers return to again and again.',
+    image,
+    metafields: [
+      {
+        key: 'tagline',
+        namespace: 'custom',
+        value: 'Returned to, again and again',
+      },
+      {
+        key: 'category',
+        namespace: 'custom',
+        value: 'Best sellers',
       },
     ],
     products: {
@@ -1001,6 +1059,20 @@ const NEW_ARRIVALS_QUERY = `#graphql
     $language: LanguageCode
   ) @inContext(country: $country, language: $language) {
     products(first: 250, sortKey: CREATED_AT, reverse: true) {
+      nodes {
+        ...IlhamCollectionProduct
+      }
+    }
+  }
+  ${COLLECTION_PRODUCT_FRAGMENT}
+` as const;
+
+const BEST_SELLERS_QUERY = `#graphql
+  query BestSellers(
+    $country: CountryCode
+    $language: LanguageCode
+  ) @inContext(country: $country, language: $language) {
+    products(first: 250, sortKey: BEST_SELLING) {
       nodes {
         ...IlhamCollectionProduct
       }

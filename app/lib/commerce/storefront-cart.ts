@@ -156,7 +156,7 @@ export function getCheckoutRedirectUrl(
   checkoutUrl: string,
   context: StorefrontMutationContext,
 ) {
-  const checkoutDomain = context.env.PUBLIC_CHECKOUT_DOMAIN;
+  const checkoutDomain = normalizeHostname(context.env.PUBLIC_CHECKOUT_DOMAIN);
   if (!checkoutDomain) return checkoutUrl;
 
   try {
@@ -165,6 +165,18 @@ export function getCheckoutRedirectUrl(
     return url.toString();
   } catch {
     return checkoutUrl;
+  }
+}
+
+function normalizeHostname(hostname?: string) {
+  if (!hostname?.trim()) return '';
+
+  try {
+    return new URL(
+      hostname.startsWith('http') ? hostname : `https://${hostname}`,
+    ).hostname;
+  } catch {
+    return hostname.trim().replace(/^https?:\/\//, '').split('/')[0];
   }
 }
 
@@ -272,10 +284,16 @@ async function storefrontCartMutation(
     },
   );
 
-  const json = (await response.json()) as {
+  const json = (await response.json().catch(() => ({}))) as {
     data?: Record<string, any>;
     errors?: unknown[];
   };
+
+  if (!response.ok) {
+    throw new Error(
+      `Shopify Storefront cart mutation failed with HTTP ${response.status}.`,
+    );
+  }
 
   if (json.errors?.length) {
     console.error(

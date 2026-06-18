@@ -1,6 +1,7 @@
 import {useLenis} from '~/lib/motion/useLenis';
 import {Drawers} from '~/components/layout/Drawers';
 import {Footer} from '~/components/layout/Footer';
+import {FloatingWhatsApp} from '~/components/layout/FloatingWhatsApp';
 import {Navbar, MobileMenuDrawer} from '~/components/layout/Navbar';
 import {ScrollProgress} from '~/components/layout/ScrollProgress';
 
@@ -10,11 +11,13 @@ interface PageLayoutProps {
   header: unknown;
   isLoggedIn: unknown;
   publicStoreDomain: string;
+  whatsAppUrl?: string;
   children?: React.ReactNode;
 }
 
 export function PageLayout({
   children = null,
+  whatsAppUrl,
 }: PageLayoutProps) {
   useLenis();
 
@@ -27,6 +30,7 @@ export function PageLayout({
       <Drawers />
       {/* Keep routes responsible for top padding, to match TanStack layouts (home hero is full-bleed). */}
       <main className="min-h-screen">{children}</main>
+      <FloatingWhatsApp href={whatsAppUrl} />
       <Footer />
     </>
   );

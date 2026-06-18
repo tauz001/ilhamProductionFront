@@ -8,13 +8,34 @@ import {ChikanMotif} from '~/components/editorial/ChikanMotif';
 import {MaskedReveal, FadeUp} from '~/components/editorial/MaskedReveal';
 import {ParallaxImage} from '~/components/editorial/ParallaxImage';
 import {UrduCalligraphy} from '~/components/editorial/UrduCalligraphy';
-import {ProductCard} from '~/components/commerce/ProductCard';
+import {ProductRail} from '~/components/commerce/ProductRail';
 import {easeSilk} from '~/lib/motion/variants';
 import {
   getMetafieldImage,
   logMissingShopifyField,
   tagIncludes,
 } from '~/lib/commerce/shopify-fields';
+import {canonicalUrl} from '~/lib/seo';
+
+const SHOPIFY_HERO_WIDTHS = [640, 960, 1280, 1600, 2048];
+const SHOPIFY_MOBILE_HERO_WIDTHS = [480, 720, 960, 1200];
+
+function sizedShopifyImageUrl(src: string | undefined, width: number) {
+  if (!src || !src.includes('cdn.shopify.com')) return src ?? '';
+
+  const [base, query = ''] = src.split('?');
+  const params = new URLSearchParams(query);
+  params.set('width', String(width));
+  return `${base}?${params.toString()}`;
+}
+
+function shopifySrcSet(src: string | undefined, widths: number[]) {
+  if (!src) return '';
+
+  return widths
+    .map((width) => `${sizedShopifyImageUrl(src, width)} ${width}w`)
+    .join(', ');
+}
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -24,6 +45,7 @@ export const meta: Route.MetaFunction = () => {
       content:
         'Heirloom Lucknowi chikankari, hand-embroidered over weeks by master artisans. Anarkalis, sarees, kurtas, wedding edit and luxury gifting, shipped across India.',
     },
+    {tagName: 'link', rel: 'canonical', href: canonicalUrl('/')},
   ];
 };
 
@@ -292,6 +314,10 @@ const bestsellers = useMemo(
     return () => clearInterval(id);
   }, [heroSlides.length]);
 
+  const currentHero = heroSlides[slide];
+  const currentHeroDesktop = currentHero?.src ?? '';
+  const currentHeroMobile = currentHero?.mobileSrc ?? currentHeroDesktop;
+
   return (
     <>
       <section className="relative h-[100svh] min-h-[680px] w-full overflow-hidden bg-ink">
@@ -309,11 +335,26 @@ const bestsellers = useMemo(
           >
             <source
               media="(max-width: 767px)"
-              srcSet={heroSlides[slide]?.mobileSrc ?? heroSlides[slide]?.src}
+              srcSet={shopifySrcSet(
+                currentHeroMobile,
+                SHOPIFY_MOBILE_HERO_WIDTHS,
+              )}
+              sizes="100vw"
+            />
+            <source
+              media="(min-width: 768px)"
+              srcSet={shopifySrcSet(
+                currentHeroDesktop,
+                SHOPIFY_HERO_WIDTHS,
+              )}
+              sizes="100vw"
             />
             <img
-              src={heroSlides[slide]?.src}
-              alt={heroSlides[slide]?.alt}
+              src={sizedShopifyImageUrl(currentHeroDesktop, 1600)}
+              alt={currentHero?.alt}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className="h-full w-full object-cover"
             />
           </motion.picture>
@@ -363,9 +404,9 @@ const bestsellers = useMemo(
           </motion.div>
 
           <div className="absolute bottom-24 left-1/2 flex -translate-x-1/2 gap-2 md:bottom-28">
-            {heroSlides.map((_, i) => (
+            {heroSlides.map((heroSlide, i) => (
               <button
-                key={i}
+                key={heroSlide.src}
                 onClick={() => setSlide(i)}
                 aria-label={`Slide ${i + 1}`}
                 className={`h-px transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${i === slide ? 'w-10 bg-ivory' : 'w-5 bg-ivory/30'}`}
@@ -386,9 +427,9 @@ const bestsellers = useMemo(
 
       <section className="border-y border-border/60 bg-cream/60 py-6 overflow-hidden">
         <div className="flex whitespace-nowrap marquee">
-          {Array.from({length: 2}).map((_, i) => (
+          {['marquee-a', 'marquee-b'].map((marqueeKey) => (
             <div
-              key={i}
+              key={marqueeKey}
               className="flex items-center gap-12 px-6 font-serif text-2xl italic text-ink/70"
             >
               <span>Hand-embroidered in Lucknow</span>
@@ -442,7 +483,7 @@ const bestsellers = useMemo(
         <div className="relative mb-14 flex items-end justify-between border-b border-border pb-6">
           <div>
             <p className="small-caps text-ink/50">Freshly off the loom</p>
-            <h2 className="mt-3 font-display text-5xl md:text-6xl">
+            <h2 id="new-arrivals-title" className="mt-3 font-display text-5xl md:text-6xl">
               New Arrivals
             </h2>
           </div>
@@ -453,13 +494,9 @@ const bestsellers = useMemo(
             View all -&gt;
           </Link>
         </div>
-        <div className="relative grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-14 md:grid-cols-3">
-          {newArrivals.map((p: any) => (
-            <FadeUp key={p.handle}>
-              <ProductCard product={p} />
-            </FadeUp>
-          ))}
-        </div>
+        <FadeUp>
+          <ProductRail products={newArrivals} labelledBy="new-arrivals-title" />
+        </FadeUp>
       </section>
 
       <section className="grid gap-px bg-border md:grid-cols-2">
@@ -537,7 +574,7 @@ const bestsellers = useMemo(
         <div className="mb-14 flex items-end justify-between border-b border-border pb-6">
           <div>
             <p className="small-caps text-ink/50">Returned to, again and again</p>
-            <h2 className="mt-3 font-display text-5xl md:text-6xl">
+            <h2 id="best-sellers-title" className="mt-3 font-display text-5xl md:text-6xl">
               Best Sellers
             </h2>
           </div>
@@ -548,13 +585,9 @@ const bestsellers = useMemo(
             View all -&gt;
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-14 md:grid-cols-3">
-          {bestsellers.map((p: any) => (
-            <FadeUp key={p.handle}>
-              <ProductCard product={p} />
-            </FadeUp>
-          ))}
-        </div>
+        <FadeUp>
+          <ProductRail products={bestsellers} labelledBy="best-sellers-title" />
+        </FadeUp>
       </section>
     </>
   );

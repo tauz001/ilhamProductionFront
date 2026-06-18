@@ -7,6 +7,7 @@ import {
   getMetafieldImage,
   logMissingShopifyField,
 } from '~/lib/commerce/shopify-fields';
+import {canonicalUrl} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -16,6 +17,7 @@ export const meta: Route.MetaFunction = () => {
       content:
         'The story of ilham: Lucknow chikankari, artisan whitework, and the quiet luxury of hand embroidery from Awadh.',
     },
+    {tagName: 'link', rel: 'canonical', href: canonicalUrl('/about')},
   ];
 };
 

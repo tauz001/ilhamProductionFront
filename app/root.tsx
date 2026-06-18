@@ -14,12 +14,9 @@ import type {Route} from './+types/root';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
 import tailwindCss from './styles/tailwind.css?url';
 import {PageLayout} from './components/PageLayout';
-import {organizationJsonLd} from './lib/seo';
+import {LOGO_URL, siteJsonLdGraph} from './lib/seo';
 
 export type RootLoader = typeof loader;
-
-const FAVICON_URL =
-  'https://cdn.shopify.com/s/files/1/0820/4389/6063/files/ilham_logo.png?v=1780686255';
 
 /**
  * This is important to avoid re-fetching root queries on sub-navigations
@@ -63,7 +60,12 @@ export function links() {
       rel: 'preconnect',
       href: 'https://shop.app',
     },
-    {rel: 'icon', type: 'image/png', href: FAVICON_URL},
+    // Keep every browser and crawler pointed at the same brand mark.
+    {rel: 'icon', href: '/favicon.ico', sizes: 'any'},
+    {rel: 'icon', type: 'image/png', sizes: '48x48', href: LOGO_URL},
+    {rel: 'icon', type: 'image/png', sizes: '192x192', href: LOGO_URL},
+    {rel: 'apple-touch-icon', href: LOGO_URL},
+    {rel: 'manifest', href: '/site.webmanifest'},
   ];
 }
 
@@ -93,6 +95,7 @@ export async function loader(args: Route.LoaderArgs) {
       country: args.context.storefront.i18n.country,
       language: args.context.storefront.i18n.language,
     },
+    whatsAppUrl: (env as any).PUBLIC_WHATSAPP_URL,
   };
 }
 
@@ -265,7 +268,7 @@ export function Layout({children}: {children?: React.ReactNode}) {
         <link rel="stylesheet" href={tailwindCss}></link>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{__html: JSON.stringify(organizationJsonLd())}}
+          dangerouslySetInnerHTML={{__html: JSON.stringify(siteJsonLdGraph())}}
         />
         <Meta />
         <Links />

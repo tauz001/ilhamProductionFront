@@ -1,13 +1,12 @@
 import type {Route} from './+types/[robots.txt]';
 import {parseGid} from '@shopify/hydrogen';
+import {SITE_URL} from '~/lib/seo';
 
-export async function loader({request, context}: Route.LoaderArgs) {
-  const url = new URL(request.url);
-
+export async function loader({context}: Route.LoaderArgs) {
   const {shop} = await context.storefront.query(ROBOTS_QUERY);
 
   const shopId = parseGid(shop.id).id;
-  const body = robotsTxtData({url: url.origin, shopId});
+  const body = robotsTxtData({url: SITE_URL, shopId});
 
   return new Response(body, {
     status: 200,
@@ -20,11 +19,13 @@ export async function loader({request, context}: Route.LoaderArgs) {
 }
 
 function robotsTxtData({url, shopId}: {shopId?: string; url?: string}) {
-  const sitemapUrl = url ? `${url}/sitemap.xml` : undefined;
+  const sitemapUrls = url
+    ? [`${url}/sitemap.xml`, `${url}/sitemap.static.xml`]
+    : [];
 
   return `
 User-agent: *
-${generalDisallowRules({sitemapUrl, shopId})}
+${generalDisallowRules({shopId})}
 
 # Google adsbot ignores robots.txt unless specifically named!
 User-agent: adsbot-google
@@ -43,17 +44,18 @@ Disallow: /
 
 User-agent: AhrefsBot
 Crawl-delay: 10
-${generalDisallowRules({sitemapUrl, shopId})}
+${generalDisallowRules({shopId})}
 
 User-agent: AhrefsSiteAudit
 Crawl-delay: 10
-${generalDisallowRules({sitemapUrl, shopId})}
+${generalDisallowRules({shopId})}
 
 User-agent: MJ12bot
 Crawl-Delay: 10
 
 User-agent: Pinterest
 Crawl-delay: 1
+${sitemapUrls.map((sitemapUrl) => `Sitemap: ${sitemapUrl}`).join('\n')}
 `.trim();
 }
 
@@ -63,10 +65,8 @@ Crawl-delay: 1
  */
 function generalDisallowRules({
   shopId,
-  sitemapUrl,
 }: {
   shopId?: string;
-  sitemapUrl?: string;
 }) {
   return `Disallow: /admin
 Disallow: /cart
@@ -95,7 +95,6 @@ Disallow: /*/blogs/*%2b*
 Disallow: /*?*oseid=*
 Disallow: /*preview_theme_id*
 Disallow: /*preview_script_id*
-Disallow: /policies/
 Disallow: /*/*?*ls=*&ls=*
 Disallow: /*/*?*ls%3D*%3Fls%3D*
 Disallow: /*/*?*ls%3d*%3fls%3d*
@@ -103,8 +102,7 @@ Disallow: /search
 Allow: /search/
 Disallow: /search/?*
 Disallow: /apple-app-site-association
-Disallow: /.well-known/shopify/monorail
-${sitemapUrl ? `Sitemap: ${sitemapUrl}` : ''}`;
+Disallow: /.well-known/shopify/monorail`;
 }
 
 const ROBOTS_QUERY = `#graphql
