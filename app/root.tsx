@@ -183,61 +183,6 @@ const LAYOUT_COMMERCE_QUERY = `#graphql
         vendor
         productType
         tags
-        featuredImage {
-          id
-          url
-          altText
-          width
-          height
-        }
-        images(first: 4) {
-          nodes {
-            id
-            url
-            altText
-            width
-            height
-          }
-        }
-        variants(first: 20) {
-          nodes {
-            id
-            title
-            availableForSale
-            image {
-              id
-              url
-              altText
-              width
-              height
-            }
-            price {
-              amount
-              currencyCode
-            }
-            product {
-              id
-              handle
-              title
-              vendor
-              productType
-            }
-            selectedOptions {
-              name
-              value
-            }
-          }
-        }
-        priceRange {
-          minVariantPrice {
-            amount
-            currencyCode
-          }
-          maxVariantPrice {
-            amount
-            currencyCode
-          }
-        }
         metafields(identifiers: [
           {namespace: "custom", key: "subtitle"},
           {namespace: "custom", key: "fabric"},

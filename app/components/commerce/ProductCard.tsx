@@ -107,6 +107,7 @@ export function ProductCard({
         >
           <Link
             to={`/products/${product.handle}`}
+            prefetch="intent"
             aria-label={`View ${product.title}`}
             className="absolute inset-0 z-10"
           />
@@ -175,6 +176,7 @@ export function ProductCard({
             ) : (
               <Link
                 to={`/products/${product.handle}`}
+                prefetch="intent"
                 className="flex h-14 w-full items-center justify-center border border-ivory/15 bg-ink/95 text-ivory shadow-[0_16px_36px_rgba(0,0,0,0.22)] backdrop-blur-sm small-caps transition-colors hover:border-gold hover:bg-gold"
               >
                 Choose piece
@@ -185,7 +187,7 @@ export function ProductCard({
     
         <div className="mt-4 flex min-w-0 flex-col gap-1.5 sm:mt-5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
           <div className="min-w-0">
-            <Link to={`/products/${product.handle}`}>
+            <Link to={`/products/${product.handle}`} prefetch="intent">
               <p className="line-clamp-2 overflow-hidden font-serif text-base leading-[1.08] text-ink transition-colors [-webkit-box-orient:vertical] [-webkit-line-clamp:2] [display:-webkit-box] hover:text-gold sm:text-xl sm:leading-tight">
                 {product.title}
               </p>

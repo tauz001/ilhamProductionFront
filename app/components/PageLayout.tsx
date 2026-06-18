@@ -1,7 +1,7 @@
-import {useLenis} from '~/lib/motion/useLenis';
 import {Drawers} from '~/components/layout/Drawers';
 import {Footer} from '~/components/layout/Footer';
 import {FloatingWhatsApp} from '~/components/layout/FloatingWhatsApp';
+import {NavigationProgress} from '~/components/layout/NavigationProgress';
 import {Navbar, MobileMenuDrawer} from '~/components/layout/Navbar';
 import {ScrollProgress} from '~/components/layout/ScrollProgress';
 
@@ -19,11 +19,10 @@ export function PageLayout({
   children = null,
   whatsAppUrl,
 }: PageLayoutProps) {
-  useLenis();
-
   return (
     <>
       <div className="grain-overlay" aria-hidden />
+      <NavigationProgress />
       <ScrollProgress />
       <Navbar />
       <MobileMenuDrawer />

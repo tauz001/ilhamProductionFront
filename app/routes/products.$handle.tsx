@@ -1,6 +1,6 @@
-import {Link, useLoaderData} from 'react-router';
+import {Await, Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/products.$handle';
-import {useState} from 'react';
+import {Suspense, useState} from 'react';
 import {ChevronDown, Heart, Minus, Plus} from 'lucide-react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Analytics} from '@shopify/hydrogen';
@@ -70,18 +70,19 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
   redirectIfHandleIsLocalized(request, {handle, data: product});
   logProductRequirements(product);
 
-  const recommendationsResult = await storefront
+  const recommendations = storefront
     .query(PRODUCT_RECOMMENDATIONS_QUERY, {
       variables: {productId: product.id},
     })
+    .then((result) => result?.productRecommendations ?? [])
     .catch((error: Error) => {
       console.error('[product] Shopify productRecommendations query failed:', error);
-      return null;
+      return [];
     });
 
   return {
     product,
-    recommendations: recommendationsResult?.productRecommendations ?? [],
+    recommendations,
   };
 }
 
@@ -420,18 +421,13 @@ export default function Product() {
         </section>
       )}
 
-      {recommendations.length > 0 && (
-        <section className="mx-auto max-w-[1500px] px-4 py-32 sm:px-6 lg:px-12">
-          <h3 className="font-display text-4xl md:text-5xl">You may also love</h3>
-          <div className="mt-12 grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 sm:gap-y-14 md:grid-cols-4">
-            {recommendations.slice(0, 4).map((recommended: any) => (
-              <FadeUp key={recommended.handle}>
-                <ProductCard product={recommended} />
-              </FadeUp>
-            ))}
-          </div>
-        </section>
-      )}
+      <Suspense fallback={<ProductRecommendationsSkeleton />}>
+        <Await resolve={recommendations}>
+          {(resolvedRecommendations) => (
+            <ProductRecommendations recommendations={resolvedRecommendations} />
+          )}
+        </Await>
+      </Suspense>
 
       <Analytics.ProductView
         data={{
@@ -456,6 +452,43 @@ export default function Product() {
         ])}
       />
     </div>
+  );
+}
+
+function ProductRecommendations({recommendations}: {recommendations: any[]}) {
+  if (!recommendations.length) return null;
+
+  return (
+    <section className="mx-auto max-w-[1500px] px-4 py-32 sm:px-6 lg:px-12">
+      <h3 className="font-display text-4xl md:text-5xl">You may also love</h3>
+      <div className="mt-12 grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 sm:gap-y-14 md:grid-cols-4">
+        {recommendations.slice(0, 4).map((recommended: any) => (
+          <FadeUp key={recommended.handle}>
+            <ProductCard product={recommended} />
+          </FadeUp>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ProductRecommendationsSkeleton() {
+  return (
+    <section
+      className="mx-auto max-w-[1500px] px-4 py-32 sm:px-6 lg:px-12"
+      aria-label="Loading product recommendations"
+    >
+      <div className="h-12 w-64 skeleton-luxury" />
+      <div className="mt-12 grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-4">
+        {Array.from({length: 4}, (_, index) => (
+          <div key={index}>
+            <div className="aspect-[3/4] skeleton-luxury" />
+            <div className="mt-5 h-5 w-3/4 skeleton-luxury" />
+            <div className="mt-2 h-3 w-1/2 skeleton-luxury" />
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 

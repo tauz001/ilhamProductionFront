@@ -391,12 +391,14 @@ const bestsellers = useMemo(
           >
             <Link
               to="/collections"
+              prefetch="intent"
               className="small-caps border border-ivory px-10 py-4 hover:bg-ivory hover:text-ink transition-colors"
             >
               Explore the Collection
             </Link>
             <Link
               to="/gifting"
+              prefetch="intent"
               className="small-caps text-ivory/90 hover:text-gold transition-colors story-link"
             >
               Gift across India -&gt;
@@ -489,6 +491,7 @@ const bestsellers = useMemo(
           </div>
           <Link
             to="/collections/new-arrivals"
+            prefetch="intent"
             className="small-caps story-link hidden md:inline-block"
           >
             View all -&gt;
@@ -519,6 +522,7 @@ const bestsellers = useMemo(
           <Link
             key={c.title}
             to={`/collections/${c.handle}`}
+            prefetch="intent"
             className="group relative block h-[80vh] overflow-hidden bg-ink"
           >
             <ParallaxImage
@@ -563,6 +567,7 @@ const bestsellers = useMemo(
           </p>
           <Link
             to="/collections/wedding-edit"
+            prefetch="intent"
             className="mt-9 inline-flex min-h-12 items-center justify-center border border-ivory px-9 small-caps text-[10px] transition-colors hover:bg-ivory hover:text-ink md:mt-12 md:px-10 md:py-4"
           >
             Shop wedding edit
@@ -580,6 +585,7 @@ const bestsellers = useMemo(
           </div>
           <Link
             to="/collections/best-sellers"
+            prefetch="intent"
             className="small-caps story-link hidden md:inline-block"
           >
             View all -&gt;

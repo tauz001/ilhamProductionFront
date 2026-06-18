@@ -312,6 +312,7 @@ export function Navbar() {
                 >
                   <Link
                     to={activeAnnouncement.href}
+                    prefetch="intent"
                     className="block max-w-[calc(100vw-5.75rem)] truncate text-center small-caps text-[10px] tracking-[0.24em] text-ink/62 transition-colors hover:text-gold md:max-w-none md:tracking-[0.28em]"
                   >
                     {activeAnnouncement.text}
@@ -344,6 +345,7 @@ export function Navbar() {
             <Link
               key={l.label}
               to={l.href}
+              prefetch="intent"
               onMouseEnter={() => openMegaMenu(l.label)}
               onFocus={() => openMegaMenu(l.label)}
               className="small-caps text-ink/80 hover:text-ink transition-colors story-link"
@@ -355,6 +357,7 @@ export function Navbar() {
 
         <Link
           to="/"
+          prefetch="intent"
           className="absolute left-1/2 flex h-16 -translate-x-1/2 items-center justify-center lg:static lg:h-20 lg:translate-x-0"
           aria-label="ilham home"
         >
@@ -372,6 +375,7 @@ export function Navbar() {
               <Link
                 key={l.label}
                 to={l.href}
+                prefetch="intent"
                 className="small-caps text-ink/80 hover:text-ink transition-colors story-link"
               >
                 {l.label}
@@ -387,6 +391,7 @@ export function Navbar() {
           </button>
           <Link
             to="/account"
+            prefetch="intent"
             aria-label="Account"
             className="text-ink/80 hover:text-ink"
           >
@@ -499,6 +504,7 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
         </p>
         <Link
           to={categoryHref}
+          prefetch="intent"
           onClick={onClose}
           className="mt-7 inline-flex h-11 items-center border border-ink px-5 small-caps text-[10px] text-ink transition-colors hover:bg-ink hover:text-ivory"
         >
@@ -513,6 +519,7 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
               <Link
                 key={link.label}
                 to={link.href}
+                prefetch="intent"
                 onClick={onClose}
                 className="border border-border bg-cream/45 px-3 py-2 text-sm text-ink/70 transition-colors hover:border-gold hover:text-gold"
               >
@@ -535,6 +542,7 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
                 <Link
                   key={link.label}
                   to={link.href}
+                  prefetch="intent"
                   onClick={onClose}
                   className="border border-border/80 px-3 py-1.5 text-xs text-ink/55 transition-colors hover:border-gold hover:text-gold"
                 >
@@ -553,6 +561,7 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
             <Link
               key={type.label}
               to={type.href}
+              prefetch="intent"
               onClick={onClose}
               className="group flex items-baseline justify-between gap-4 border-b border-border pb-2"
             >
@@ -567,6 +576,7 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
           {!typeLinks.length && (
             <Link
               to={categoryHref}
+              prefetch="intent"
               onClick={onClose}
               className="group flex items-baseline justify-between gap-4 border-b border-border pb-2"
             >
@@ -588,6 +598,7 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
                 <Link
                   key={c.handle}
                   to={`/collections/${c.handle}`}
+                  prefetch="intent"
                   onClick={onClose}
                   className="text-sm text-ink/55 transition-colors hover:text-gold"
                 >
@@ -602,6 +613,7 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
         {feature?.image?.url ? (
         <Link
           to={`/collections/${feature.handle}`}
+          prefetch="intent"
           onClick={onClose}
           className="group block overflow-hidden"
         >
@@ -801,7 +813,7 @@ export function MobileMenuDrawer() {
               animate={{opacity: 1, y: 0}}
               transition={{duration: 0.6, delay: 0.25, ease: easeSilk}}
             >
-              <Link to="/" onClick={close} aria-label="ilham home">
+              <Link to="/" prefetch="intent" onClick={close} aria-label="ilham home">
                 <img
                   src={LOGO_URL}
                   alt="ilham"
@@ -839,6 +851,7 @@ export function MobileMenuDrawer() {
                   >
                     <Link
                       to={l.href}
+                      prefetch="intent"
                       onClick={close}
                       className="block font-serif text-4xl text-ink hover:text-gold transition-colors"
                     >
