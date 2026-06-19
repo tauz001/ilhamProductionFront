@@ -33,31 +33,18 @@ import {
   shopifyImageUrl,
   shopifySrcSet,
 } from '~/lib/commerce/image';
-import {breadcrumbJsonLd, canonicalUrl, productJsonLd} from '~/lib/seo';
+import {breadcrumbJsonLd, productJsonLd, seoMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = ({data}) => {
   const product = data?.product;
-  return [
-    {
-      title: product
-        ? `${product.title} - ilham`
-        : 'Product - ilham',
-    },
-    {
-      name: 'description',
-      content: product?.seo?.description ?? product?.description ?? '',
-    },
-    {property: 'og:title', content: product?.title ?? 'ilham'},
-    {
-      property: 'og:image',
-      content: product?.featuredImage?.url ?? product?.images?.nodes?.[0]?.url,
-    },
-    {
-      tagName: 'link',
-      rel: 'canonical',
-      href: product ? canonicalUrl(`/products/${product.handle}`) : canonicalUrl('/products'),
-    },
-  ];
+  return seoMeta({
+    title: product?.seo?.title || (product ? `${product.title} - ilham` : 'Product - ilham'),
+    description:
+      product?.seo?.description ?? product?.description ?? 'Handcrafted Lucknowi chikankari from ilham.',
+    path: product ? `/products/${product.handle}` : '/products',
+    image: product?.featuredImage?.url ?? product?.images?.nodes?.[0]?.url,
+    type: 'product',
+  });
 };
 
 export async function loader({context, params, request}: Route.LoaderArgs) {

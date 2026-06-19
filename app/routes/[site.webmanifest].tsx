@@ -1,23 +1,23 @@
-import {BRAND_NAME, LOGO_URL, SITE_URL} from '~/lib/seo';
+import {BRAND_NAME} from '~/lib/seo';
 
 export async function loader() {
   const manifest = {
     name: 'ilham - Lucknowi Chikankari Atelier',
     short_name: 'ilham',
     description: BRAND_NAME,
-    start_url: SITE_URL,
-    scope: SITE_URL,
+    start_url: '/',
+    scope: '/',
     display: 'standalone',
     background_color: '#faf6ec',
     theme_color: '#faf6ec',
     icons: [
       {
-        src: LOGO_URL,
+        src: '/ilham-icon-192.png',
         sizes: '192x192',
         type: 'image/png',
       },
       {
-        src: LOGO_URL,
+        src: '/ilham-icon-512.png',
         sizes: '512x512',
         type: 'image/png',
       },

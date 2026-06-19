@@ -1,6 +1,7 @@
 import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/policies.$handle';
 import {type Shop} from '@shopify/hydrogen/storefront-api-types';
+import {seoMeta} from '~/lib/seo';
 
 type SelectedPolicies = keyof Pick<
   Shop,
@@ -8,15 +9,14 @@ type SelectedPolicies = keyof Pick<
 >;
 
 export const meta: Route.MetaFunction = ({data}) => {
-  return [
-    {title: `${data?.policy.title ?? 'Policy'} - ilham`},
-    {
-      name: 'description',
-      content:
-        data?.policy.title ??
-        'ilham customer policy information for orders, returns, privacy, and terms.',
-    },
-  ];
+  const policy = data?.policy;
+  return seoMeta({
+    title: `${policy?.title ?? 'Policy'} - ilham`,
+    description: policy?.title
+      ? `Read ilham's ${policy.title.toLowerCase()} for customer orders and services.`
+      : 'Read ilham customer policies for orders, returns, privacy, and terms.',
+    path: `/policies/${policy?.handle ?? ''}`,
+  });
 };
 
 export async function loader({params, context}: Route.LoaderArgs) {

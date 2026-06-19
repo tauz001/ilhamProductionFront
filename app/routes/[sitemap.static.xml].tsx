@@ -2,9 +2,11 @@ import {SITE_URL} from '~/lib/seo';
 
 const STATIC_PAGES = [
   '/',
-  '/collections/women',
-  '/collections/men',
-  '/collections/wedding',
+  '/collections',
+  '/collections/all',
+  '/collections/new-arrivals',
+  '/collections/best-sellers',
+  '/blogs',
   '/gifting',
   '/about',
   '/contact',

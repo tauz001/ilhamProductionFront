@@ -2,17 +2,25 @@ import {useLoaderData} from 'react-router';
 import type {Route} from './+types/blogs.$blogHandle.$articleHandle';
 import {Image} from '@shopify/hydrogen';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {JsonLd} from '~/components/seo/JsonLd';
+import {
+  articleJsonLd,
+  breadcrumbJsonLd,
+  seoMeta,
+} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = ({data}) => {
-  return [
-    {title: `${data?.article.title ?? 'Journal'} - ilham`},
-    {
-      name: 'description',
-      content:
-        data?.article.seo?.description ??
-        'A note from ilham on Lucknowi chikankari and craft.',
-    },
-  ];
+  const article = data?.article;
+  const blogHandle = data?.blogHandle ?? '';
+  return seoMeta({
+    title: article?.seo?.title ?? `${article?.title ?? 'Journal'} - ilham`,
+    description:
+      article?.seo?.description ??
+      'A note from ilham on Lucknowi chikankari and craft.',
+    image: article?.image?.url,
+    path: `/blogs/${blogHandle}/${article?.handle ?? ''}`,
+    type: 'article',
+  });
 };
 
 export async function loader(args: Route.LoaderArgs) {
@@ -61,7 +69,7 @@ async function loadCriticalData({context, request, params}: Route.LoaderArgs) {
 
   const article = blog.articleByHandle;
 
-  return {article};
+  return {article, blogHandle};
 }
 
 /**
@@ -74,7 +82,7 @@ function loadDeferredData({context}: Route.LoaderArgs) {
 }
 
 export default function Article() {
-  const {article} = useLoaderData<typeof loader>();
+  const {article, blogHandle} = useLoaderData<typeof loader>();
   const {title, image, contentHtml, author} = article;
 
   const publishedDate = new Intl.DateTimeFormat('en-US', {
@@ -97,6 +105,17 @@ export default function Article() {
       <div
         dangerouslySetInnerHTML={{__html: contentHtml}}
         className="article"
+      />
+      <JsonLd data={articleJsonLd(article, {blogHandle})} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          {name: 'Home', url: '/'},
+          {name: 'Journal', url: `/blogs/${blogHandle}`},
+          {
+            name: article.title,
+            url: `/blogs/${blogHandle}/${article.handle}`,
+          },
+        ])}
       />
     </div>
   );

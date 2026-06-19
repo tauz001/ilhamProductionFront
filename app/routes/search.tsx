@@ -12,16 +12,14 @@ import type {
   RegularSearchQuery,
   PredictiveSearchQuery,
 } from 'storefrontapi.generated';
+import {privatePageMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'Search - ilham'},
-    {
-      name: 'description',
-      content:
-        'Search ilham chikankari pieces, collections, gifting edits, and heritage notes.',
-    },
-  ];
+  return privatePageMeta(
+    'Search - ilham',
+    'Search ilham chikankari pieces, collections, gifting edits, and heritage notes.',
+    '/search',
+  );
 };
 
 export async function loader({request, context}: Route.LoaderArgs) {

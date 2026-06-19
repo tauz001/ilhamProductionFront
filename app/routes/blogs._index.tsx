@@ -3,17 +3,16 @@ import type {Route} from './+types/blogs._index';
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import type {BlogsQuery} from 'storefrontapi.generated';
+import {seoMeta} from '~/lib/seo';
 
 type BlogNode = BlogsQuery['blogs']['nodes'][0];
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'Journal - ilham'},
-    {
-      name: 'description',
-      content: 'Stories from ilham, Lucknowi chikankari, craft, and care.',
-    },
-  ];
+  return seoMeta({
+    title: 'Journal - ilham',
+    description: 'Stories from ilham on Lucknowi chikankari, craft, and care.',
+    path: '/blogs',
+  });
 };
 
 export async function loader(args: Route.LoaderArgs) {

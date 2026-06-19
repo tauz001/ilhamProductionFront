@@ -5,15 +5,14 @@ import {Bookmark, Gift, ShieldCheck, Sparkles} from 'lucide-react';
 import {UrduCalligraphy} from '~/components/editorial/UrduCalligraphy';
 import {easeSilk} from '~/lib/motion/variants';
 import {logMissingShopifyField} from '~/lib/commerce/shopify-fields';
+import {privatePageMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'Create Account - ilham'},
-    {
-      name: 'description',
-      content: 'Begin your ilham atelier through Shopify Customer Accounts.',
-    },
-  ];
+  return privatePageMeta(
+    'Create Account - ilham',
+    'Begin your ilham atelier through Shopify Customer Accounts.',
+    '/signup',
+  );
 };
 
 export async function loader({context}: Route.LoaderArgs) {

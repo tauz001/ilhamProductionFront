@@ -1,7 +1,6 @@
 export const SITE_URL = 'https://ilhamchikankari.com';
 export const BRAND_NAME = 'ilham chikankari';
-export const LOGO_URL =
-  'https://cdn.shopify.com/s/files/1/0820/4389/6063/files/ilham_logo.png?v=1780686255';
+export const LOGO_URL = `${SITE_URL}/ilham-icon-512.png`;
 
 const SOCIAL_LINKS = [
   'https://www.instagram.com/ilhamchikankari/',
@@ -14,7 +13,7 @@ const CORE_NAVIGATION_LINKS = [
   {name: 'Home', path: '/'},
   {name: 'Women', path: '/collections/women'},
   {name: 'Men', path: '/collections/men'},
-  {name: 'Wedding', path: '/collections/wedding'},
+  {name: 'Wedding', path: '/collections/wedding-edit'},
   {name: 'Gifting', path: '/gifting'},
   {name: 'Heritage', path: '/about'},
   {name: 'Contact', path: '/contact'},
@@ -24,6 +23,48 @@ const CORE_NAVIGATION_LINKS = [
 export function canonicalUrl(pathname = '/') {
   const normalizedPath = pathname.startsWith('/') ? pathname : `/${pathname}`;
   return `${SITE_URL}${normalizedPath}`;
+}
+
+export function seoMeta({
+  description,
+  image,
+  noIndex = false,
+  path,
+  title,
+  type = 'website',
+}: {
+  description: string;
+  image?: string | null;
+  noIndex?: boolean;
+  path: string;
+  title: string;
+  type?: 'article' | 'product' | 'website';
+}) {
+  const url = canonicalUrl(path);
+  return [
+    {title},
+    {name: 'description', content: description},
+    {tagName: 'link', rel: 'canonical', href: url},
+    {property: 'og:title', content: title},
+    {property: 'og:description', content: description},
+    {property: 'og:type', content: type},
+    {property: 'og:url', content: url},
+    ...(image ? [{property: 'og:image', content: image}] : []),
+    {name: 'twitter:card', content: image ? 'summary_large_image' : 'summary'},
+    {name: 'twitter:title', content: title},
+    {name: 'twitter:description', content: description},
+    ...(image ? [{name: 'twitter:image', content: image}] : []),
+    ...(noIndex
+      ? [
+          {name: 'robots', content: 'noindex, nofollow, noarchive'},
+          {name: 'googlebot', content: 'noindex, nofollow, noarchive'},
+        ]
+      : []),
+  ];
+}
+
+export function privatePageMeta(title: string, description: string, path: string) {
+  return seoMeta({title, description, path, noIndex: true});
 }
 
 export function productJsonLd(product: any, selectedVariant: any) {
@@ -36,6 +77,8 @@ export function productJsonLd(product: any, selectedVariant: any) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
+    '@id': `${SITE_URL}/products/${product?.handle}#product`,
+    url: `${SITE_URL}/products/${product?.handle}`,
     name: product?.title,
     image: [...new Set(images)],
     description: product?.seo?.description ?? product?.description,
@@ -54,22 +97,30 @@ export function productJsonLd(product: any, selectedVariant: any) {
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/NewCondition',
-      hasMerchantReturnPolicy: {
-        '@type': 'MerchantReturnPolicy',
-        applicableCountry: 'IN',
-        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-        merchantReturnDays: 14,
-        returnMethod: 'https://schema.org/ReturnByMail',
-        returnFees: 'https://schema.org/FreeReturn',
-      },
-      shippingDetails: {
-        '@type': 'OfferShippingDetails',
-        shippingDestination: {
-          '@type': 'DefinedRegion',
-          addressCountry: 'IN',
-        },
-      },
     },
+  };
+}
+
+export function articleJsonLd(
+  article: any,
+  {blogHandle}: {blogHandle: string},
+) {
+  const url = canonicalUrl(`/blogs/${blogHandle}/${article?.handle}`);
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    '@id': `${url}#article`,
+    url,
+    mainEntityOfPage: url,
+    headline: article?.seo?.title ?? article?.title,
+    description: article?.seo?.description,
+    image: article?.image?.url ? [article.image.url] : undefined,
+    datePublished: article?.publishedAt,
+    author: article?.author?.name
+      ? {'@type': 'Person', name: article.author.name}
+      : {'@id': `${SITE_URL}/#organization`},
+    publisher: {'@id': `${SITE_URL}/#organization`},
   };
 }
 
@@ -124,12 +175,6 @@ export function organizationJsonLd() {
     areaServed: {
       '@type': 'Country',
       name: 'India',
-    },
-    contactPoint: {
-      '@type': 'ContactPoint',
-      contactType: 'customer support',
-      areaServed: 'IN',
-      availableLanguage: ['en', 'hi'],
     },
   };
 }

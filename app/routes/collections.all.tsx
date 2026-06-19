@@ -4,16 +4,15 @@ import {getPaginationVariables, Image, Money} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {ProductItem} from '~/components/ProductItem';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
+import {seoMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'All Pieces - ilham'},
-    {
-      name: 'description',
-      content:
-        'Browse all ilham Lucknowi chikankari pieces available through the atelier.',
-    },
-  ];
+  return seoMeta({
+    title: 'All Chikankari Pieces - ilham',
+    description:
+      'Browse all ilham Lucknowi chikankari pieces available through the atelier.',
+    path: '/collections/all',
+  });
 };
 
 export async function loader(args: Route.LoaderArgs) {

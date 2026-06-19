@@ -7,18 +7,15 @@ import {
   getMetafieldImage,
   logMissingShopifyField,
 } from '~/lib/commerce/shopify-fields';
-import {canonicalUrl} from '~/lib/seo';
+import {seoMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'Heritage - ilham'},
-    {
-      name: 'description',
-      content:
-        'The story of ilham: Lucknow chikankari, artisan whitework, and the quiet luxury of hand embroidery from Awadh.',
-    },
-    {tagName: 'link', rel: 'canonical', href: canonicalUrl('/about')},
-  ];
+  return seoMeta({
+    title: 'Heritage - ilham',
+    description:
+      'The story of ilham: Lucknow chikankari, artisan whitework, and the quiet luxury of hand embroidery from Awadh.',
+    path: '/about',
+  });
 };
 
 export async function loader({context}: Route.LoaderArgs) {

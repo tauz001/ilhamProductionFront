@@ -10,16 +10,14 @@ import {
   removeLinesWithoutMarketContext,
   updateLinesWithoutMarketContext,
 } from '~/lib/commerce/storefront-cart';
+import {privatePageMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'The Bag - ilham'},
-    {
-      name: 'description',
-      content:
-        'Review the hand-embroidered pieces in your bag, gift wrapping, and shipping with ilham.',
-    },
-  ];
+  return privatePageMeta(
+    'The Bag - ilham',
+    'Review the hand-embroidered pieces in your bag before checkout.',
+    '/cart',
+  );
 };
 
 export const headers: HeadersFunction = ({actionHeaders}) => actionHeaders;

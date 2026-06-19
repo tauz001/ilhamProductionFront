@@ -1,22 +1,14 @@
 import {useLoaderData} from 'react-router';
 import type {Route} from './+types/bag';
 import {BagPage, type BagRecommendation} from '~/components/commerce/BagPage';
+import {privatePageMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'The Bag - ilham'},
-    {
-      name: 'description',
-      content:
-        'Review the hand-embroidered pieces in your bag, gift wrapping, and shipping with ilham.',
-    },
-    {property: 'og:title', content: 'The Bag - ilham'},
-    {
-      property: 'og:description',
-      content:
-        'Your selection of Lucknowi chikankari, prepared for checkout.',
-    },
-  ];
+  return privatePageMeta(
+    'The Bag - ilham',
+    'Review the hand-embroidered pieces in your bag before checkout.',
+    '/bag',
+  );
 };
 
 const BAG_RECOMMENDATIONS_QUERY = `#graphql

@@ -14,7 +14,7 @@ import type {Route} from './+types/root';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
 import tailwindCss from './styles/tailwind.css?url';
 import {PageLayout} from './components/PageLayout';
-import {LOGO_URL, siteJsonLdGraph} from './lib/seo';
+import {siteJsonLdGraph} from './lib/seo';
 
 export type RootLoader = typeof loader;
 
@@ -75,9 +75,9 @@ export function links() {
     },
     // Keep every browser and crawler pointed at the same brand mark.
     {rel: 'icon', href: '/favicon.ico', sizes: 'any'},
-    {rel: 'icon', type: 'image/png', sizes: '48x48', href: LOGO_URL},
-    {rel: 'icon', type: 'image/png', sizes: '192x192', href: LOGO_URL},
-    {rel: 'apple-touch-icon', href: LOGO_URL},
+    {rel: 'icon', type: 'image/png', sizes: '48x48', href: '/ilham-icon-48.png'},
+    {rel: 'icon', type: 'image/png', sizes: '192x192', href: '/ilham-icon-192.png'},
+    {rel: 'apple-touch-icon', sizes: '192x192', href: '/ilham-icon-192.png'},
     {rel: 'manifest', href: '/site.webmanifest'},
   ];
 }

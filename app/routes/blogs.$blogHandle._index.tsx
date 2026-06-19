@@ -4,17 +4,17 @@ import {Image, getPaginationVariables} from '@shopify/hydrogen';
 import type {ArticleItemFragment} from 'storefrontapi.generated';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {seoMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = ({data}) => {
-  return [
-    {title: `${data?.blog.title ?? 'Journal'} - ilham`},
-    {
-      name: 'description',
-      content:
-        data?.blog.seo?.description ??
-        'Read ilham stories on Lucknowi chikankari, craft, and styling.',
-    },
-  ];
+  const blog = data?.blog;
+  return seoMeta({
+    title: blog?.seo?.title ?? `${blog?.title ?? 'Journal'} - ilham`,
+    description:
+      blog?.seo?.description ??
+      'Read ilham stories on Lucknowi chikankari, craft, and styling.',
+    path: `/blogs/${blog?.handle ?? ''}`,
+  });
 };
 
 export async function loader(args: Route.LoaderArgs) {

@@ -1,5 +1,6 @@
 import {
   Link,
+  redirect,
   useFetcher,
   useLoaderData,
   useSearchParams,
@@ -34,7 +35,7 @@ import {
 } from '~/lib/commerce/collection-filters';
 import {productMatchesText} from '~/lib/commerce/product-facets';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import {breadcrumbJsonLd, canonicalUrl, collectionItemListJsonLd} from '~/lib/seo';
+import {breadcrumbJsonLd, collectionItemListJsonLd, seoMeta} from '~/lib/seo';
 
 const COLLECTION_PAGE_SIZE = 24;
 
@@ -51,25 +52,17 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 
 export const meta: Route.MetaFunction = ({data}) => {
   const collection = data?.collection;
-  return [
-    {title: collection ? `${collection.title} - ilham` : 'Collection - ilham'},
-    {
-      name: 'description',
-      content: collection?.description ?? 'ilham collection',
-    },
-    {
-      property: 'og:title',
-      content: collection ? `${collection.title} - ilham` : 'ilham',
-    },
-    {property: 'og:image', content: collection?.image?.url},
-    {
-      tagName: 'link',
-      rel: 'canonical',
-      href: collection
-        ? canonicalUrl(`/collections/${collection.handle}`)
-        : canonicalUrl('/collections'),
-    },
-  ];
+  return seoMeta({
+    title:
+      collection?.seo?.title ||
+      (collection ? `${collection.title} - ilham` : 'Collection - ilham'),
+    description:
+      collection?.seo?.description ??
+      collection?.description ??
+      'Explore handcrafted Lucknowi chikankari from ilham.',
+    path: collection ? `/collections/${collection.handle}` : '/collections',
+    image: collection?.image?.url,
+  });
 };
 
 export async function loader({context, params, request}: Route.LoaderArgs) {
@@ -83,6 +76,10 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
 
   if (!handle) {
     throw new Response(null, {status: 404});
+  }
+
+  if (handle === 'wedding') {
+    throw redirect('/collections/wedding-edit', 301);
   }
 
   if (handle === 'new-arrivals') {
@@ -1120,6 +1117,10 @@ const COLLECTION_QUERY = `#graphql
       handle
       title
       description
+      seo {
+        title
+        description
+      }
       image {
         id
         url

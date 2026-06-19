@@ -5,16 +5,15 @@ import {
   getMetafieldValue,
   logMissingShopifyField,
 } from '~/lib/commerce/shopify-fields';
+import {seoMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'Collections - ilham'},
-    {
-      name: 'description',
-      content: 'Browse ilham collections from Shopify.',
-    },
-    {property: 'og:title', content: 'Collections - ilham'},
-  ];
+  return seoMeta({
+    title: 'Chikankari Collections - ilham',
+    description:
+      'Browse ilham collections of hand-embroidered Lucknowi chikankari for women, men, weddings, and gifting.',
+    path: '/collections',
+  });
 };
 
 export async function loader({context}: Route.LoaderArgs) {

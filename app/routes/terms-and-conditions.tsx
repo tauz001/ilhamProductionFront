@@ -1,22 +1,15 @@
 import type {Route} from './+types/terms-and-conditions';
 import {Link} from 'react-router';
 import {ChikanMotif} from '~/components/editorial/ChikanMotif';
-import {canonicalUrl} from '~/lib/seo';
+import {seoMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'Terms and Conditions - ilham'},
-    {
-      name: 'description',
-      content:
-        'Terms and conditions for shopping handcrafted Lucknowi chikankari from ilham.',
-    },
-    {
-      tagName: 'link',
-      rel: 'canonical',
-      href: canonicalUrl('/terms-and-conditions'),
-    },
-  ];
+  return seoMeta({
+    title: 'Terms and Conditions - ilham',
+    description:
+      'Terms and conditions for shopping handcrafted Lucknowi chikankari from ilham.',
+    path: '/terms-and-conditions',
+  });
 };
 
 const sections = [

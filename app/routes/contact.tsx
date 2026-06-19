@@ -14,17 +14,14 @@ import {AnimatePresence, motion} from 'framer-motion';
 import {easeSilk} from '~/lib/motion/variants';
 import {logMissingShopifyField} from '~/lib/commerce/shopify-fields';
 import {SOCIAL_LINKS} from '~/lib/social-links';
-import {canonicalUrl} from '~/lib/seo';
+import {seoMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'Contact - ilham'},
-    {
-      name: 'description',
-      content: 'Reach the ilham atelier.',
-    },
-    {tagName: 'link', rel: 'canonical', href: canonicalUrl('/contact')},
-  ];
+  return seoMeta({
+    title: 'Contact - ilham',
+    description: 'Reach the ilham atelier in Lucknow for product, order, and gifting guidance.',
+    path: '/contact',
+  });
 };
 
 export async function loader({context}: Route.LoaderArgs) {

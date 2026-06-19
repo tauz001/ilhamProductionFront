@@ -8,6 +8,14 @@ import {
 import {LogOut, MapPin, Package, UserRound} from 'lucide-react';
 import type {Route} from './+types/account';
 import {CUSTOMER_DETAILS_QUERY} from '~/graphql/customer-account/CustomerDetailsQuery';
+import {privatePageMeta} from '~/lib/seo';
+
+export const meta: Route.MetaFunction = () =>
+  privatePageMeta(
+    'Your Account - ilham',
+    'Manage your ilham orders, addresses, and customer profile.',
+    '/account',
+  );
 
 export function shouldRevalidate() {
   return true;

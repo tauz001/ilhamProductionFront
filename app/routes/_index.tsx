@@ -15,7 +15,7 @@ import {
   logMissingShopifyField,
   tagIncludes,
 } from '~/lib/commerce/shopify-fields';
-import {canonicalUrl} from '~/lib/seo';
+import {seoMeta} from '~/lib/seo';
 import {
   HERO_IMAGE_WIDTHS,
   MOBILE_HERO_IMAGE_WIDTHS,
@@ -24,15 +24,12 @@ import {
 } from '~/lib/commerce/image';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'ilham - Lucknowi Chikankari Atelier'},
-    {
-      name: 'description',
-      content:
-        'Heirloom Lucknowi chikankari, hand-embroidered over weeks by master artisans. Anarkalis, sarees, kurtas, wedding edit and luxury gifting, shipped across India.',
-    },
-    {tagName: 'link', rel: 'canonical', href: canonicalUrl('/')},
-  ];
+  return seoMeta({
+    title: 'ilham - Lucknowi Chikankari Atelier',
+    description:
+      'Heirloom Lucknowi chikankari, hand-embroidered over weeks by master artisans. Anarkalis, sarees, kurtas, wedding edit and luxury gifting, shipped across India.',
+    path: '/',
+  });
 };
 
 export async function loader({context}: Route.LoaderArgs) {

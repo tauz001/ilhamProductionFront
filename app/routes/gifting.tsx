@@ -14,7 +14,7 @@ import {
 } from '~/lib/commerce/shopify-fields';
 import {useStore} from '~/lib/commerce/cart-store';
 import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
-import {canonicalUrl} from '~/lib/seo';
+import {seoMeta} from '~/lib/seo';
 import {
   CARD_IMAGE_WIDTHS,
   shopifyImageUrl,
@@ -22,15 +22,12 @@ import {
 } from '~/lib/commerce/image';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'Luxury Gifting - ilham'},
-    {
-      name: 'description',
-      content:
-        'Gift Lucknowi chikankari across India. Hand-bound boxes, handwritten notes, occasion curation.',
-    },
-    {tagName: 'link', rel: 'canonical', href: canonicalUrl('/gifting')},
-  ];
+  return seoMeta({
+    title: 'Luxury Gifting - ilham',
+    description:
+      'Gift Lucknowi chikankari across India. Hand-bound boxes, handwritten notes, occasion curation.',
+    path: '/gifting',
+  });
 };
 
 export async function loader({context}: Route.LoaderArgs) {

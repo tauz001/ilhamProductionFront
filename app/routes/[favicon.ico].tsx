@@ -1,6 +1,5 @@
 import {redirect} from 'react-router';
-import {LOGO_URL} from '~/lib/seo';
 
 export async function loader() {
-  return redirect(LOGO_URL, 302);
+  return redirect('/ilham-icon-48.png', 301);
 }

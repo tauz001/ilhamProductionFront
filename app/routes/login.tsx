@@ -5,15 +5,14 @@ import {ShieldCheck} from 'lucide-react';
 import {UrduCalligraphy} from '~/components/editorial/UrduCalligraphy';
 import {easeSilk} from '~/lib/motion/variants';
 import {logMissingShopifyField} from '~/lib/commerce/shopify-fields';
+import {privatePageMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
-  return [
-    {title: 'Sign In - ilham'},
-    {
-      name: 'description',
-      content: 'Return to your ilham atelier through Shopify Customer Accounts.',
-    },
-  ];
+  return privatePageMeta(
+    'Sign In - ilham',
+    'Return to your ilham atelier through Shopify Customer Accounts.',
+    '/login',
+  );
 };
 
 export async function loader({context}: Route.LoaderArgs) {

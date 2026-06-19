@@ -9,6 +9,14 @@ import {
   createFreshCheckoutCart,
   getCheckoutRedirectUrl,
 } from '~/lib/commerce/storefront-cart';
+import {privatePageMeta} from '~/lib/seo';
+
+export const meta: Route.MetaFunction = () =>
+  privatePageMeta(
+    'Checkout - ilham',
+    'Continue securely to Shopify checkout for your ilham order.',
+    '/checkout',
+  );
 
 export async function loader({context}: Route.LoaderArgs) {
   const cart = await context.cart.get();

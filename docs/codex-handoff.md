@@ -105,20 +105,27 @@
 - Removed Google Font CSS imports from application styles; root now preconnects
   and loads a trimmed set of used faces through a document stylesheet link.
 - ESLint and TypeScript passed after font restoration.
+- Added shared canonical, description, Open Graph, and Twitter metadata across
+  public storefront, collection, product, blog, page, and policy routes.
+- Added explicit `noindex` metadata to account, bag/cart, auth, search, and
+  checkout routes.
+- Added truthful Product and Article structured data plus article breadcrumbs;
+  removed unverified shipping and return promises from Product schema.
+- Preserved `/sitemap.xml` and `/sitemap.static.xml`; the static sitemap now
+  covers custom and virtual routes while Shopify's sitemap owns real resources.
+- Added a permanent redirect from the legacy `/collections/wedding` URL to the
+  canonical `/collections/wedding-edit` URL.
+- Replaced the remote Hydrogen favicon with same-origin Ilham PNG icons and a
+  local web manifest, and removed the unused Hydrogen SVG asset.
+- Hydrogen codegen, ESLint, TypeScript, and diff validation passed after SEO
+  and favicon changes.
 
 ## In Progress
 
-- SEO, sitemap, robots, structured data, and favicon completion.
+- Full static, production-build, browser, performance, commerce, and SEO checks.
 
 ## Pending
 
-- Image loading and responsive media.
-- Find My Size redesign.
-- Configurable same-day delivery and real Shopify charge integration.
-- Per-order first-visit feedback prompt.
-- Lazy Quick View.
-- Font restoration and delivery optimization.
-- SEO, sitemap, robots, structured data, and favicon completion.
 - Full static, production-build, browser, performance, commerce, and SEO checks.
 
 ## Commands Run
@@ -155,9 +162,15 @@
 - `npm.cmd run lint` - passed after font restoration.
 - `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
   font restoration.
+- `npm.cmd run codegen` - passed after SEO query changes.
+- `npm.cmd run lint` - passed after SEO and favicon changes.
+- `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after SEO
+  and favicon changes.
+- `git diff --check` - passed after SEO and favicon changes.
 
 ## Next Step
 
-Complete route metadata/noindex coverage, verify structured-data claims, keep
-the submitted sitemap URLs stable, and replace remote/redirected favicon assets
-with same-origin durable brand files.
+Commit the completed SEO/favicon checkpoint, then run the production build and
+browser QA across home, collection, product, bag, auth, sitemap, robots, and
+manifest routes. Verify core commerce interactions without changing the
+protected order-detail/Admin API loader.

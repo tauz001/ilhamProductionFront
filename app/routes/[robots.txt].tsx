@@ -69,6 +69,8 @@ function generalDisallowRules({
   shopId?: string;
 }) {
   return `Disallow: /admin
+Disallow: /api/
+Disallow: /bag
 Disallow: /cart
 Disallow: /orders
 Disallow: /checkouts/
