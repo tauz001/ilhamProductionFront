@@ -47,8 +47,8 @@ export async function createHydrogenRouterContext(
       cache,
       waitUntil,
       session,
-      // Or detect from URL path based on locale subpath, cookies, or any other strategy
-      i18n: {language: 'EN', country: 'US'},
+      // Ilham is India-first; keep Shopify market, inventory, and pricing context aligned.
+      i18n: {language: 'EN', country: 'IN'},
       cart: {
         queryFragment: CART_QUERY_FRAGMENT,
       },

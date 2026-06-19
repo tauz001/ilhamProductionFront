@@ -119,14 +119,20 @@
   local web manifest, and removed the unused Hydrogen SVG asset.
 - Hydrogen codegen, ESLint, TypeScript, and diff validation passed after SEO
   and favicon changes.
+- Aligned Hydrogen's default Storefront API market context with India (`IN`)
+  instead of the scaffolded United States default.
 
 ## In Progress
 
-- Full static, production-build, browser, performance, commerce, and SEO checks.
+- None. Implementation and available verification are complete.
 
 ## Pending
 
-- Full static, production-build, browser, performance, commerce, and SEO checks.
+- Set `SAME_DAY_DELIVERY_VARIANT_ID` in the local/Oxygen environment after the
+  hidden Shopify service product exists; until then eligibility is shown but
+  the paid add-on is intentionally unavailable.
+- Authenticated first-visit feedback UI can only be exercised with a real
+  customer order session. Static checks, codegen, and TypeScript pass.
 
 ## Commands Run
 
@@ -167,10 +173,29 @@
 - `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after SEO
   and favicon changes.
 - `git diff --check` - passed after SEO and favicon changes.
+- `npm.cmd run build` - production client and Oxygen SSR bundles passed after
+  the complete performance, feature, font, and SEO work.
+- `npm.cmd run lint` - passed after the India market-context correction.
+- `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after the
+  India market-context correction.
+- Final `npm.cmd run build` - passed after the India market-context correction.
+- Live home returned 200 with canonical/Open Graph metadata and site JSON-LD.
+- Live Women collection returned 24 products with canonical metadata and
+  ItemList schema.
+- Live PDP returned Product/Breadcrumb schema and the Find My Size control.
+- Live Quick View returned the requested product and its two real variants.
+- Anonymous add-to-bag returned 200, a cart cookie, and quantity-one bag data.
+- Bag, login, and search rendered explicit `noindex` metadata.
+- Both sitemap endpoints, robots, manifest, brand icon, and legacy favicon and
+  wedding redirects returned their expected HTTP responses.
+- Delivery API confirmed `226001` eligible at the configurable INR 30 fallback
+  and `110001` ineligible; Shiprocket serviceability returned successfully.
+- The in-app browser helper could not launch because Windows denied its sandbox
+  process, so visual interaction QA was replaced with rendered-HTML and live
+  HTTP verification.
 
 ## Next Step
 
-Commit the completed SEO/favicon checkpoint, then run the production build and
-browser QA across home, collection, product, bag, auth, sitemap, robots, and
-manifest routes. Verify core commerce interactions without changing the
-protected order-detail/Admin API loader.
+Create the hidden Shopify same-day delivery service product, set its variant GID
+as `SAME_DAY_DELIVERY_VARIANT_ID` in local/Oxygen environment configuration,
+then deploy and run authenticated order-feedback smoke testing with a real order.
