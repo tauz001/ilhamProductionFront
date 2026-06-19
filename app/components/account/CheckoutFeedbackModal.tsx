@@ -1,11 +1,72 @@
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {LoaderCircle, X} from 'lucide-react';
 import {easeSilk} from '~/lib/motion/variants';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
-export function CheckoutFeedbackModal({open}: {open: boolean}) {
+export function OrderFeedbackPrompt({orderId}: {orderId: string}) {
+  const [open, setOpen] = useState(false);
+  const claimedRef = useRef(false);
+
+  useEffect(() => {
+    if (claimedRef.current) return;
+    claimedRef.current = true;
+    const storageKey = `ilham.orderFeedbackPrompted.${orderId}`;
+
+    try {
+      if (window.localStorage.getItem(storageKey) === '1') return;
+    } catch {
+      // Server persistence remains the source of truth when storage is blocked.
+    }
+
+    let cancelled = false;
+    void postFeedback({action: 'claim-prompt', orderId})
+      .then((payload) => {
+        if (cancelled) return;
+        try {
+          window.localStorage.setItem(storageKey, '1');
+        } catch {
+          // The authenticated endpoint still prevents repeat prompts.
+        }
+        if (payload.show === true) setOpen(true);
+      })
+      .catch((error) => {
+        console.error('[feedback] Could not claim the order prompt:', error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [orderId]);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex h-12 items-center border border-border px-5 small-caps text-[11px] text-ink/65 transition-colors hover:border-gold hover:text-gold"
+      >
+        Share feedback
+      </button>
+      <CheckoutFeedbackModal
+        open={open}
+        orderId={orderId}
+        onClose={() => setOpen(false)}
+      />
+    </>
+  );
+}
+
+export function CheckoutFeedbackModal({
+  onClose,
+  open,
+  orderId,
+}: {
+  onClose?: () => void;
+  open: boolean;
+  orderId: string;
+}) {
   const [visible, setVisible] = useState(open);
   const [experience, setExperience] = useState<number | null>(null);
   const [recommend, setRecommend] = useState<number | null>(null);
@@ -25,7 +86,16 @@ export function CheckoutFeedbackModal({open}: {open: boolean}) {
       (recommend !== null && recommend <= 2),
   );
 
+  useEffect(() => {
+    if (open) setVisible(true);
+  }, [open]);
+
   if (!visible) return null;
+
+  const close = () => {
+    setVisible(false);
+    onClose?.();
+  };
 
   const submit = async () => {
     if (!experience || !recommend || status === 'submitting') return;
@@ -33,22 +103,14 @@ export function CheckoutFeedbackModal({open}: {open: boolean}) {
     setError('');
 
     try {
-      const response = await fetch('/api/order-feedback', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          experienceRating: experience,
-          recommendationRating: recommend,
-          message: message.trim(),
-          source: 'account-profile',
-        }),
+      await postFeedback({
+        action: 'submit',
+        experienceRating: experience,
+        message: message.trim(),
+        orderId,
+        recommendationRating: recommend,
+        source: 'order-detail',
       });
-      const payload = (await response.json()) as {message?: string};
-
-      if (!response.ok) {
-        throw new Error(payload.message || 'Could not save feedback.');
-      }
-
       setStatus('success');
     } catch (caught) {
       setStatus('error');
@@ -67,6 +129,8 @@ export function CheckoutFeedbackModal({open}: {open: boolean}) {
         initial={{opacity: 0}}
         animate={{opacity: 1}}
         exit={{opacity: 0}}
+        role="presentation"
+        onClick={close}
       >
         <motion.div
           initial={{y: 30, opacity: 0}}
@@ -74,20 +138,24 @@ export function CheckoutFeedbackModal({open}: {open: boolean}) {
           exit={{y: 30, opacity: 0}}
           transition={{duration: 0.45, ease: easeSilk}}
           className="w-full border border-border bg-ivory p-5 shadow-soft sm:max-w-xl sm:p-7"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="order-feedback-title"
+          onClick={(event) => event.stopPropagation()}
         >
           <div className="flex items-start justify-between gap-5">
             <div>
               <div className="text-4xl" aria-hidden>
-                {getFeedbackEmoji(average)}
+                {getFeedbackSymbol(average)}
               </div>
               <p className="mt-4 small-caps text-ink/45">Ordering experience</p>
-              <h2 className="mt-2 font-display text-3xl text-ink">
+              <h2 id="order-feedback-title" className="mt-2 font-display text-3xl text-ink">
                 How was your order?
               </h2>
             </div>
             <button
               type="button"
-              onClick={() => setVisible(false)}
+              onClick={close}
               aria-label="Close feedback"
               className="grid h-10 w-10 shrink-0 place-items-center border border-border transition-colors hover:border-ink"
             >
@@ -99,8 +167,7 @@ export function CheckoutFeedbackModal({open}: {open: boolean}) {
             <div className="mt-8 border border-gold/35 bg-gold/10 p-5">
               <p className="font-serif text-2xl text-ink">Thank you.</p>
               <p className="mt-2 text-sm leading-relaxed text-ink/60">
-                Your feedback helps us make the atelier smoother for every
-                customer.
+                Your feedback is now attached to this order for the atelier.
               </p>
             </div>
           ) : (
@@ -197,10 +264,28 @@ function Scale({
   );
 }
 
-function getFeedbackEmoji(average: number | null) {
-  if (average === null) return '🙂';
-  if (average <= 2) return '😟';
-  if (average <= 5) return '😐';
-  if (average <= 8) return '🙂';
-  return '🤍';
+function getFeedbackSymbol(average: number | null) {
+  if (average === null) return '\u263A';
+  if (average <= 2) return '\u2639';
+  if (average <= 5) return '\u2022';
+  if (average <= 8) return '\u263A';
+  return '\u2661';
+}
+
+async function postFeedback(payload: Record<string, unknown>) {
+  const response = await fetch('/api/order-feedback', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload),
+  });
+  const data = (await response.json().catch(() => ({}))) as {
+    message?: string;
+    show?: boolean;
+  };
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Could not save feedback.');
+  }
+
+  return data;
 }

@@ -1,5 +1,6 @@
 import type {Route} from './+types/api.order-feedback';
-import {CUSTOMER_DETAILS_QUERY} from '~/graphql/customer-account/CustomerDetailsQuery';
+import {CUSTOMER_ORDER_FEEDBACK_OWNERSHIP_QUERY} from '~/graphql/customer-account/CustomerOrderFeedbackQuery';
+import {getNumericOrderId, getOrderGid} from '~/lib/customer-account/order-route-id';
 
 type FeedbackEnv = {
   PUBLIC_STORE_DOMAIN?: string;
@@ -7,10 +8,21 @@ type FeedbackEnv = {
 };
 
 type FeedbackBody = {
+  action?: 'claim-prompt' | 'submit';
   experienceRating?: number;
-  recommendationRating?: number;
   message?: string;
+  orderId?: string;
+  recommendationRating?: number;
   source?: string;
+};
+
+type FeedbackState = {
+  experienceRating?: number;
+  message?: string;
+  promptedAt: string;
+  recommendationRating?: number;
+  source?: string;
+  submittedAt?: string;
 };
 
 export async function action({request, context}: Route.ActionArgs) {
@@ -21,42 +33,73 @@ export async function action({request, context}: Route.ActionArgs) {
   context.customerAccount.handleAuthStatus();
 
   const body = (await request.json().catch(() => ({}))) as FeedbackBody;
+  const orderId = normalizeOrderId(body.orderId);
+  if (!orderId) return json({message: 'A valid order is required.'}, 400);
+
+  const ownsOrder = await customerOwnsOrder({
+    context,
+    orderId,
+  });
+  if (!ownsOrder) {
+    return json({message: 'This order is not available for feedback.'}, 403);
+  }
+
+  const env = context.env as unknown as FeedbackEnv;
+
+  if (body.action === 'claim-prompt') {
+    const currentState = await readOrderFeedbackState({env, orderId});
+    if (currentState?.promptedAt) {
+      return json({
+        show: false,
+        persisted: true,
+        submitted: Boolean(currentState.submittedAt),
+      });
+    }
+
+    const promptedAt = new Date().toISOString();
+    const persisted = await saveOrderFeedbackState({
+      env,
+      orderId,
+      state: {promptedAt},
+    });
+
+    return json({show: true, persisted, submitted: false});
+  }
+
+  if (body.action !== 'submit') {
+    return json({message: 'Unknown feedback action.'}, 400);
+  }
+
   const experienceRating = normalizeRating(body.experienceRating);
   const recommendationRating = normalizeRating(body.recommendationRating);
-
   if (!experienceRating || !recommendationRating) {
     return json({message: 'Please choose both ratings.'}, 400);
   }
 
-  const {data, errors} = await context.customerAccount.query(CUSTOMER_DETAILS_QUERY, {
-    variables: {
-      language: context.customerAccount.i18n.language,
-    },
-  });
-
-  if (errors?.length || !data?.customer?.id) {
-    return json({message: 'Could not identify the customer.'}, 401);
-  }
-
-  const payload = {
+  const currentState = await readOrderFeedbackState({env, orderId});
+  const state: FeedbackState = {
+    promptedAt: currentState?.promptedAt ?? new Date().toISOString(),
     experienceRating,
     recommendationRating,
     message: sanitizeMessage(body.message),
-    source: body.source ?? 'account-profile',
+    source: body.source ?? 'order-detail',
     submittedAt: new Date().toISOString(),
   };
-
-  const saved = await saveFeedbackToShopify({
-    env: context.env as unknown as FeedbackEnv,
-    customerId: data.customer.id,
-    payload,
+  const saved = await saveOrderFeedbackState({
+    env,
+    orderId,
+    state,
+    tags:
+      experienceRating <= 2 || recommendationRating <= 2
+        ? ['order-feedback', 'order-feedback-low']
+        : ['order-feedback'],
   });
 
   if (!saved) {
     return json(
       {
         message:
-          'Feedback received, but Shopify Admin API feedback saving is not configured yet.',
+          'Feedback received, but Shopify order feedback saving is not configured yet.',
         saved: false,
       },
       202,
@@ -67,85 +110,159 @@ export async function action({request, context}: Route.ActionArgs) {
 }
 
 export function loader() {
-  return json({message: 'Use POST to submit order feedback.'}, 405);
+  return json({message: 'Use POST for order feedback.'}, 405);
 }
 
-async function saveFeedbackToShopify({
-  customerId,
-  env,
-  payload,
+async function customerOwnsOrder({
+  context,
+  orderId,
 }: {
-  customerId: string;
-  env: FeedbackEnv;
-  payload: {
-    experienceRating: number;
-    recommendationRating: number;
-    message: string;
-    source: string;
-    submittedAt: string;
-  };
+  context: Route.ActionArgs['context'];
+  orderId: string;
 }) {
-  const shopDomain = env.PUBLIC_STORE_DOMAIN;
-  const adminToken = env.PRIVATE_SHOPIFY_ADMIN_API_TOKEN;
-  if (!shopDomain || !adminToken) return false;
+  const numericOrderId = getNumericOrderId(orderId);
+  const result = await context.customerAccount
+    .query(CUSTOMER_ORDER_FEEDBACK_OWNERSHIP_QUERY, {
+      variables: {
+        first: 10,
+        query: numericOrderId ? `id:${numericOrderId}` : null,
+        language: context.customerAccount.i18n.language,
+      },
+    })
+    .catch((error: Error) => {
+      console.error('[feedback] Customer order ownership lookup failed:', error);
+      return null;
+    });
 
-  const lowFeedback =
-    payload.experienceRating <= 2 || payload.recommendationRating <= 2;
+  if (!result || result.errors?.length) return false;
+
+  return (result.data?.customer?.orders?.nodes ?? []).some(
+    (order) => getOrderGid(order.id) === orderId,
+  );
+}
+
+async function readOrderFeedbackState({
+  env,
+  orderId,
+}: {
+  env: FeedbackEnv;
+  orderId: string;
+}) {
+  const response = await adminGraphqlRequest({
+    env,
+    query: READ_ORDER_FEEDBACK_QUERY,
+    variables: {orderId},
+  });
+  const value = response?.data?.order?.metafield?.value;
+  if (typeof value !== 'string') return null;
 
   try {
-    const response = await fetch(`https://${shopDomain}/admin/api/2026-01/graphql.json`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': adminToken,
-      },
-      body: JSON.stringify({
-        query: SAVE_FEEDBACK_MUTATION,
-        variables: {
-          customerId,
-          customer: {
-            id: customerId,
-            metafields: [
-              {
-                namespace: 'custom',
-                key: 'checkout_feedback_latest',
-                type: 'json',
-                value: JSON.stringify(payload),
-              },
-            ],
-          },
-          tags: lowFeedback
-            ? ['checkout-feedback', 'checkout-feedback-low']
-            : ['checkout-feedback'],
+    return JSON.parse(value) as FeedbackState;
+  } catch {
+    console.warn('[feedback] Ignoring malformed order feedback state:', {orderId});
+    return null;
+  }
+}
+
+async function saveOrderFeedbackState({
+  env,
+  orderId,
+  state,
+  tags = [],
+}: {
+  env: FeedbackEnv;
+  orderId: string;
+  state: FeedbackState;
+  tags?: string[];
+}) {
+  const response = await adminGraphqlRequest({
+    env,
+    query: SAVE_ORDER_FEEDBACK_MUTATION,
+    variables: {
+      metafields: [
+        {
+          ownerId: orderId,
+          namespace: 'custom',
+          key: 'order_feedback',
+          type: 'json',
+          value: JSON.stringify(state),
         },
-      }),
+      ],
+      orderId,
+      tags,
+    },
+  });
+  if (!response) return false;
+
+  const userErrors = [
+    ...(response.data?.metafieldsSet?.userErrors ?? []),
+    ...(response.data?.tagsAdd?.userErrors ?? []),
+  ];
+  if (response.errors?.length || userErrors.length) {
+    console.error('[feedback] Shopify rejected order feedback:', {
+      errors: response.errors,
+      userErrors,
     });
-    const jsonPayload = (await response.json()) as {
-      data?: {
-        customerUpdate?: {userErrors?: {message?: string}[]};
-        tagsAdd?: {userErrors?: {message?: string}[]};
-      };
-      errors?: {message?: string}[];
-    };
-    const userErrors = [
-      ...(jsonPayload.data?.customerUpdate?.userErrors ?? []),
-      ...(jsonPayload.data?.tagsAdd?.userErrors ?? []),
-    ];
-
-    if (!response.ok || jsonPayload.errors?.length || userErrors.length) {
-      console.error('[feedback] Shopify Admin API rejected feedback save:', {
-        status: response.status,
-        errors: jsonPayload.errors,
-        userErrors,
-      });
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('[feedback] Shopify Admin API feedback save failed:', error);
     return false;
   }
+
+  return true;
+}
+
+async function adminGraphqlRequest({
+  env,
+  query,
+  variables,
+}: {
+  env: FeedbackEnv;
+  query: string;
+  variables: Record<string, unknown>;
+}) {
+  const shopDomain = normalizeShopDomain(env.PUBLIC_STORE_DOMAIN);
+  const adminToken = env.PRIVATE_SHOPIFY_ADMIN_API_TOKEN;
+  if (!shopDomain || !adminToken) return null;
+
+  try {
+    const response = await fetch(
+      `https://${shopDomain}/admin/api/2026-01/graphql.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': adminToken,
+        },
+        body: JSON.stringify({query, variables}),
+      },
+    );
+    const payload = (await response.json().catch(() => ({}))) as any;
+    if (!response.ok) {
+      console.error('[feedback] Shopify Admin API request failed:', {
+        status: response.status,
+        errors: payload.errors,
+      });
+      return null;
+    }
+    return payload;
+  } catch (error) {
+    console.error('[feedback] Shopify Admin API request crashed:', error);
+    return null;
+  }
+}
+
+function normalizeOrderId(value: unknown) {
+  const orderId = String(value ?? '').trim();
+  if (!orderId) return null;
+  const normalized = getOrderGid(orderId);
+  return getNumericOrderId(normalized) ? normalized : null;
+}
+
+function normalizeShopDomain(domain?: string | null) {
+  return (
+    domain
+      ?.trim()
+      .replace(/^https?:\/\//i, '')
+      .replace(/\/.*$/, '') || null
+  );
 }
 
 function normalizeRating(value: unknown) {
@@ -171,23 +288,31 @@ function json(data: unknown, status = 200) {
   });
 }
 
-// This is a private Shopify Admin API mutation, so it intentionally avoids
-// the `#graphql` marker that Hydrogen codegen uses for Storefront API documents.
-const SAVE_FEEDBACK_MUTATION = `
-  mutation SaveCheckoutFeedback($customer: CustomerInput!, $customerId: ID!, $tags: [String!]!) {
-    customerUpdate(input: $customer) {
-      customer {
-        id
+const READ_ORDER_FEEDBACK_QUERY = `
+  query ReadOrderFeedback($orderId: ID!) {
+    order: node(id: $orderId) {
+      ... on Order {
+        metafield(namespace: "custom", key: "order_feedback") {
+          value
+        }
       }
+    }
+  }
+` as const;
+
+const SAVE_ORDER_FEEDBACK_MUTATION = `
+  mutation SaveOrderFeedback(
+    $metafields: [MetafieldsSetInput!]!
+    $orderId: ID!
+    $tags: [String!]!
+  ) {
+    metafieldsSet(metafields: $metafields) {
       userErrors {
         field
         message
       }
     }
-    tagsAdd(id: $customerId, tags: $tags) {
-      node {
-        id
-      }
+    tagsAdd(id: $orderId, tags: $tags) {
       userErrors {
         field
         message

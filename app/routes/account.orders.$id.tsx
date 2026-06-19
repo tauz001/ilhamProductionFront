@@ -32,6 +32,7 @@ import {
   getNumericOrderId,
   getOrderGid,
 } from '~/lib/customer-account/order-route-id';
+import {OrderFeedbackPrompt} from '~/components/account/CheckoutFeedbackModal';
 
 type MoneyData = Pick<MoneyV2, 'amount' | 'currencyCode'>;
 type TrackingInfo = {
@@ -461,6 +462,7 @@ export default function OrderRoute() {
                 <ExternalLink className="h-4 w-4" strokeWidth={1.4} />
               </a>
             ) : null}
+            <OrderFeedbackPrompt orderId={order.id} />
           </div>
         </div>
       </header>

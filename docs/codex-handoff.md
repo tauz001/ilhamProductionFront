@@ -83,10 +83,18 @@
   actual checkout charge.
 - PDP delivery checks remain informational and do not add cart services.
 - ESLint, Hydrogen codegen, and TypeScript passed after delivery changes.
+- Removed the feedback prompt from Account Profile.
+- Order Detail now claims the automatic prompt once per order and retains a
+  permanent manual Share feedback control.
+- The isolated feedback endpoint independently verifies signed-in ownership and
+  stores prompt/submission state on `custom.order_feedback` for that order.
+- Browser storage suppresses repeat prompts when Admin persistence is unavailable.
+- The protected order-detail loader and Admin enrichment fallback were not changed.
+- ESLint, Customer Account codegen, and TypeScript passed after feedback changes.
 
 ## In Progress
 
-- Per-order first-visit feedback prompt.
+- Lazy product Quick View.
 
 ## Pending
 
@@ -122,9 +130,12 @@
 - `npm.cmd run codegen` - passed after adding the delivery-service variant query.
 - `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
   same-day delivery changes.
+- `npm.cmd run lint` - passed after per-order feedback changes.
+- `npm.cmd run codegen` - passed after adding feedback ownership query.
+- `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
+  per-order feedback changes.
 
 ## Next Step
 
-Move feedback prompting from account profile to order detail, persist per-order
-prompt/submission state through an isolated authenticated endpoint, and leave
-the protected order-detail loader/Admin fallback unchanged.
+Add a click-loaded Quick View route and modal so detailed variants and modal
+code are requested only after Choose Piece, with Add to Bag and View Details.
