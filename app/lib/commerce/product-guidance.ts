@@ -15,6 +15,7 @@ export type SizeChartRow = {
 
 export type SizeRecommendationInput = {
   audience: ProductAudience;
+  chart?: SizeChartRow[];
   bust?: number;
   chest?: number;
   waist?: number;
@@ -39,6 +40,17 @@ const MEN_SIZE_CHART: SizeChartRow[] = [
 ];
 
 export function getProductAudience(product: any): ProductAudience {
+  const configuredAudience = getMetafieldValue(product, 'audience')
+    ?.trim()
+    .toLowerCase();
+  if (
+    configuredAudience === 'women' ||
+    configuredAudience === 'men' ||
+    configuredAudience === 'unisex'
+  ) {
+    return configuredAudience;
+  }
+
   const text = [
     product?.title,
     product?.handle,
@@ -64,20 +76,28 @@ export function getProductAudience(product: any): ProductAudience {
 }
 
 export function getSizeChartForProduct(product: any) {
-  return getProductAudience(product) === 'men' ? MEN_SIZE_CHART : WOMEN_SIZE_CHART;
+  return (
+    parseConfiguredSizeChart(getMetafieldValue(product, 'size_chart')) ??
+    (getProductAudience(product) === 'men' ? MEN_SIZE_CHART : WOMEN_SIZE_CHART)
+  );
 }
 
 export function recommendProductSize({
   audience,
+  chart: configuredChart,
   bust,
   chest,
   waist,
   hip,
 }: SizeRecommendationInput) {
-  const chart = audience === 'men' ? MEN_SIZE_CHART : WOMEN_SIZE_CHART;
+  const chart =
+    configuredChart ?? (audience === 'men' ? MEN_SIZE_CHART : WOMEN_SIZE_CHART);
 
-  return (
-    chart.find((row) => {
+  if (audience === 'men' ? !chest || !waist : !bust || !waist || !hip) {
+    return null;
+  }
+
+  return chart.find((row) => {
       const upperBodyFits =
         audience === 'men'
           ? !chest || !row.chest || chest <= row.chest
@@ -88,8 +108,60 @@ export function recommendProductSize({
         (!waist || waist <= row.waist) &&
         (!hip || !row.hip || hip <= row.hip)
       );
-    }) ?? chart[chart.length - 1]
-  );
+    }) ?? null;
+}
+
+export function getProductFitNote(product: any) {
+  return getMetafieldValue(product, 'fit_note')?.trim() ?? '';
+}
+
+function parseConfiguredSizeChart(value?: string | null) {
+  if (!value?.trim()) return null;
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    const rows = Array.isArray(parsed)
+      ? parsed
+      : parsed && typeof parsed === 'object' && 'rows' in parsed
+        ? (parsed as {rows?: unknown}).rows
+        : null;
+
+    if (!Array.isArray(rows)) return null;
+
+    const normalizedRows = rows
+      .map(normalizeSizeChartRow)
+      .filter((row): row is SizeChartRow => Boolean(row));
+
+    return normalizedRows.length ? normalizedRows : null;
+  } catch {
+    console.warn(
+      'Invalid Shopify field: product metafield custom.size_chart must be JSON.',
+    );
+    return null;
+  }
+}
+
+function normalizeSizeChartRow(value: unknown): SizeChartRow | null {
+  if (!value || typeof value !== 'object') return null;
+
+  const row = value as Record<string, unknown>;
+  const size = String(row.size ?? '').trim();
+  const waist = positiveNumber(row.waist);
+  if (!size || waist === undefined) return null;
+
+  return {
+    size,
+    waist,
+    bust: positiveNumber(row.bust),
+    chest: positiveNumber(row.chest),
+    hip: positiveNumber(row.hip),
+    shoulder: positiveNumber(row.shoulder),
+  };
+}
+
+function positiveNumber(value: unknown) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : undefined;
 }
 
 export function getWashCareForFabric(

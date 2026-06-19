@@ -70,10 +70,16 @@
 - Added on-demand Load More pagination with stable skeleton placeholders.
 - URL-only collection filters no longer re-run the Storefront loader.
 - Hydrogen GraphQL codegen and TypeScript passed after collection changes.
+- Find My Size now supports Shopify product metafields `custom.audience`,
+  `custom.fit_note`, and JSON `custom.size_chart` with a standard fallback.
+- Added an accessible body-measurement diagram and measurement-specific help.
+- Size recommendations require complete measurements and return an atelier-help
+  state instead of forcing measurements into an undersized largest option.
+- ESLint, Hydrogen codegen, and TypeScript passed after size-guide changes.
 
 ## In Progress
 
-- Find My Size redesign.
+- Configurable same-day Lucknow delivery.
 
 ## Pending
 
@@ -101,8 +107,13 @@
 - `npm.cmd run codegen` - passed after collection pagination changes.
 - `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
   generated collection query types were refreshed.
+- `npm.cmd run lint` - passed after Find My Size changes.
+- `npm.cmd run codegen` - passed after adding product guidance metafields.
+- `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
+  Find My Size changes.
 
 ## Next Step
 
-Replace the generic Find My Size form with product-aware guidance and an
-accessible measurement diagram while retaining the approved PDP design.
+Make same-day Lucknow eligibility configurable, distinguish display estimates
+from a real Shopify cart charge, and document the required environment/Shopify
+setup without changing checkout behavior when it is not configured.

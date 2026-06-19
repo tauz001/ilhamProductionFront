@@ -858,7 +858,10 @@ const PRODUCT_QUERY = `#graphql
         {namespace: "custom", key: "shipping_returns"},
         {namespace: "custom", key: "gifting_note"},
         {namespace: "custom", key: "fabric_detail_image"},
-        {namespace: "custom", key: "artisan_image"}
+        {namespace: "custom", key: "artisan_image"},
+        {namespace: "custom", key: "audience"},
+        {namespace: "custom", key: "fit_note"},
+        {namespace: "custom", key: "size_chart"}
       ]) {
         key
         namespace
