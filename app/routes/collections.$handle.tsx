@@ -1,4 +1,10 @@
-import {Link, useLoaderData, useSearchParams} from 'react-router';
+import {
+  Link,
+  useFetcher,
+  useLoaderData,
+  useSearchParams,
+  type ShouldRevalidateFunction,
+} from 'react-router';
 import type {Route} from './+types/collections.$handle';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Check, ChevronDown, SlidersHorizontal, X} from 'lucide-react';
@@ -30,6 +36,19 @@ import {productMatchesText} from '~/lib/commerce/product-facets';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {breadcrumbJsonLd, canonicalUrl, collectionItemListJsonLd} from '~/lib/seo';
 
+const COLLECTION_PAGE_SIZE = 24;
+
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+  currentUrl,
+  defaultShouldRevalidate,
+  formMethod,
+  nextUrl,
+}) => {
+  if (formMethod && formMethod !== 'GET') return true;
+  if (currentUrl.pathname === nextUrl.pathname) return false;
+  return defaultShouldRevalidate;
+};
+
 export const meta: Route.MetaFunction = ({data}) => {
   const collection = data?.collection;
   return [
@@ -56,15 +75,24 @@ export const meta: Route.MetaFunction = ({data}) => {
 export async function loader({context, params, request}: Route.LoaderArgs) {
   const {handle} = params;
   const {storefront} = context;
+  const cursor = new URL(request.url).searchParams.get('cursor');
+  const paginationVariables = {
+    after: cursor || null,
+    first: COLLECTION_PAGE_SIZE,
+  };
 
   if (!handle) {
     throw new Response(null, {status: 404});
   }
 
   if (handle === 'new-arrivals') {
-    const {products} = await storefront.query(NEW_ARRIVALS_QUERY);
+    const {products} = await storefront.query(NEW_ARRIVALS_QUERY, {
+      cache: storefront.CacheShort(),
+      variables: paginationVariables,
+    });
     const collection = createNewArrivalsCollection(
       (products?.nodes ?? []).filter(isNewProduct),
+      products?.pageInfo,
     );
 
     logCollectionRequirements(collection);
@@ -73,10 +101,14 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
   }
 
   if (handle === 'best-sellers') {
-    const {products} = await storefront.query(BEST_SELLERS_QUERY);
+    const {products} = await storefront.query(BEST_SELLERS_QUERY, {
+      cache: storefront.CacheShort(),
+      variables: paginationVariables,
+    });
     const bestSellers = (products?.nodes ?? []).filter(isBestSellerProduct);
     const collection = createBestSellersCollection(
       bestSellers.length ? bestSellers : (products?.nodes ?? []),
+      products?.pageInfo,
     );
 
     logCollectionRequirements(collection);
@@ -85,7 +117,8 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
   }
 
   const {collection} = await storefront.query(COLLECTION_QUERY, {
-    variables: {handle},
+    cache: storefront.CacheShort(),
+    variables: {handle, ...paginationVariables},
   });
 
   if (!collection) {
@@ -102,11 +135,47 @@ type FilterState = CollectionFilterState;
 
 export default function Collection() {
   const {collection} = useLoaderData<typeof loader>();
+  const fetcher = useFetcher<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const baseItems = useMemo(
+  const initialItems = useMemo(
     () => collection.products?.nodes ?? [],
     [collection.products?.nodes],
   );
+  const [baseItems, setBaseItems] = useState<any[]>(initialItems);
+  const [pageInfo, setPageInfo] = useState(collection.products?.pageInfo);
+
+  useEffect(() => {
+    setBaseItems(initialItems);
+    setPageInfo(collection.products?.pageInfo);
+  }, [collection.handle, collection.products?.pageInfo, initialItems]);
+
+  useEffect(() => {
+    const nextCollection = fetcher.data?.collection;
+    if (!nextCollection || nextCollection.handle !== collection.handle) return;
+
+    setBaseItems((current) => {
+      const knownHandles = new Set(current.map((product) => product.handle));
+      const nextItems = (nextCollection.products?.nodes ?? []).filter(
+        (product: any) => !knownHandles.has(product.handle),
+      );
+      return nextItems.length ? [...current, ...nextItems] : current;
+    });
+    setPageInfo(nextCollection.products?.pageInfo);
+  }, [collection.handle, fetcher.data]);
+
+  const loadMore = () => {
+    if (
+      fetcher.state !== 'idle' ||
+      !pageInfo?.hasNextPage ||
+      !pageInfo.endCursor
+    ) {
+      return;
+    }
+
+    void fetcher.load(
+      `/collections/${collection.handle}?cursor=${encodeURIComponent(pageInfo.endCursor)}`,
+    );
+  };
   const tagline = getRequiredCollectionMetafield(collection, 'tagline');
   const category = getRequiredCollectionMetafield(collection, 'category');
   const filters = useMemo(
@@ -133,12 +202,7 @@ export default function Collection() {
       const color = getProductColor(product);
       if (color.name) colors.set(color.name, color.hex ?? undefined);
 
-      product.variants?.nodes?.forEach((variant: any) => {
-        const size = variant.selectedOptions?.find(
-          (option: {name: string}) => option.name.toLowerCase() === 'size',
-        )?.value;
-        if (size) sizes.add(size);
-      });
+      getProductOptionValues(product, 'size').forEach((size) => sizes.add(size));
     });
 
     return {
@@ -207,24 +271,14 @@ export default function Collection() {
       }
 
       if (filters.sizes.length) {
-        const variantSizes =
-          product.variants?.nodes
-            ?.filter((variant: any) => variant.availableForSale)
-            .map((variant: any) =>
-              variant.selectedOptions?.find(
-                (option: {name: string}) => option.name.toLowerCase() === 'size',
-              )?.value,
-            )
-            .filter(Boolean) ?? [];
-        if (!filters.sizes.some((size) => variantSizes.includes(size))) {
+        const productSizes = getProductOptionValues(product, 'size');
+        if (!filters.sizes.some((size) => productSizes.includes(size))) {
           return false;
         }
       }
 
       if (filters.availability.includes('in-stock')) {
-        if (
-          !product.variants?.nodes?.some((variant: any) => variant.availableForSale)
-        ) {
+        if (!product.availableForSale) {
           return false;
         }
       }
@@ -430,6 +484,25 @@ export default function Collection() {
             ))}
           </div>
         )}
+        {pageInfo?.hasNextPage ? (
+          <div className="mt-14 flex flex-col items-center gap-5">
+            {fetcher.state !== 'idle' ? (
+              <div className="grid w-full grid-cols-2 gap-4 md:grid-cols-4" aria-hidden>
+                {Array.from({length: 4}, (_, index) => (
+                  <div key={index} className="aspect-[3/4] skeleton-luxury" />
+                ))}
+              </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={loadMore}
+              disabled={fetcher.state !== 'idle'}
+              className="min-h-12 border border-ink px-9 small-caps text-ink transition-colors hover:bg-ink hover:text-ivory disabled:cursor-wait disabled:opacity-45"
+            >
+              {fetcher.state === 'idle' ? 'Load more pieces' : 'Loading pieces'}
+            </button>
+          </div>
+        ) : null}
       </section>
 
       <MobileFilters
@@ -805,9 +878,7 @@ function getRequiredCollectionMetafield(collection: any, key: string) {
 
 function getProductColor(product: any) {
   const metafieldColor = getMetafieldValue(product, 'color');
-  const optionColor = product.variants?.nodes?.[0]?.selectedOptions?.find(
-    (option: {name: string}) => option.name.toLowerCase() === 'color',
-  )?.value;
+  const optionColor = getProductOptionValues(product, 'color')[0];
   const name = metafieldColor ?? optionColor ?? '';
   const hex = getMetafieldValue(product, 'color_hex') ?? undefined;
 
@@ -824,9 +895,7 @@ function getProductColor(product: any) {
 
 function getProductFabric(product: any) {
   const metafieldFabric = getMetafieldValue(product, 'fabric');
-  const optionFabric = product.variants?.nodes?.[0]?.selectedOptions?.find(
-    (option: {name: string}) => option.name.toLowerCase() === 'fabric',
-  )?.value;
+  const optionFabric = getProductOptionValues(product, 'fabric')[0];
   const fabric = metafieldFabric ?? optionFabric ?? '';
 
   if (!fabric) {
@@ -838,6 +907,17 @@ function getProductFabric(product: any) {
   }
 
   return fabric;
+}
+
+function getProductOptionValues(product: any, optionName: string): string[] {
+  const option = product.options?.find(
+    (candidate: {name?: string}) =>
+      candidate.name?.toLowerCase() === optionName.toLowerCase(),
+  );
+
+  return (option?.optionValues ?? [])
+    .map((value: {name?: string}) => value.name)
+    .filter((value: string | undefined): value is string => Boolean(value));
 }
 
 function getProductPrice(product: any) {
@@ -857,7 +937,7 @@ function isBestSellerProduct(product: any) {
   );
 }
 
-function createNewArrivalsCollection(products: any[]) {
+function createNewArrivalsCollection(products: any[], pageInfo?: any) {
   const image =
     products.find((product) => product.featuredImage?.url)?.featuredImage ??
     products.find((product) => product.images?.nodes?.[0]?.url)?.images?.nodes?.[0] ??
@@ -884,11 +964,12 @@ function createNewArrivalsCollection(products: any[]) {
     ],
     products: {
       nodes: products,
+      pageInfo,
     },
   };
 }
 
-function createBestSellersCollection(products: any[]) {
+function createBestSellersCollection(products: any[], pageInfo?: any) {
   const image =
     products.find((product) => product.featuredImage?.url)?.featuredImage ??
     products.find((product) => product.images?.nodes?.[0]?.url)?.images?.nodes?.[0] ??
@@ -914,6 +995,7 @@ function createBestSellersCollection(products: any[]) {
     ],
     products: {
       nodes: products,
+      pageInfo,
     },
   };
 }
@@ -971,6 +1053,7 @@ const COLLECTION_PRODUCT_FRAGMENT = `#graphql
     vendor
     productType
     tags
+    availableForSale
     featuredImage {
       id
       url
@@ -978,7 +1061,7 @@ const COLLECTION_PRODUCT_FRAGMENT = `#graphql
       width
       height
     }
-    images(first: 4) {
+    images(first: 3) {
       nodes {
         id
         url
@@ -987,10 +1070,17 @@ const COLLECTION_PRODUCT_FRAGMENT = `#graphql
         height
       }
     }
-    variants(first: 50) {
-      nodes {
-        ...IlhamCollectionProductVariant
+    options {
+      name
+      optionValues {
+        name
       }
+    }
+    variantsCount {
+      count
+    }
+    selectedOrFirstAvailableVariant {
+      ...IlhamCollectionProductVariant
     }
     priceRange {
       minVariantPrice {
@@ -1020,6 +1110,8 @@ const COLLECTION_PRODUCT_FRAGMENT = `#graphql
 const COLLECTION_QUERY = `#graphql
   query Collection(
     $country: CountryCode
+    $after: String
+    $first: Int!
     $handle: String!
     $language: LanguageCode
   ) @inContext(country: $country, language: $language) {
@@ -1043,9 +1135,14 @@ const COLLECTION_QUERY = `#graphql
         namespace
         value
       }
-      products(first: 250) {
+      products(first: $first, after: $after) {
         nodes {
           ...IlhamCollectionProduct
+        }
+        pageInfo {
+          endCursor
+          hasNextPage
+          startCursor
         }
       }
     }
@@ -1056,11 +1153,18 @@ const COLLECTION_QUERY = `#graphql
 const NEW_ARRIVALS_QUERY = `#graphql
   query NewArrivals(
     $country: CountryCode
+    $after: String
+    $first: Int!
     $language: LanguageCode
   ) @inContext(country: $country, language: $language) {
-    products(first: 250, sortKey: CREATED_AT, reverse: true) {
+    products(first: $first, after: $after, sortKey: CREATED_AT, reverse: true) {
       nodes {
         ...IlhamCollectionProduct
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+        startCursor
       }
     }
   }
@@ -1070,11 +1174,18 @@ const NEW_ARRIVALS_QUERY = `#graphql
 const BEST_SELLERS_QUERY = `#graphql
   query BestSellers(
     $country: CountryCode
+    $after: String
+    $first: Int!
     $language: LanguageCode
   ) @inContext(country: $country, language: $language) {
-    products(first: 250, sortKey: BEST_SELLING) {
+    products(first: $first, after: $after, sortKey: BEST_SELLING) {
       nodes {
         ...IlhamCollectionProduct
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+        startCursor
       }
     }
   }

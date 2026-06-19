@@ -1203,53 +1203,6 @@ export type LayoutCommerceQuery = {
         StorefrontAPI.Product,
         'id' | 'title' | 'handle' | 'vendor' | 'productType' | 'tags'
       > & {
-        featuredImage?: StorefrontAPI.Maybe<
-          Pick<
-            StorefrontAPI.Image,
-            'id' | 'url' | 'altText' | 'width' | 'height'
-          >
-        >;
-        images: {
-          nodes: Array<
-            Pick<
-              StorefrontAPI.Image,
-              'id' | 'url' | 'altText' | 'width' | 'height'
-            >
-          >;
-        };
-        variants: {
-          nodes: Array<
-            Pick<
-              StorefrontAPI.ProductVariant,
-              'id' | 'title' | 'availableForSale'
-            > & {
-              image?: StorefrontAPI.Maybe<
-                Pick<
-                  StorefrontAPI.Image,
-                  'id' | 'url' | 'altText' | 'width' | 'height'
-                >
-              >;
-              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
-              product: Pick<
-                StorefrontAPI.Product,
-                'id' | 'handle' | 'title' | 'vendor' | 'productType'
-              >;
-              selectedOptions: Array<
-                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
-              >;
-            }
-          >;
-        };
-        priceRange: {
-          minVariantPrice: Pick<
-            StorefrontAPI.MoneyV2,
-            'amount' | 'currencyCode'
-          >;
-          maxVariantPrice: Pick<
-            StorefrontAPI.MoneyV2,
-            'amount' | 'currencyCode'
-          >;
-        };
         metafields: Array<
           StorefrontAPI.Maybe<
             Pick<StorefrontAPI.Metafield, 'key' | 'namespace' | 'value'>
@@ -1555,7 +1508,13 @@ export type IlhamCollectionProductVariantFragment = Pick<
 
 export type IlhamCollectionProductFragment = Pick<
   StorefrontAPI.Product,
-  'id' | 'title' | 'handle' | 'vendor' | 'productType' | 'tags'
+  | 'id'
+  | 'title'
+  | 'handle'
+  | 'vendor'
+  | 'productType'
+  | 'tags'
+  | 'availableForSale'
 > & {
   featuredImage?: StorefrontAPI.Maybe<
     Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
@@ -1565,29 +1524,27 @@ export type IlhamCollectionProductFragment = Pick<
       Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
     >;
   };
-  variants: {
-    nodes: Array<
-      Pick<
-        StorefrontAPI.ProductVariant,
-        'id' | 'title' | 'availableForSale'
-      > & {
-        image?: StorefrontAPI.Maybe<
-          Pick<
-            StorefrontAPI.Image,
-            'id' | 'url' | 'altText' | 'width' | 'height'
-          >
-        >;
-        price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
-        product: Pick<
-          StorefrontAPI.Product,
-          'id' | 'handle' | 'title' | 'vendor' | 'productType'
-        >;
-        selectedOptions: Array<
-          Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
-        >;
-      }
-    >;
-  };
+  options: Array<
+    Pick<StorefrontAPI.ProductOption, 'name'> & {
+      optionValues: Array<Pick<StorefrontAPI.ProductOptionValue, 'name'>>;
+    }
+  >;
+  variantsCount?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Count, 'count'>>;
+  selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.ProductVariant, 'id' | 'title' | 'availableForSale'> & {
+      image?: StorefrontAPI.Maybe<
+        Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
+      >;
+      price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+      product: Pick<
+        StorefrontAPI.Product,
+        'id' | 'handle' | 'title' | 'vendor' | 'productType'
+      >;
+      selectedOptions: Array<
+        Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+      >;
+    }
+  >;
   priceRange: {
     minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
     maxVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
@@ -1601,6 +1558,8 @@ export type IlhamCollectionProductFragment = Pick<
 
 export type CollectionQueryVariables = StorefrontAPI.Exact<{
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  after?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['String']['input']>;
+  first: StorefrontAPI.Scalars['Int']['input'];
   handle: StorefrontAPI.Scalars['String']['input'];
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
 }>;
@@ -1623,7 +1582,13 @@ export type CollectionQuery = {
         nodes: Array<
           Pick<
             StorefrontAPI.Product,
-            'id' | 'title' | 'handle' | 'vendor' | 'productType' | 'tags'
+            | 'id'
+            | 'title'
+            | 'handle'
+            | 'vendor'
+            | 'productType'
+            | 'tags'
+            | 'availableForSale'
           > & {
             featuredImage?: StorefrontAPI.Maybe<
               Pick<
@@ -1639,29 +1604,37 @@ export type CollectionQuery = {
                 >
               >;
             };
-            variants: {
-              nodes: Array<
-                Pick<
-                  StorefrontAPI.ProductVariant,
-                  'id' | 'title' | 'availableForSale'
-                > & {
-                  image?: StorefrontAPI.Maybe<
-                    Pick<
-                      StorefrontAPI.Image,
-                      'id' | 'url' | 'altText' | 'width' | 'height'
-                    >
-                  >;
-                  price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
-                  product: Pick<
-                    StorefrontAPI.Product,
-                    'id' | 'handle' | 'title' | 'vendor' | 'productType'
-                  >;
-                  selectedOptions: Array<
-                    Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
-                  >;
-                }
-              >;
-            };
+            options: Array<
+              Pick<StorefrontAPI.ProductOption, 'name'> & {
+                optionValues: Array<
+                  Pick<StorefrontAPI.ProductOptionValue, 'name'>
+                >;
+              }
+            >;
+            variantsCount?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.Count, 'count'>
+            >;
+            selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+              Pick<
+                StorefrontAPI.ProductVariant,
+                'id' | 'title' | 'availableForSale'
+              > & {
+                image?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.Image,
+                    'id' | 'url' | 'altText' | 'width' | 'height'
+                  >
+                >;
+                price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                product: Pick<
+                  StorefrontAPI.Product,
+                  'id' | 'handle' | 'title' | 'vendor' | 'productType'
+                >;
+                selectedOptions: Array<
+                  Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                >;
+              }
+            >;
             priceRange: {
               minVariantPrice: Pick<
                 StorefrontAPI.MoneyV2,
@@ -1679,6 +1652,10 @@ export type CollectionQuery = {
             >;
           }
         >;
+        pageInfo: Pick<
+          StorefrontAPI.PageInfo,
+          'endCursor' | 'hasNextPage' | 'startCursor'
+        >;
       };
     }
   >;
@@ -1686,6 +1663,8 @@ export type CollectionQuery = {
 
 export type NewArrivalsQueryVariables = StorefrontAPI.Exact<{
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  after?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['String']['input']>;
+  first: StorefrontAPI.Scalars['Int']['input'];
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
 }>;
 
@@ -1694,7 +1673,13 @@ export type NewArrivalsQuery = {
     nodes: Array<
       Pick<
         StorefrontAPI.Product,
-        'id' | 'title' | 'handle' | 'vendor' | 'productType' | 'tags'
+        | 'id'
+        | 'title'
+        | 'handle'
+        | 'vendor'
+        | 'productType'
+        | 'tags'
+        | 'availableForSale'
       > & {
         featuredImage?: StorefrontAPI.Maybe<
           Pick<
@@ -1710,29 +1695,33 @@ export type NewArrivalsQuery = {
             >
           >;
         };
-        variants: {
-          nodes: Array<
-            Pick<
-              StorefrontAPI.ProductVariant,
-              'id' | 'title' | 'availableForSale'
-            > & {
-              image?: StorefrontAPI.Maybe<
-                Pick<
-                  StorefrontAPI.Image,
-                  'id' | 'url' | 'altText' | 'width' | 'height'
-                >
-              >;
-              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
-              product: Pick<
-                StorefrontAPI.Product,
-                'id' | 'handle' | 'title' | 'vendor' | 'productType'
-              >;
-              selectedOptions: Array<
-                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
-              >;
-            }
-          >;
-        };
+        options: Array<
+          Pick<StorefrontAPI.ProductOption, 'name'> & {
+            optionValues: Array<Pick<StorefrontAPI.ProductOptionValue, 'name'>>;
+          }
+        >;
+        variantsCount?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Count, 'count'>>;
+        selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.ProductVariant,
+            'id' | 'title' | 'availableForSale'
+          > & {
+            image?: StorefrontAPI.Maybe<
+              Pick<
+                StorefrontAPI.Image,
+                'id' | 'url' | 'altText' | 'width' | 'height'
+              >
+            >;
+            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            product: Pick<
+              StorefrontAPI.Product,
+              'id' | 'handle' | 'title' | 'vendor' | 'productType'
+            >;
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
         priceRange: {
           minVariantPrice: Pick<
             StorefrontAPI.MoneyV2,
@@ -1750,11 +1739,17 @@ export type NewArrivalsQuery = {
         >;
       }
     >;
+    pageInfo: Pick<
+      StorefrontAPI.PageInfo,
+      'endCursor' | 'hasNextPage' | 'startCursor'
+    >;
   };
 };
 
 export type BestSellersQueryVariables = StorefrontAPI.Exact<{
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  after?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['String']['input']>;
+  first: StorefrontAPI.Scalars['Int']['input'];
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
 }>;
 
@@ -1763,7 +1758,13 @@ export type BestSellersQuery = {
     nodes: Array<
       Pick<
         StorefrontAPI.Product,
-        'id' | 'title' | 'handle' | 'vendor' | 'productType' | 'tags'
+        | 'id'
+        | 'title'
+        | 'handle'
+        | 'vendor'
+        | 'productType'
+        | 'tags'
+        | 'availableForSale'
       > & {
         featuredImage?: StorefrontAPI.Maybe<
           Pick<
@@ -1779,29 +1780,33 @@ export type BestSellersQuery = {
             >
           >;
         };
-        variants: {
-          nodes: Array<
-            Pick<
-              StorefrontAPI.ProductVariant,
-              'id' | 'title' | 'availableForSale'
-            > & {
-              image?: StorefrontAPI.Maybe<
-                Pick<
-                  StorefrontAPI.Image,
-                  'id' | 'url' | 'altText' | 'width' | 'height'
-                >
-              >;
-              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
-              product: Pick<
-                StorefrontAPI.Product,
-                'id' | 'handle' | 'title' | 'vendor' | 'productType'
-              >;
-              selectedOptions: Array<
-                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
-              >;
-            }
-          >;
-        };
+        options: Array<
+          Pick<StorefrontAPI.ProductOption, 'name'> & {
+            optionValues: Array<Pick<StorefrontAPI.ProductOptionValue, 'name'>>;
+          }
+        >;
+        variantsCount?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Count, 'count'>>;
+        selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.ProductVariant,
+            'id' | 'title' | 'availableForSale'
+          > & {
+            image?: StorefrontAPI.Maybe<
+              Pick<
+                StorefrontAPI.Image,
+                'id' | 'url' | 'altText' | 'width' | 'height'
+              >
+            >;
+            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            product: Pick<
+              StorefrontAPI.Product,
+              'id' | 'handle' | 'title' | 'vendor' | 'productType'
+            >;
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
         priceRange: {
           minVariantPrice: Pick<
             StorefrontAPI.MoneyV2,
@@ -1818,6 +1823,10 @@ export type BestSellersQuery = {
           >
         >;
       }
+    >;
+    pageInfo: Pick<
+      StorefrontAPI.PageInfo,
+      'endCursor' | 'hasNextPage' | 'startCursor'
     >;
   };
 };
@@ -2654,7 +2663,7 @@ interface GeneratedQueryTypes {
     return: FooterQuery;
     variables: FooterQueryVariables;
   };
-  '#graphql\n  query LayoutCommerce($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 30) {\n      nodes {\n        id\n        title\n        handle\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        metafields(identifiers: [\n          {namespace: "custom", key: "tagline"},\n          {namespace: "custom", key: "category"}\n        ]) {\n          key\n          namespace\n          value\n        }\n      }\n    }\n    products(first: 50) {\n      nodes {\n        id\n        title\n        handle\n        vendor\n        productType\n        tags\n        featuredImage {\n          id\n          url\n          altText\n          width\n          height\n        }\n        images(first: 4) {\n          nodes {\n            id\n            url\n            altText\n            width\n            height\n          }\n        }\n        variants(first: 20) {\n          nodes {\n            id\n            title\n            availableForSale\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n            price {\n              amount\n              currencyCode\n            }\n            product {\n              id\n              handle\n              title\n              vendor\n              productType\n            }\n            selectedOptions {\n              name\n              value\n            }\n          }\n        }\n        priceRange {\n          minVariantPrice {\n            amount\n            currencyCode\n          }\n          maxVariantPrice {\n            amount\n            currencyCode\n          }\n        }\n        metafields(identifiers: [\n          {namespace: "custom", key: "subtitle"},\n          {namespace: "custom", key: "fabric"},\n          {namespace: "custom", key: "color"},\n          {namespace: "custom", key: "occasions"}\n        ]) {\n          key\n          namespace\n          value\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  query LayoutCommerce($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 30) {\n      nodes {\n        id\n        title\n        handle\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        metafields(identifiers: [\n          {namespace: "custom", key: "tagline"},\n          {namespace: "custom", key: "category"}\n        ]) {\n          key\n          namespace\n          value\n        }\n      }\n    }\n    products(first: 50) {\n      nodes {\n        id\n        title\n        handle\n        vendor\n        productType\n        tags\n        metafields(identifiers: [\n          {namespace: "custom", key: "subtitle"},\n          {namespace: "custom", key: "fabric"},\n          {namespace: "custom", key: "color"},\n          {namespace: "custom", key: "occasions"}\n        ]) {\n          key\n          namespace\n          value\n        }\n      }\n    }\n  }\n': {
     return: LayoutCommerceQuery;
     variables: LayoutCommerceQueryVariables;
   };
@@ -2686,15 +2695,15 @@ interface GeneratedQueryTypes {
     return: BlogsQuery;
     variables: BlogsQueryVariables;
   };
-  '#graphql\n  query Collection(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        id\n        url\n        altText\n        width\n        height\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "tagline"},\n        {namespace: "custom", key: "category"}\n      ]) {\n        key\n        namespace\n        value\n      }\n      products(first: 250) {\n        nodes {\n          ...IlhamCollectionProduct\n        }\n      }\n    }\n  }\n  #graphql\n  fragment IlhamCollectionProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 4) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    variants(first: 50) {\n      nodes {\n        ...IlhamCollectionProductVariant\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "subtitle"},\n      {namespace: "custom", key: "fabric"},\n      {namespace: "custom", key: "color"},\n      {namespace: "custom", key: "color_hex"},\n      {namespace: "custom", key: "occasions"}\n    ]) {\n      key\n      namespace\n      value\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n\n': {
+  '#graphql\n  query Collection(\n    $country: CountryCode\n    $after: String\n    $first: Int!\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    collection(handle: $handle) {\n      id\n      handle\n      title\n      description\n      image {\n        id\n        url\n        altText\n        width\n        height\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "tagline"},\n        {namespace: "custom", key: "category"}\n      ]) {\n        key\n        namespace\n        value\n      }\n      products(first: $first, after: $after) {\n        nodes {\n          ...IlhamCollectionProduct\n        }\n        pageInfo {\n          endCursor\n          hasNextPage\n          startCursor\n        }\n      }\n    }\n  }\n  #graphql\n  fragment IlhamCollectionProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    availableForSale\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 3) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    options {\n      name\n      optionValues {\n        name\n      }\n    }\n    variantsCount {\n      count\n    }\n    selectedOrFirstAvailableVariant {\n      ...IlhamCollectionProductVariant\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "subtitle"},\n      {namespace: "custom", key: "fabric"},\n      {namespace: "custom", key: "color"},\n      {namespace: "custom", key: "color_hex"},\n      {namespace: "custom", key: "occasions"}\n    ]) {\n      key\n      namespace\n      value\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n\n': {
     return: CollectionQuery;
     variables: CollectionQueryVariables;
   };
-  '#graphql\n  query NewArrivals(\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    products(first: 250, sortKey: CREATED_AT, reverse: true) {\n      nodes {\n        ...IlhamCollectionProduct\n      }\n    }\n  }\n  #graphql\n  fragment IlhamCollectionProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 4) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    variants(first: 50) {\n      nodes {\n        ...IlhamCollectionProductVariant\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "subtitle"},\n      {namespace: "custom", key: "fabric"},\n      {namespace: "custom", key: "color"},\n      {namespace: "custom", key: "color_hex"},\n      {namespace: "custom", key: "occasions"}\n    ]) {\n      key\n      namespace\n      value\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n\n': {
+  '#graphql\n  query NewArrivals(\n    $country: CountryCode\n    $after: String\n    $first: Int!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    products(first: $first, after: $after, sortKey: CREATED_AT, reverse: true) {\n      nodes {\n        ...IlhamCollectionProduct\n      }\n      pageInfo {\n        endCursor\n        hasNextPage\n        startCursor\n      }\n    }\n  }\n  #graphql\n  fragment IlhamCollectionProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    availableForSale\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 3) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    options {\n      name\n      optionValues {\n        name\n      }\n    }\n    variantsCount {\n      count\n    }\n    selectedOrFirstAvailableVariant {\n      ...IlhamCollectionProductVariant\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "subtitle"},\n      {namespace: "custom", key: "fabric"},\n      {namespace: "custom", key: "color"},\n      {namespace: "custom", key: "color_hex"},\n      {namespace: "custom", key: "occasions"}\n    ]) {\n      key\n      namespace\n      value\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n\n': {
     return: NewArrivalsQuery;
     variables: NewArrivalsQueryVariables;
   };
-  '#graphql\n  query BestSellers(\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    products(first: 250, sortKey: BEST_SELLING) {\n      nodes {\n        ...IlhamCollectionProduct\n      }\n    }\n  }\n  #graphql\n  fragment IlhamCollectionProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 4) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    variants(first: 50) {\n      nodes {\n        ...IlhamCollectionProductVariant\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "subtitle"},\n      {namespace: "custom", key: "fabric"},\n      {namespace: "custom", key: "color"},\n      {namespace: "custom", key: "color_hex"},\n      {namespace: "custom", key: "occasions"}\n    ]) {\n      key\n      namespace\n      value\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n\n': {
+  '#graphql\n  query BestSellers(\n    $country: CountryCode\n    $after: String\n    $first: Int!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    products(first: $first, after: $after, sortKey: BEST_SELLING) {\n      nodes {\n        ...IlhamCollectionProduct\n      }\n      pageInfo {\n        endCursor\n        hasNextPage\n        startCursor\n      }\n    }\n  }\n  #graphql\n  fragment IlhamCollectionProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    availableForSale\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 3) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    options {\n      name\n      optionValues {\n        name\n      }\n    }\n    variantsCount {\n      count\n    }\n    selectedOrFirstAvailableVariant {\n      ...IlhamCollectionProductVariant\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "subtitle"},\n      {namespace: "custom", key: "fabric"},\n      {namespace: "custom", key: "color"},\n      {namespace: "custom", key: "color_hex"},\n      {namespace: "custom", key: "occasions"}\n    ]) {\n      key\n      namespace\n      value\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n\n': {
     return: BestSellersQuery;
     variables: BestSellersQueryVariables;
   };

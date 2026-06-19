@@ -64,10 +64,16 @@
 - Added shared Shopify CDN width/srcset helpers and applied bounded responsive
   widths to home, gifting, PDP gallery, thumbnails, zoom, and artisan imagery.
 - ESLint and TypeScript passed after responsive image changes.
+- Collection routes now request 24 products per page instead of 250.
+- Collection cards use one selected variant plus variant counts and product
+  options instead of up to 50 complete variants per product.
+- Added on-demand Load More pagination with stable skeleton placeholders.
+- URL-only collection filters no longer re-run the Storefront loader.
+- Hydrogen GraphQL codegen and TypeScript passed after collection changes.
 
 ## In Progress
 
-- Collection payload and pagination strategy.
+- Find My Size redesign.
 
 ## Pending
 
@@ -91,8 +97,12 @@
 - `npm.cmd run lint` - passed after responsive image changes.
 - `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
   responsive image changes.
+- `npm.cmd run lint` - passed after collection pagination changes.
+- `npm.cmd run codegen` - passed after collection pagination changes.
+- `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
+  generated collection query types were refreshed.
 
 ## Next Step
 
-Reduce collection product/variant payloads without losing catalog access or
-URL-based filters, then verify the collection experience before feature work.
+Replace the generic Find My Size form with product-aware guidance and an
+accessible measurement diagram while retaining the approved PDP design.

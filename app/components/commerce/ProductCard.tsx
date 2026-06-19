@@ -46,9 +46,17 @@ export function ProductCard({
   const subtitle = getMetafieldValue(product, 'subtitle');
   const variants = product.variants?.nodes ?? [];
   const purchasableVariants = variants.filter(isVariantPurchasable);
-  const variant = purchasableVariants[0] ?? variants[0];
+  const variant =
+    product.selectedOrFirstAvailableVariant ??
+    purchasableVariants[0] ??
+    variants[0];
   const variantId = variant?.id;
-  const requiresVariantSelection = shouldChooseVariantOnPdp(variants);
+  const variantCount = product.variantsCount?.count ?? variants.length;
+  const requiresVariantSelection = shouldChooseVariantOnPdp(
+    variants,
+    variantCount,
+    variant,
+  );
   const canAddToBag = Boolean(
     variantId && isVariantPurchasable(variant) && !requiresVariantSelection,
   );
@@ -249,12 +257,19 @@ function getHoverImages(product: any) {
   return images.slice(0, 3);
 }
 
-function shouldChooseVariantOnPdp(variants: any[]) {
+function shouldChooseVariantOnPdp(
+  variants: any[],
+  variantCount: number,
+  selectedVariant: any,
+) {
+  if (variantCount > 1) return true;
+
   const purchasable = variants.filter(isVariantPurchasable);
   if (purchasable.length > 1) return true;
+  const onlyVariant = purchasable[0] ?? selectedVariant;
 
   return Boolean(
-    purchasable[0]?.selectedOptions?.some(
+    onlyVariant?.selectedOptions?.some(
       (option: {name: string; value: string}) =>
         !(
           option.name.toLowerCase() === 'title' &&
