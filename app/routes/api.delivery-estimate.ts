@@ -1,7 +1,7 @@
 import type {Route} from './+types/api.delivery-estimate';
 import {
-  isLucknowSameDayPincode,
-  SAME_DAY_DELIVERY_FEE_INR,
+  DEFAULT_SAME_DAY_DELIVERY_FEE_INR,
+  isSameDayDeliveryPincode,
 } from '~/lib/commerce/product-guidance';
 
 type ShiprocketCourier = {
@@ -21,6 +21,10 @@ type ShiprocketEnv = {
   SHIPROCKET_EMAIL?: string;
   SHIPROCKET_PASSWORD?: string;
   SHIPROCKET_PICKUP_POSTCODE?: string;
+  SAME_DAY_DELIVERY_ENABLED?: string;
+  SAME_DAY_DELIVERY_FEE_INR?: string;
+  SAME_DAY_DELIVERY_PINCODE_PREFIXES?: string;
+  SAME_DAY_DELIVERY_VARIANT_ID?: string;
 };
 
 let cachedShiprocketToken:
@@ -32,7 +36,6 @@ export async function loader({request, context}: Route.LoaderArgs) {
   const pincode = url.searchParams.get('pincode')?.trim() ?? '';
   const amount = Number(url.searchParams.get('amount') ?? 0);
   const env = context.env as unknown as ShiprocketEnv;
-  const sameDay = getSameDayEstimate(pincode);
 
   if (!/^\d{6}$/.test(pincode)) {
     return json(
@@ -44,6 +47,12 @@ export async function loader({request, context}: Route.LoaderArgs) {
       400,
     );
   }
+
+  const sameDay = await getSameDayEstimate({
+    context,
+    env,
+    pincode,
+  });
 
   if (!isShiprocketConfigured(env)) {
     return json({
@@ -119,16 +128,75 @@ export async function loader({request, context}: Route.LoaderArgs) {
   }
 }
 
-function getSameDayEstimate(pincode: string) {
-  const eligible = isLucknowSameDayPincode(pincode);
+async function getSameDayEstimate({
+  context,
+  env,
+  pincode,
+}: {
+  context: Route.LoaderArgs['context'];
+  env: ShiprocketEnv;
+  pincode: string;
+}) {
+  const enabled = env.SAME_DAY_DELIVERY_ENABLED?.toLowerCase() !== 'false';
+  const prefixes = env.SAME_DAY_DELIVERY_PINCODE_PREFIXES || '226';
+  const eligible = enabled && isSameDayDeliveryPincode(pincode, prefixes);
+  const configuredFee = positiveNumber(
+    env.SAME_DAY_DELIVERY_FEE_INR,
+    DEFAULT_SAME_DAY_DELIVERY_FEE_INR,
+  );
+  const variant =
+    eligible && env.SAME_DAY_DELIVERY_VARIANT_ID
+      ? await loadSameDayVariant(context, env.SAME_DAY_DELIVERY_VARIANT_ID)
+      : null;
+  const fee = Number(variant?.price?.amount ?? configuredFee);
+  const currencyCode = variant?.price?.currencyCode ?? 'INR';
 
   return {
     eligible,
-    fee: eligible ? SAME_DAY_DELIVERY_FEE_INR : 0,
+    configured: Boolean(variant),
+    fee: eligible ? fee : 0,
+    currencyCode,
+    variant,
     message: eligible
-      ? `Same-day Lucknow delivery is available for Rs. ${SAME_DAY_DELIVERY_FEE_INR} extra.`
-      : 'Same-day delivery is currently available only for Lucknow 226xxx pincodes.',
+      ? variant
+        ? `Same-day Lucknow delivery is available for ${formatFee(fee, currencyCode)} extra.`
+        : `Same-day Lucknow delivery is eligible for this pincode. The paid add-on is awaiting Shopify configuration.`
+      : `Same-day delivery is currently available for configured Lucknow pincodes (${prefixes.replace(/,/g, ', ')}xxx).`,
   };
+}
+
+async function loadSameDayVariant(
+  context: Route.LoaderArgs['context'],
+  variantId: string,
+) {
+  try {
+    const result = await context.storefront.query(SAME_DAY_VARIANT_QUERY, {
+      cache: context.storefront.CacheShort(),
+      variables: {id: variantId},
+    });
+    const variant = result.node?.__typename === 'ProductVariant' ? result.node : null;
+    return variant?.availableForSale ? variant : null;
+  } catch (error) {
+    console.error('[delivery-estimate] Same-day Shopify variant lookup failed:', error);
+    return null;
+  }
+}
+
+function positiveNumber(value: string | undefined, fallback: number) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : fallback;
+}
+
+function formatFee(amount: number, currencyCode: string) {
+  try {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: currencyCode,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `Rs. ${amount}`;
+  }
 }
 
 function isShiprocketConfigured(env: ShiprocketEnv) {
@@ -257,3 +325,39 @@ function json(data: unknown, status = 200) {
     },
   });
 }
+
+const SAME_DAY_VARIANT_QUERY = `#graphql
+  query SameDayDeliveryVariant($id: ID!, $country: CountryCode, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+    node(id: $id) {
+      __typename
+      ... on ProductVariant {
+        id
+        title
+        availableForSale
+        image {
+          id
+          url
+          altText
+          width
+          height
+        }
+        price {
+          amount
+          currencyCode
+        }
+        product {
+          id
+          handle
+          title
+          vendor
+          productType
+        }
+        selectedOptions {
+          name
+          value
+        }
+      }
+    }
+  }
+` as const;

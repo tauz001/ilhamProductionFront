@@ -1349,6 +1349,78 @@ export type AboutVisualsQuery = {
   };
 };
 
+export type SameDayDeliveryVariantQueryVariables = StorefrontAPI.Exact<{
+  id: StorefrontAPI.Scalars['ID']['input'];
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type SameDayDeliveryVariantQuery = {
+  node?: StorefrontAPI.Maybe<
+    | {
+        __typename:
+          | 'AppliedGiftCard'
+          | 'Article'
+          | 'Blog'
+          | 'Cart'
+          | 'CartLine'
+          | 'Collection'
+          | 'Comment'
+          | 'Company'
+          | 'CompanyContact'
+          | 'CompanyLocation'
+          | 'ComponentizableCartLine'
+          | 'ExternalVideo'
+          | 'GenericFile'
+          | 'Location'
+          | 'MailingAddress'
+          | 'Market'
+          | 'MediaImage'
+          | 'MediaPresentation'
+          | 'Menu'
+          | 'MenuItem';
+      }
+    | {
+        __typename:
+          | 'Metafield'
+          | 'Metaobject'
+          | 'Model3d'
+          | 'Order'
+          | 'Page'
+          | 'Product'
+          | 'ProductOption'
+          | 'ProductOptionValue'
+          | 'Shop'
+          | 'ShopPayInstallmentsFinancingPlan'
+          | 'ShopPayInstallmentsFinancingPlanTerm'
+          | 'ShopPayInstallmentsProductVariantPricing'
+          | 'ShopPolicy'
+          | 'TaxonomyCategory'
+          | 'UrlRedirect'
+          | 'Video';
+      }
+    | ({__typename: 'ProductVariant'} & Pick<
+        StorefrontAPI.ProductVariant,
+        'id' | 'title' | 'availableForSale'
+      > & {
+          image?: StorefrontAPI.Maybe<
+            Pick<
+              StorefrontAPI.Image,
+              'id' | 'url' | 'altText' | 'width' | 'height'
+            >
+          >;
+          price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+          product: Pick<
+            StorefrontAPI.Product,
+            'id' | 'handle' | 'title' | 'vendor' | 'productType'
+          >;
+          selectedOptions: Array<
+            Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+          >;
+        })
+  >;
+};
+
 export type BagRecommendationsQueryVariables = StorefrontAPI.Exact<{
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
@@ -2678,6 +2750,10 @@ interface GeneratedQueryTypes {
   '#graphql\n  query AboutVisuals($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    shop {\n      metafields(identifiers: [\n        {namespace: "custom", key: "about_hero"},\n        {namespace: "custom", key: "custom_about_hero"},\n        {namespace: "custom", key: "about_hero_mobile"},\n        {namespace: "custom", key: "custom_about_hero_mobile"},\n        {namespace: "custom", key: "about_artisan"},\n        {namespace: "custom", key: "custom_about_artisan"},\n        {namespace: "custom", key: "about_fabric"},\n        {namespace: "custom", key: "custom_about_fabric"},\n        {namespace: "custom", key: "about_editorial_1"},\n        {namespace: "custom", key: "custom_about_editorial_1"},\n        {namespace: "custom", key: "about_editorial_2"},\n        {namespace: "custom", key: "custom_about_editorial_2"}\n      ]) {\n        key\n        namespace\n        value\n        type\n        reference {\n          ... on MediaImage {\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n        }\n      }\n    }\n    products(first: 5) {\n      nodes {\n        featuredImage {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n    }\n  }\n': {
     return: AboutVisualsQuery;
     variables: AboutVisualsQueryVariables;
+  };
+  '#graphql\n  query SameDayDeliveryVariant($id: ID!, $country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    node(id: $id) {\n      __typename\n      ... on ProductVariant {\n        id\n        title\n        availableForSale\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        price {\n          amount\n          currencyCode\n        }\n        product {\n          id\n          handle\n          title\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n  }\n': {
+    return: SameDayDeliveryVariantQuery;
+    variables: SameDayDeliveryVariantQueryVariables;
   };
   '#graphql\n  query BagRecommendations($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    products(first: 4, sortKey: BEST_SELLING) {\n      nodes {\n        id\n        handle\n        title\n        featuredImage {\n          url\n          altText\n        }\n        priceRange {\n          minVariantPrice {\n            amount\n            currencyCode\n          }\n        }\n      }\n    }\n  }\n': {
     return: BagRecommendationsQuery;

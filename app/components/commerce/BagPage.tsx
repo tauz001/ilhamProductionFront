@@ -131,7 +131,9 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
 
                 <DeliveryEstimator
                   amount={subtotal}
+                  cartVariantIds={lines.map((line) => line.merchandise.id)}
                   compact
+                  enableSameDayCart
                   className="mt-6 bg-ivory/60"
                 />
 

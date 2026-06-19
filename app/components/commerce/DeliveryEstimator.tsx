@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
-import {LoaderCircle, MapPin, Truck} from 'lucide-react';
+import {Check, LoaderCircle, MapPin, ShoppingBag, Truck} from 'lucide-react';
+import {AddToCartButton} from '~/components/AddToCartButton';
 
 type Estimate = {
   checkedPincode?: string;
@@ -8,9 +9,12 @@ type Estimate = {
   codAvailable?: boolean;
   prepaidAvailable?: boolean;
   sameDay?: {
+    configured: boolean;
+    currencyCode: string;
     eligible: boolean;
     fee: number;
     message: string;
+    variant?: any;
   };
 };
 
@@ -25,12 +29,16 @@ type Props = {
   amount?: number;
   className?: string;
   compact?: boolean;
+  cartVariantIds?: string[];
+  enableSameDayCart?: boolean;
 };
 
 export function DeliveryEstimator({
   amount,
+  cartVariantIds = [],
   className = '',
   compact = false,
+  enableSameDayCart = false,
 }: Props) {
   const [pincode, setPincode] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
@@ -38,6 +46,10 @@ export function DeliveryEstimator({
   );
   const [message, setMessage] = useState('');
   const [estimate, setEstimate] = useState<Estimate | null>(null);
+  const sameDay = estimate?.sameDay;
+  const sameDayAlreadyAdded = Boolean(
+    sameDay?.variant?.id && cartVariantIds.includes(sameDay.variant.id),
+  );
 
   useEffect(() => {
     try {
@@ -164,10 +176,42 @@ export function DeliveryEstimator({
               {estimate.etaText}
             </p>
           )}
-          {estimate?.sameDay?.eligible && (
-            <p className="mt-3 border border-gold/35 bg-gold/10 px-3 py-2 text-xs leading-relaxed text-ink/70">
-              {estimate.sameDay.message}
-            </p>
+          {sameDay?.eligible && (
+            <div className="mt-3 border border-gold/35 bg-gold/10 px-3 py-3">
+              <p className="text-xs leading-relaxed text-ink/70">
+                {sameDay.message}
+              </p>
+              {enableSameDayCart && sameDay.variant ? (
+                sameDayAlreadyAdded ? (
+                  <p className="mt-3 flex items-center gap-2 small-caps text-[10px] text-gold">
+                    <Check className="h-3.5 w-3.5" strokeWidth={1.5} />
+                    Same-day add-on is in your bag
+                  </p>
+                ) : (
+                  <AddToCartButton
+                    className="mt-3 block w-full"
+                    lines={[
+                      {
+                        merchandiseId: sameDay.variant.id,
+                        quantity: 1,
+                        selectedVariant: sameDay.variant,
+                        attributes: [
+                          {
+                            key: 'same_day_pincode',
+                            value: estimate?.checkedPincode ?? pincode,
+                          },
+                        ],
+                      },
+                    ]}
+                  >
+                    <span className="flex h-10 w-full items-center justify-center gap-2 bg-ink px-4 small-caps text-[10px] text-ivory transition-colors hover:bg-gold">
+                      <ShoppingBag className="h-3.5 w-3.5" strokeWidth={1.4} />
+                      Add same-day delivery
+                    </span>
+                  </AddToCartButton>
+                )
+              ) : null}
+            </div>
           )}
           {estimate && (estimate.codAvailable || estimate.prepaidAvailable) && (
             <p className="mt-2 text-xs text-ink/45">

@@ -1,6 +1,6 @@
 import {getMetafieldValue} from './shopify-fields';
 
-export const SAME_DAY_DELIVERY_FEE_INR = 30;
+export const DEFAULT_SAME_DAY_DELIVERY_FEE_INR = 30;
 
 export type ProductAudience = 'women' | 'men' | 'unisex';
 
@@ -195,9 +195,17 @@ export function getWashCareForFabric(
   return 'Dry clean recommended for hand-embroidered chikankari. Store folded in breathable cloth and keep away from direct sunlight.';
 }
 
-export function isLucknowSameDayPincode(pincode: string) {
-  // Lucknow district delivery pincodes are in the 226xxx range. Keep this
-  // business rule centralized so it can be replaced with a Shopify/Shiprocket
-  // location table later without touching PDP or cart UI.
-  return /^226\d{3}$/.test(pincode.trim());
+export function isSameDayDeliveryPincode(
+  pincode: string,
+  configuredPrefixes = '226',
+) {
+  const normalizedPincode = pincode.trim();
+  if (!/^\d{6}$/.test(normalizedPincode)) return false;
+
+  const prefixes = configuredPrefixes
+    .split(',')
+    .map((prefix) => prefix.replace(/\D/g, '').trim())
+    .filter(Boolean);
+
+  return prefixes.some((prefix) => normalizedPincode.startsWith(prefix));
 }

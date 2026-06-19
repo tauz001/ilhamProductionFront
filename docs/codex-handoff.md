@@ -76,10 +76,17 @@
 - Size recommendations require complete measurements and return an atelier-help
   state instead of forcing measurements into an undersized largest option.
 - ESLint, Hydrogen codegen, and TypeScript passed after size-guide changes.
+- Same-day delivery enablement, pincode prefixes, fallback fee, and Shopify
+  service variant ID are configurable through documented environment variables.
+- The bag can add an eligible same-day service as a real Shopify cart line with
+  the checked pincode stored as a line attribute; Shopify variant price is the
+  actual checkout charge.
+- PDP delivery checks remain informational and do not add cart services.
+- ESLint, Hydrogen codegen, and TypeScript passed after delivery changes.
 
 ## In Progress
 
-- Configurable same-day Lucknow delivery.
+- Per-order first-visit feedback prompt.
 
 ## Pending
 
@@ -111,9 +118,13 @@
 - `npm.cmd run codegen` - passed after adding product guidance metafields.
 - `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
   Find My Size changes.
+- `npm.cmd run lint` - passed after same-day delivery changes.
+- `npm.cmd run codegen` - passed after adding the delivery-service variant query.
+- `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
+  same-day delivery changes.
 
 ## Next Step
 
-Make same-day Lucknow eligibility configurable, distinguish display estimates
-from a real Shopify cart charge, and document the required environment/Shopify
-setup without changing checkout behavior when it is not configured.
+Move feedback prompting from account profile to order detail, persist per-order
+prompt/submission state through an isolated authenticated endpoint, and leave
+the protected order-detail loader/Admin fallback unchanged.
