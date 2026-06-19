@@ -254,14 +254,21 @@
   feedback while retaining restrained blur from tablet/desktop breakpoints.
 - Normalized the mobile menu to shared feedback/overlay timing tokens and
   shorter stagger delays, and locked background scroll while any drawer is open.
+- Replaced unstyled Shopify scaffold markup on journal, article, policy, generic
+  page, all-products, pagination, and error surfaces with the existing Ilham
+  type, spacing, color, and motion-token system.
+- Added reusable server-rendered editorial headers and CSS-only rich-text rules;
+  this consistency pass adds no route query, client state, or animation runtime.
+- Added accurate responsive image sizing and restrained CSS hover treatment to
+  article and all-products cards while preserving their existing destinations.
 
 ## In Progress
 
-- Luxury consistency pass for generic public routes.
+- Live route and protected-behavior QA for the completed luxury phase.
 
 ## Pending
 
-- Full verification of the generic-route luxury consistency pass.
+- Final handoff reconciliation and phase completion checkpoint.
 - Full preview browser/device QA.
 - Set `SAME_DAY_DELIVERY_VARIANT_ID` in the local/Oxygen environment after the
   hidden Shopify service product exists; until then eligibility is shown but
@@ -343,10 +350,14 @@
   mobile compositing and interaction-timing cleanup.
 - Luxury-phase production client and Oxygen SSR build - passed after the mobile
   compositing and interaction-timing cleanup.
+- Luxury-phase lint and clean TypeScript - passed after the generic public-route
+  consistency implementation.
+- Luxury-phase diff validation and production client/Oxygen SSR build - passed
+  after the generic public-route consistency implementation; the shared
+  `EditorialHeader` client chunk is 0.43KB gzip.
 
 ## Next Step
 
-Commit and push the mobile compositing checkpoint. Then bring the remaining
-generic blog, policy, page, collection-all, and error states into the same
-restrained luxury system without changing loaders, SEO URLs, or protected
-commerce behavior.
+Commit and push the generic-route checkpoint. Finish with live route checks,
+static protected-behavior checks, and a clean-worktree audit before declaring
+the luxury phase complete.

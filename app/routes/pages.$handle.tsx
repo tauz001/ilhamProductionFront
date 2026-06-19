@@ -2,6 +2,7 @@ import {useLoaderData} from 'react-router';
 import type {Route} from './+types/pages.$handle';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {seoMeta} from '~/lib/seo';
+import {EditorialHeader} from '~/components/editorial/EditorialHeader';
 
 export const meta: Route.MetaFunction = ({data}) => {
   const page = data?.page;
@@ -66,12 +67,13 @@ export default function Page() {
   const {page} = useLoaderData<typeof loader>();
 
   return (
-    <div className="page">
-      <header>
-        <h1>{page.title}</h1>
-      </header>
-      <main dangerouslySetInnerHTML={{__html: page.body}} />
-    </div>
+    <main className="min-h-screen bg-ivory pb-28 md:pb-40">
+      <EditorialHeader eyebrow="The ilham atelier" title={page.title} compact />
+      <article
+        className="editorial-copy mx-auto max-w-3xl px-6 lg:px-12"
+        dangerouslySetInnerHTML={{__html: page.body}}
+      />
+    </main>
   );
 }
 

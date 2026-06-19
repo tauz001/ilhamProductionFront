@@ -239,6 +239,94 @@
     transform: scaleX(1);
   }
 
+  .editorial-copy {
+    color: color-mix(in oklch, var(--ink) 76%, transparent);
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.85;
+    text-wrap: pretty;
+  }
+
+  .editorial-copy > * + * {
+    margin-top: 1.4em;
+  }
+
+  .editorial-copy h2,
+  .editorial-copy h3,
+  .editorial-copy h4 {
+    color: var(--ink);
+    line-height: 1.15;
+    margin-bottom: 0.5em;
+    margin-top: 1.8em;
+    text-wrap: balance;
+  }
+
+  .editorial-copy h2 {
+    font-size: clamp(2rem, 5vw, 3rem);
+  }
+
+  .editorial-copy h3 {
+    font-size: clamp(1.6rem, 4vw, 2.25rem);
+  }
+
+  .editorial-copy a {
+    border-bottom: 1px solid color-mix(in oklch, var(--gold) 65%, transparent);
+    color: var(--brown);
+  }
+
+  .editorial-copy blockquote {
+    border-left: 1px solid var(--gold);
+    color: color-mix(in oklch, var(--ink) 68%, transparent);
+    font-size: 1.35em;
+    font-style: italic;
+    margin-left: 0;
+    padding-left: 1.25em;
+  }
+
+  .editorial-copy img {
+    height: auto;
+    margin: 2.5rem 0;
+    width: 100%;
+  }
+
+  .editorial-copy ol,
+  .editorial-copy ul {
+    padding-left: 1.25em;
+  }
+
+  .editorial-copy ol {
+    list-style: decimal;
+  }
+
+  .editorial-copy ul {
+    list-style: disc;
+  }
+
+  .editorial-copy li + li {
+    margin-top: 0.55em;
+  }
+
+  .editorial-copy table {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .editorial-copy th,
+  .editorial-copy td {
+    border-bottom: 1px solid var(--border);
+    padding: 0.8rem 1rem;
+    text-align: left;
+  }
+
+  @media (min-width: 768px) {
+    .editorial-copy {
+      font-size: 1.25rem;
+    }
+  }
+
   .marquee {
     animation: marquee 40s linear infinite;
   }

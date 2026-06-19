@@ -4,6 +4,7 @@ import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import type {BlogsQuery} from 'storefrontapi.generated';
 import {seoMeta} from '~/lib/seo';
+import {EditorialHeader} from '~/components/editorial/EditorialHeader';
 
 type BlogNode = BlogsQuery['blogs']['nodes'][0];
 
@@ -59,23 +60,38 @@ export default function Blogs() {
   const {blogs} = useLoaderData<typeof loader>();
 
   return (
-    <div className="blogs">
-      <h1>Blogs</h1>
-      <div className="blogs-grid">
+    <main className="min-h-screen bg-ivory">
+      <EditorialHeader
+        eyebrow="Notes from the atelier"
+        title="The Journal"
+        intro="Stories of handwork, heritage, and the quiet details that give every ilham piece its character."
+      />
+      <section className="mx-auto max-w-5xl px-6 pb-28 md:pb-36 lg:px-12">
         <PaginatedResourceSection<BlogNode> connection={blogs}>
-          {({node: blog}) => (
+          {({node: blog, index}) => (
             <Link
-              className="blog"
+              className="group grid grid-cols-[auto_1fr_auto] items-center gap-5 border-t border-ink/15 py-7 transition-colors duration-[var(--motion-feedback)] last:border-b hover:border-gold/60 md:gap-10 md:py-10"
               key={blog.handle}
               prefetch="intent"
               to={`/blogs/${blog.handle}`}
             >
-              <h2>{blog.title}</h2>
+              <span className="small-caps text-ink/40">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <h2 className="font-display text-3xl transition-transform duration-[var(--motion-overlay)] ease-[var(--ease-silk)] group-hover:translate-x-1.5 md:text-5xl">
+                {blog.title}
+              </h2>
+              <span
+                aria-hidden
+                className="text-2xl font-light text-gold transition-transform duration-[var(--motion-overlay)] ease-[var(--ease-silk)] group-hover:translate-x-1"
+              >
+                &#8594;
+              </span>
             </Link>
           )}
         </PaginatedResourceSection>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 

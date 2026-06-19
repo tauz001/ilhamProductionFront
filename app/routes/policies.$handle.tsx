@@ -53,16 +53,25 @@ export default function Policy() {
   const {policy} = useLoaderData<typeof loader>();
 
   return (
-    <div className="policy">
-      <br />
-      <br />
-      <div>
-        <Link to="/policies">Back to Policies</Link>
-      </div>
-      <br />
-      <h1>{policy.title}</h1>
-      <div dangerouslySetInnerHTML={{__html: policy.body}} />
-    </div>
+    <main className="min-h-screen bg-ivory pb-28 md:pb-40">
+      <header className="mx-auto max-w-4xl px-6 pb-12 pt-32 text-center md:pb-16 md:pt-44 lg:px-12">
+        <Link
+          to="/policies"
+          prefetch="intent"
+          className="story-link small-caps text-ink/50"
+        >
+          All policies
+        </Link>
+        <h1 className="mx-auto mt-6 text-balance font-display text-5xl leading-[1.02] sm:text-6xl md:mt-8 md:text-8xl">
+          {policy.title}
+        </h1>
+        <span aria-hidden className="mx-auto mt-8 block h-px w-12 bg-gold/70" />
+      </header>
+      <article
+        className="editorial-copy mx-auto max-w-3xl px-6 lg:px-12"
+        dangerouslySetInnerHTML={{__html: policy.body}}
+      />
+    </main>
   );
 }
 

@@ -1,10 +1,11 @@
 import type {Route} from './+types/collections.all';
 import {useLoaderData} from 'react-router';
-import {getPaginationVariables, Image, Money} from '@shopify/hydrogen';
+import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {ProductItem} from '~/components/ProductItem';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
 import {seoMeta} from '~/lib/seo';
+import {EditorialHeader} from '~/components/editorial/EditorialHeader';
 
 export const meta: Route.MetaFunction = () => {
   return seoMeta({
@@ -57,21 +58,27 @@ export default function Collection() {
   const {products} = useLoaderData<typeof loader>();
 
   return (
-    <div className="collection">
-      <h1>Products</h1>
-      <PaginatedResourceSection<CollectionItemFragment>
-        connection={products}
-        resourcesClassName="products-grid"
-      >
-        {({node: product, index}) => (
-          <ProductItem
-            key={product.id}
-            product={product}
-            loading={index < 8 ? 'eager' : undefined}
-          />
-        )}
-      </PaginatedResourceSection>
-    </div>
+    <main className="min-h-screen bg-ivory">
+      <EditorialHeader
+        eyebrow="The complete edit"
+        title="All Pieces"
+        intro="Explore every available ilham piece, brought together in one considered collection."
+      />
+      <section className="mx-auto max-w-[1500px] px-4 pb-28 sm:px-6 md:pb-36 lg:px-12">
+        <PaginatedResourceSection<CollectionItemFragment>
+          connection={products}
+          resourcesClassName="grid grid-cols-2 gap-x-3 gap-y-12 sm:gap-x-6 md:gap-y-20 lg:grid-cols-4"
+        >
+          {({node: product, index}) => (
+            <ProductItem
+              key={product.id}
+              product={product}
+              loading={index < 4 ? 'eager' : 'lazy'}
+            />
+          )}
+        </PaginatedResourceSection>
+      </section>
+    </main>
   );
 }
 

@@ -1,6 +1,7 @@
 import {Analytics, getShopAnalytics, useNonce} from '@shopify/hydrogen';
 import {
   Outlet,
+  Link,
   useRouteError,
   isRouteErrorResponse,
   type ShouldRevalidateFunction,
@@ -219,14 +220,33 @@ export function ErrorBoundary() {
   }
 
   return (
-    <div className="route-error">
-      <h1>Oops</h1>
-      <h2>{errorStatus}</h2>
-      {errorMessage && (
-        <fieldset>
-          <pre>{errorMessage}</pre>
-        </fieldset>
-      )}
-    </div>
+    <main className="grid min-h-screen place-items-center bg-ivory px-6 py-24 text-center">
+      <div className="max-w-2xl">
+        <p className="small-caps text-gold">Error {errorStatus}</p>
+        <h1 className="mt-5 font-display text-6xl leading-none md:text-8xl">
+          A quiet pause
+        </h1>
+        <p className="mx-auto mt-6 max-w-lg font-serif text-xl leading-relaxed text-ink/65">
+          We could not open this page just now. Return to the atelier and continue
+          exploring.
+        </p>
+        {errorMessage ? (
+          <details className="mx-auto mt-8 max-w-lg border-t border-ink/15 pt-5 text-left text-sm text-ink/55">
+            <summary className="cursor-pointer text-center text-xs uppercase tracking-[0.2em]">
+              Technical details
+            </summary>
+            <pre className="mt-4 overflow-auto whitespace-pre-wrap font-mono text-xs">
+              {String(errorMessage)}
+            </pre>
+          </details>
+        ) : null}
+        <Link
+          to="/"
+          className="mt-10 inline-flex border border-ink px-8 py-4 text-xs uppercase tracking-[0.24em] transition-colors duration-[var(--motion-feedback)] hover:bg-ink hover:text-ivory"
+        >
+          Return home
+        </Link>
+      </div>
+    </main>
   );
 }

@@ -1,4 +1,4 @@
-import {useLoaderData} from 'react-router';
+import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/blogs.$blogHandle.$articleHandle';
 import {Image} from '@shopify/hydrogen';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
@@ -92,19 +92,47 @@ export default function Article() {
   }).format(new Date(article.publishedAt));
 
   return (
-    <div className="article">
-      <h1>
-        {title}
-        <div>
-          <time dateTime={article.publishedAt}>{publishedDate}</time> &middot;{' '}
-          <address>{author?.name}</address>
+    <main className="min-h-screen bg-ivory pb-28 md:pb-40">
+      <header className="mx-auto max-w-5xl px-6 pb-12 pt-32 text-center md:pb-16 md:pt-44 lg:px-12">
+        <Link
+          to={`/blogs/${blogHandle}`}
+          prefetch="intent"
+          className="story-link small-caps text-ink/50"
+        >
+          Journal
+        </Link>
+        <h1 className="mx-auto mt-6 max-w-4xl text-balance font-display text-5xl leading-[1.02] sm:text-6xl md:mt-8 md:text-8xl">
+          {title}
+        </h1>
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs uppercase tracking-[0.2em] text-ink/50 md:mt-9">
+          <time dateTime={article.publishedAt}>{publishedDate}</time>
+          {author?.name ? (
+            <>
+              <span aria-hidden className="text-gold">
+                /
+              </span>
+              <span>By {author.name}</span>
+            </>
+          ) : null}
         </div>
-      </h1>
+      </header>
 
-      {image && <Image data={image} sizes="90vw" loading="eager" />}
-      <div
+      {image ? (
+        <div className="mx-auto max-w-[1320px] px-0 md:px-8 lg:px-12">
+          <div className="aspect-[4/3] overflow-hidden bg-cream md:aspect-[16/9]">
+            <Image
+              alt={image.altText || title}
+              data={image}
+              sizes="(min-width: 1320px) 1224px, 100vw"
+              loading="eager"
+              className="h-full w-full object-cover"
+            />
+          </div>
+        </div>
+      ) : null}
+      <article
         dangerouslySetInnerHTML={{__html: contentHtml}}
-        className="article"
+        className="editorial-copy mx-auto mt-14 max-w-3xl px-6 md:mt-20 lg:px-12"
       />
       <JsonLd data={articleJsonLd(article, {blogHandle})} />
       <JsonLd
@@ -117,7 +145,7 @@ export default function Article() {
           },
         ])}
       />
-    </div>
+    </main>
   );
 }
 

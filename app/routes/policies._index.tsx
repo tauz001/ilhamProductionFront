@@ -2,6 +2,7 @@ import {useLoaderData, Link} from 'react-router';
 import type {Route} from './+types/policies._index';
 import type {PoliciesQuery, PolicyItemFragment} from 'storefrontapi.generated';
 import {seoMeta} from '~/lib/seo';
+import {EditorialHeader} from '~/components/editorial/EditorialHeader';
 
 export const meta: Route.MetaFunction = () =>
   seoMeta({
@@ -34,16 +35,36 @@ export default function Policies() {
   const {policies} = useLoaderData<typeof loader>();
 
   return (
-    <div className="policies">
-      <h1>Policies</h1>
-      <div>
-        {policies.map((policy) => (
-          <fieldset key={policy.id}>
-            <Link to={`/policies/${policy.handle}`}>{policy.title}</Link>
-          </fieldset>
+    <main className="min-h-screen bg-ivory">
+      <EditorialHeader
+        eyebrow="Atelier information"
+        title="Store Policies"
+        intro="Clear guidance for ordering, delivery, returns, privacy, and your experience with ilham."
+      />
+      <section className="mx-auto max-w-4xl px-6 pb-28 md:pb-36 lg:px-12">
+        {policies.map((policy, index) => (
+          <Link
+            key={policy.id}
+            to={`/policies/${policy.handle}`}
+            prefetch="intent"
+            className="group grid grid-cols-[auto_1fr_auto] items-center gap-4 border-t border-ink/15 py-6 last:border-b md:gap-8 md:py-8"
+          >
+            <span className="small-caps text-ink/40">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <h2 className="font-serif text-2xl transition-transform duration-[var(--motion-overlay)] ease-[var(--ease-silk)] group-hover:translate-x-1.5 md:text-4xl">
+              {policy.title}
+            </h2>
+            <span
+              aria-hidden
+              className="text-xl text-gold transition-transform duration-[var(--motion-overlay)] ease-[var(--ease-silk)] group-hover:translate-x-1"
+            >
+              &#8594;
+            </span>
+          </Link>
         ))}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 

@@ -5,6 +5,7 @@ import type {ArticleItemFragment} from 'storefrontapi.generated';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {seoMeta} from '~/lib/seo';
+import {EditorialHeader} from '~/components/editorial/EditorialHeader';
 
 export const meta: Route.MetaFunction = ({data}) => {
   const blog = data?.blog;
@@ -73,10 +74,20 @@ export default function Blog() {
   const {articles} = blog;
 
   return (
-    <div className="blog">
-      <h1>{blog.title}</h1>
-      <div className="blog-grid">
-        <PaginatedResourceSection<ArticleItemFragment> connection={articles}>
+    <main className="min-h-screen bg-ivory">
+      <EditorialHeader
+        eyebrow="The ilham journal"
+        title={blog.title}
+        intro={
+          blog.seo?.description ??
+          'Notes on Lucknowi chikankari, considered dressing, and the hands behind the craft.'
+        }
+      />
+      <section className="mx-auto max-w-[1320px] px-6 pb-28 md:pb-36 lg:px-12">
+        <PaginatedResourceSection<ArticleItemFragment>
+          connection={articles}
+          resourcesClassName="grid gap-x-8 md:grid-cols-2 lg:gap-x-12"
+        >
           {({node: article, index}) => (
             <ArticleItem
               article={article}
@@ -85,8 +96,8 @@ export default function Blog() {
             />
           )}
         </PaginatedResourceSection>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 
@@ -103,23 +114,36 @@ function ArticleItem({
     day: 'numeric',
   }).format(new Date(article.publishedAt!));
   return (
-    <div className="blog-article" key={article.id}>
-      <Link to={`/blogs/${article.blog.handle}/${article.handle}`}>
+    <article className="group mb-16 md:mb-24" key={article.id}>
+      <Link
+        prefetch="intent"
+        to={`/blogs/${article.blog.handle}/${article.handle}`}
+      >
         {article.image && (
-          <div className="blog-article-image">
+          <div className="aspect-[4/3] overflow-hidden bg-cream md:aspect-[3/2]">
             <Image
               alt={article.image.altText || article.title}
               aspectRatio="3/2"
               data={article.image}
               loading={loading}
-              sizes="(min-width: 768px) 50vw, 100vw"
+              sizes="(min-width: 1320px) 600px, (min-width: 768px) 46vw, 100vw"
+              className="h-full w-full object-cover transition-transform duration-[var(--motion-editorial)] ease-[var(--ease-silk)] group-hover:scale-[1.025]"
             />
           </div>
         )}
-        <h3>{article.title}</h3>
-        <small>{publishedAt}</small>
+        <div className="mt-6 border-t border-ink/15 pt-5 md:mt-8 md:pt-6">
+          <time className="small-caps text-ink/45" dateTime={article.publishedAt!}>
+            {publishedAt}
+          </time>
+          <h2 className="mt-3 text-balance font-display text-3xl leading-tight transition-colors duration-[var(--motion-feedback)] group-hover:text-brown md:text-5xl">
+            {article.title}
+          </h2>
+          <span className="story-link mt-5 text-xs uppercase tracking-[0.24em] text-ink/65">
+            Read story
+          </span>
+        </div>
       </Link>
-    </div>
+    </article>
   );
 }
 

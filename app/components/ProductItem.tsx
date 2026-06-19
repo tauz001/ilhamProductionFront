@@ -14,24 +14,29 @@ export function ProductItem({
   const image = product.featuredImage;
   return (
     <Link
-      className="product-item"
+      className="group block min-w-0"
       key={product.id}
       prefetch="intent"
       to={variantUrl}
     >
       {image && (
-        <Image
-          alt={image.altText || product.title}
-          aspectRatio="1/1"
-          data={image}
-          loading={loading}
-          sizes="(min-width: 45em) 400px, 100vw"
-        />
+        <div className="aspect-[3/4] overflow-hidden bg-cream">
+          <Image
+            alt={image.altText || product.title}
+            aspectRatio="3/4"
+            data={image}
+            loading={loading}
+            sizes="(min-width: 1280px) 330px, (min-width: 768px) 25vw, 50vw"
+            className="h-full w-full object-cover transition-transform duration-[var(--motion-editorial)] ease-[var(--ease-silk)] group-hover:scale-[1.025]"
+          />
+        </div>
       )}
-      <h4>{product.title}</h4>
-      <small>
+      <h2 className="mt-4 truncate font-serif text-lg leading-snug transition-colors duration-[var(--motion-feedback)] group-hover:text-brown sm:text-xl">
+        {product.title}
+      </h2>
+      <span className="mt-1 block text-sm text-ink/55">
         <Money data={product.priceRange.minVariantPrice} />
-      </small>
+      </span>
     </Link>
   );
 }
