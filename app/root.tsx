@@ -119,20 +119,14 @@ export async function loader(args: Route.LoaderArgs) {
 async function loadCriticalData({context}: Route.LoaderArgs) {
   const {storefront} = context;
 
-  const [header, layoutCommerce] = await Promise.all([
-    storefront.query(HEADER_QUERY, {
-      cache: storefront.CacheLong(),
-      variables: {
-        headerMenuHandle: 'main-menu', // Adjust to your header menu handle
-      },
-    }),
-    storefront.query(LAYOUT_COMMERCE_QUERY, {
-      cache: storefront.CacheShort(),
-    }),
-    // Add other queries here, so that they are loaded in parallel
-  ]);
+  const header = await storefront.query(HEADER_QUERY, {
+    cache: storefront.CacheLong(),
+    variables: {
+      headerMenuHandle: 'main-menu', // Adjust to your header menu handle
+    },
+  });
 
-  return {header, layoutCommerce};
+  return {header};
 }
 
 /**
@@ -162,54 +156,6 @@ function loadDeferredData({context}: Route.LoaderArgs) {
     footer,
   };
 }
-
-const LAYOUT_COMMERCE_QUERY = `#graphql
-  query LayoutCommerce($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    collections(first: 30) {
-      nodes {
-        id
-        title
-        handle
-        image {
-          id
-          url
-          altText
-          width
-          height
-        }
-        metafields(identifiers: [
-          {namespace: "custom", key: "tagline"},
-          {namespace: "custom", key: "category"}
-        ]) {
-          key
-          namespace
-          value
-        }
-      }
-    }
-    products(first: 50) {
-      nodes {
-        id
-        title
-        handle
-        vendor
-        productType
-        tags
-        metafields(identifiers: [
-          {namespace: "custom", key: "subtitle"},
-          {namespace: "custom", key: "fabric"},
-          {namespace: "custom", key: "color"},
-          {namespace: "custom", key: "occasions"}
-        ]) {
-          key
-          namespace
-          value
-        }
-      }
-    }
-  }
-` as const;
 
 export function Layout({children}: {children?: React.ReactNode}) {
   const nonce = useNonce();

@@ -1,4 +1,4 @@
-import {Link, useLocation, useRouteLoaderData} from 'react-router';
+import {Link, useLocation} from 'react-router';
 import {useEffect, useRef, useState} from 'react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Heart, Menu, Search, ShoppingBag, User, X} from 'lucide-react';
@@ -19,6 +19,10 @@ import {
   productMatchesAnyText,
   productMatchesMenuCategory,
 } from '~/lib/commerce/product-facets';
+import {
+  prefetchLayoutCommerce,
+  useLayoutCommerce,
+} from '~/lib/commerce/layout-commerce';
 
 const LOGO_URL =
   'https://cdn.shopify.com/s/files/1/0820/4389/6063/files/ilham_logo_wo_bg.png?v=1780461025';
@@ -246,6 +250,7 @@ export function Navbar() {
 
   const openMegaMenu = (label: string) => {
     cancelMegaClose();
+    prefetchLayoutCommerce();
     setMegaOpen(label);
   };
 
@@ -384,7 +389,12 @@ export function Navbar() {
           </nav>
           <button
             aria-label="Search"
-            onClick={() => openDrawer('search')}
+            onPointerEnter={prefetchLayoutCommerce}
+            onFocus={prefetchLayoutCommerce}
+            onClick={() => {
+              prefetchLayoutCommerce();
+              openDrawer('search');
+            }}
             className="text-ink/80 hover:text-ink"
           >
             <Search className="h-[18px] w-[18px]" strokeWidth={1.2} />
@@ -399,7 +409,12 @@ export function Navbar() {
           </Link>
           <button
             aria-label="Wishlist"
-            onClick={() => openDrawer('wishlist')}
+            onPointerEnter={prefetchLayoutCommerce}
+            onFocus={prefetchLayoutCommerce}
+            onClick={() => {
+              prefetchLayoutCommerce();
+              openDrawer('wishlist');
+            }}
             className="relative text-ink/80 hover:text-ink"
           >
             <Heart className="h-[18px] w-[18px]" strokeWidth={1.2} />
@@ -447,7 +462,7 @@ export function Navbar() {
 }
 
 function MegaMenu({category, onClose}: {category: string; onClose: () => void}) {
-  const layoutCommerce = useLayoutCommerce();
+  const {data: layoutCommerce} = useLayoutCommerce(true);
   const collections = layoutCommerce?.collections?.nodes ?? [];
   const products = layoutCommerce?.products?.nodes ?? [];
   const cat = category.toLowerCase() as keyof typeof megaMenuCopy;
@@ -478,7 +493,7 @@ function MegaMenu({category, onClose}: {category: string; onClose: () => void}) 
   );
   const fabricLinks = buildFabricLinks(menuProducts, categoryHandle);
 
-  if (!collections.length) {
+  if (layoutCommerce && !collections.length) {
     logMissingShopifyField(
       'navigation',
       'collections',
@@ -655,6 +670,24 @@ function buildMenuSeedLinks(
   products: any[],
   collectionHandle: string,
 ) {
+  if (!products.length) {
+    return seeds.map((seed) => ({
+      label: seed.label,
+      href:
+        seed.filter && seed.value
+          ? buildCollectionFilterHref({
+              handle: collectionHandle,
+              filter: seed.filter,
+              value: seed.value,
+            })
+          : buildCollectionFilterHref({
+              handle: collectionHandle,
+              q: seed.query ?? seed.label,
+            }),
+      count: 0,
+    }));
+  }
+
   return seeds
     .map((seed) => {
       const matchingProducts = products.filter((product) =>
@@ -738,19 +771,6 @@ function productMatchesSeed(product: any, seed: MenuLinkSeed) {
   }
 
   return productMatchesAnyText(product, seed.keywords);
-}
-
-function useLayoutCommerce() {
-  const data = useRouteLoaderData('root') as
-    | {
-        layoutCommerce?: {
-          collections?: {nodes?: any[]};
-          products?: {nodes?: any[]};
-        };
-      }
-    | undefined;
-
-  return data?.layoutCommerce;
 }
 
 function getCollectionCategory(collection: any) {

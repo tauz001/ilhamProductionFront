@@ -123,6 +123,21 @@
 
 ## Completed
 
+- Removed the 50-product/30-collection layout query from the root critical
+  loader and initial document. Static navigation remains immediate.
+- Added a shared intent-loaded `/api/layout-commerce` endpoint with long Shopify
+  caching, CDN stale-while-revalidate caching, and one browser promise/cache.
+- Mega-menu hover/focus, search, and wishlist now initiate the catalog request;
+  stable seed links and luxury skeletons render while it resolves.
+- Restored lightweight product image and minimum-price fields that search and
+  wishlist expected but the earlier stripped root query no longer provided.
+- Live verification returned 12 products, 4 collections, valid images/prices,
+  and a 7,966-byte intent response. Initial home HTML dropped from 133,582 to
+  131,894 bytes and no longer executes the catalog query.
+- One cold dev-server timing run stalled in Shopify for two minutes and was
+  discarded as invalid performance evidence; structural/query checks passed.
+- Hydrogen codegen, ESLint, clean TypeScript, diff validation, live endpoint
+  verification, and the production client/Oxygen build passed.
 - Added shared motion duration tokens for controls, feedback, overlays, reveals,
   and editorial movement; Quick View, drawers, search overlay, and reveal
   components now use the coherent timing scale.
@@ -235,11 +250,11 @@
 
 ## In Progress
 
-- Root query and mobile rendering-cost cleanup.
+- Mobile compositing and luxury consistency cleanup.
 
 ## Pending
 
-- Root query/mobile rendering-cost cleanup and luxury consistency pass.
+- Mobile compositing-cost cleanup and luxury consistency pass.
 - Full preview browser/device QA.
 - Set `SAME_DAY_DELIVERY_VARIANT_ID` in the local/Oxygen environment after the
   hidden Shopify service product exists; until then eligibility is shown but
@@ -315,9 +330,11 @@
   passed after the adaptive motion/parallax changes.
 - Luxury-phase `npm.cmd run build` - passed after adaptive motion/parallax;
   Lenis emitted as an on-demand 5.36KB-gzip client chunk.
+- Luxury-phase codegen, lint, clean TypeScript, diff validation, and production
+  build - passed after moving layout commerce behind user intent.
 
 ## Next Step
 
-Commit and push the adaptive motion/parallax checkpoint. Then remove the
-50-product root query from the critical render path without breaking wishlist
-or search behavior, and reduce fixed grain/blur/mobile compositing costs.
+Commit and push the intent-loaded layout-commerce checkpoint. Then reduce fixed
+grain, backdrop blur, and mobile compositing costs; normalize mobile drawer and
+navbar timing without weakening the Ilham visual identity.

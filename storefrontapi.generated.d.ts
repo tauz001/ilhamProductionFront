@@ -1174,45 +1174,6 @@ export type FooterQuery = {
   >;
 };
 
-export type LayoutCommerceQueryVariables = StorefrontAPI.Exact<{
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
-}>;
-
-export type LayoutCommerceQuery = {
-  collections: {
-    nodes: Array<
-      Pick<StorefrontAPI.Collection, 'id' | 'title' | 'handle'> & {
-        image?: StorefrontAPI.Maybe<
-          Pick<
-            StorefrontAPI.Image,
-            'id' | 'url' | 'altText' | 'width' | 'height'
-          >
-        >;
-        metafields: Array<
-          StorefrontAPI.Maybe<
-            Pick<StorefrontAPI.Metafield, 'key' | 'namespace' | 'value'>
-          >
-        >;
-      }
-    >;
-  };
-  products: {
-    nodes: Array<
-      Pick<
-        StorefrontAPI.Product,
-        'id' | 'title' | 'handle' | 'vendor' | 'productType' | 'tags'
-      > & {
-        metafields: Array<
-          StorefrontAPI.Maybe<
-            Pick<StorefrontAPI.Metafield, 'key' | 'namespace' | 'value'>
-          >
-        >;
-      }
-    >;
-  };
-};
-
 export type StoreRobotsQueryVariables = StorefrontAPI.Exact<{
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
@@ -1419,6 +1380,57 @@ export type SameDayDeliveryVariantQuery = {
           >;
         })
   >;
+};
+
+export type LayoutCommerceQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type LayoutCommerceQuery = {
+  collections: {
+    nodes: Array<
+      Pick<StorefrontAPI.Collection, 'id' | 'title' | 'handle'> & {
+        image?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        metafields: Array<
+          StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.Metafield, 'key' | 'namespace' | 'value'>
+          >
+        >;
+      }
+    >;
+  };
+  products: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        'id' | 'title' | 'handle' | 'vendor' | 'productType' | 'tags'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        metafields: Array<
+          StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.Metafield, 'key' | 'namespace' | 'value'>
+          >
+        >;
+      }
+    >;
+  };
 };
 
 export type QuickViewProductQueryVariables = StorefrontAPI.Exact<{
@@ -2794,10 +2806,6 @@ interface GeneratedQueryTypes {
     return: FooterQuery;
     variables: FooterQueryVariables;
   };
-  '#graphql\n  query LayoutCommerce($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 30) {\n      nodes {\n        id\n        title\n        handle\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        metafields(identifiers: [\n          {namespace: "custom", key: "tagline"},\n          {namespace: "custom", key: "category"}\n        ]) {\n          key\n          namespace\n          value\n        }\n      }\n    }\n    products(first: 50) {\n      nodes {\n        id\n        title\n        handle\n        vendor\n        productType\n        tags\n        metafields(identifiers: [\n          {namespace: "custom", key: "subtitle"},\n          {namespace: "custom", key: "fabric"},\n          {namespace: "custom", key: "color"},\n          {namespace: "custom", key: "occasions"}\n        ]) {\n          key\n          namespace\n          value\n        }\n      }\n    }\n  }\n': {
-    return: LayoutCommerceQuery;
-    variables: LayoutCommerceQueryVariables;
-  };
   '#graphql\n  query StoreRobots($country: CountryCode, $language: LanguageCode)\n   @inContext(country: $country, language: $language) {\n    shop {\n      id\n    }\n  }\n': {
     return: StoreRobotsQuery;
     variables: StoreRobotsQueryVariables;
@@ -2813,6 +2821,10 @@ interface GeneratedQueryTypes {
   '#graphql\n  query SameDayDeliveryVariant($id: ID!, $country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    node(id: $id) {\n      __typename\n      ... on ProductVariant {\n        id\n        title\n        availableForSale\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        price {\n          amount\n          currencyCode\n        }\n        product {\n          id\n          handle\n          title\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n  }\n': {
     return: SameDayDeliveryVariantQuery;
     variables: SameDayDeliveryVariantQueryVariables;
+  };
+  '#graphql\n  query LayoutCommerce($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    collections(first: 30) {\n      nodes {\n        id\n        title\n        handle\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        metafields(identifiers: [\n          {namespace: "custom", key: "tagline"},\n          {namespace: "custom", key: "category"}\n        ]) {\n          key\n          namespace\n          value\n        }\n      }\n    }\n    products(first: 50) {\n      nodes {\n        id\n        title\n        handle\n        vendor\n        productType\n        tags\n        featuredImage {\n          id\n          url\n          altText\n          width\n          height\n        }\n        priceRange {\n          minVariantPrice {\n            amount\n            currencyCode\n          }\n        }\n        metafields(identifiers: [\n          {namespace: "custom", key: "subtitle"},\n          {namespace: "custom", key: "fabric"},\n          {namespace: "custom", key: "color"},\n          {namespace: "custom", key: "occasions"}\n        ]) {\n          key\n          namespace\n          value\n        }\n      }\n    }\n  }\n': {
+    return: LayoutCommerceQuery;
+    variables: LayoutCommerceQueryVariables;
   };
   '#graphql\n  query QuickViewProduct(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      handle\n      vendor\n      productType\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 1) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          id\n          title\n          availableForSale\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n          price {\n            amount\n            currencyCode\n          }\n          product {\n            id\n            handle\n            title\n            vendor\n            productType\n          }\n          selectedOptions {\n            name\n            value\n          }\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"}\n        {namespace: "custom", key: "fabric"}\n      ]) {\n        key\n        namespace\n        value\n      }\n    }\n  }\n': {
     return: QuickViewProductQuery;

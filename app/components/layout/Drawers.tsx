@@ -1,6 +1,6 @@
 import {AnimatePresence, motion} from 'framer-motion';
 import {Heart, Search as SearchIcon, X} from 'lucide-react';
-import {Link, useNavigate, useRouteLoaderData} from 'react-router';
+import {Link, useNavigate} from 'react-router';
 import {useState, type FormEvent} from 'react';
 import {useStore} from '~/lib/commerce/cart-store';
 import {formatMoney} from '~/lib/commerce/format-money';
@@ -17,6 +17,7 @@ import {
   getMetafieldValue,
   logMissingShopifyField,
 } from '~/lib/commerce/shopify-fields';
+import {useLayoutCommerce} from '~/lib/commerce/layout-commerce';
 
 export function Drawers() {
   const drawer = useStore((s) => s.drawer);
@@ -187,7 +188,10 @@ function WishlistDrawer() {
   const close = useStore((s) => s.closeDrawer);
   const wishlist = useStore((s) => s.wishlist);
   const toggle = useStore((s) => s.toggleWishlist);
-  const products = useLayoutProducts();
+  const {data: layoutCommerce, loading} = useLayoutCommerce(
+    drawer === 'wishlist',
+  );
+  const products = layoutCommerce?.products?.nodes ?? [];
   const items = products.filter((p) => wishlist.includes(p.handle));
 
   if (wishlist.length && items.length !== wishlist.length) {
@@ -215,7 +219,9 @@ function WishlistDrawer() {
               <X className="h-5 w-5" strokeWidth={1.2} />
             </button>
           </div>
-          {items.length === 0 ? (
+          {loading && wishlist.length ? (
+            <DrawerProductSkeleton />
+          ) : items.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
               <Heart className="h-8 w-8 text-ink/30" strokeWidth={1} />
               <p className="mt-4 font-serif text-xl italic text-ink/60">
@@ -272,8 +278,11 @@ function SearchOverlay() {
   const close = useStore((s) => s.closeDrawer);
   const [q, setQ] = useState('');
   const navigate = useNavigate();
-  const products = useLayoutProducts();
-  const collections = useLayoutCollections();
+  const {data: layoutCommerce, loading} = useLayoutCommerce(
+    drawer === 'search',
+  );
+  const products = layoutCommerce?.products?.nodes ?? [];
+  const collections = layoutCommerce?.collections?.nodes ?? [];
 
   const matchProducts = products
     .filter(
@@ -411,6 +420,16 @@ function SearchOverlay() {
                   }}
                 >
                   <p className="small-caps text-ink/45">Pieces</p>
+                  {loading ? (
+                    <div className="mt-4 space-y-3" aria-label="Loading pieces">
+                      {Array.from({length: 3}, (_, index) => (
+                        <div key={index} className="flex items-center gap-3">
+                          <div className="h-12 w-10 skeleton-luxury" />
+                          <div className="h-4 w-40 skeleton-luxury" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                   <ul className="mt-4 space-y-3">
                     {matchProducts.map((p) => (
                       <li key={p.handle}>
@@ -479,41 +498,20 @@ function SearchOverlay() {
   );
 }
 
-function useLayoutCommerce() {
-  const data = useRouteLoaderData('root') as
-    | {
-        layoutCommerce?: {
-          collections?: {nodes?: any[]};
-          products?: {nodes?: any[]};
-        };
-      }
-    | undefined;
-
-  return data?.layoutCommerce;
-}
-
-function useLayoutProducts() {
-  const products = useLayoutCommerce()?.products?.nodes ?? [];
-  if (!products.length) {
-    logMissingShopifyField(
-      'layout',
-      'products',
-      'Publish Shopify products to the Hydrogen sales channel so search and wishlist drawers can render real product data.',
-    );
-  }
-  return products;
-}
-
-function useLayoutCollections() {
-  const collections = useLayoutCommerce()?.collections?.nodes ?? [];
-  if (!collections.length) {
-    logMissingShopifyField(
-      'layout',
-      'collections',
-      'Publish Shopify collections to the Hydrogen sales channel so search drawer collection results can render.',
-    );
-  }
-  return collections;
+function DrawerProductSkeleton() {
+  return (
+    <div className="flex-1 space-y-6 px-8 py-6" aria-label="Loading saved pieces">
+      {Array.from({length: 3}, (_, index) => (
+        <div key={index} className="flex gap-5">
+          <div className="aspect-[3/4] w-24 shrink-0 skeleton-luxury" />
+          <div className="flex-1 pt-2">
+            <div className="h-5 w-4/5 skeleton-luxury" />
+            <div className="mt-3 h-3 w-1/2 skeleton-luxury" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function getProductImage(product: any) {
