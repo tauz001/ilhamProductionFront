@@ -2,7 +2,9 @@
 
 ## Repository State
 
-- Current branch: `codex/storefront-performance-seo`
+- Current branch: `codex/luxury-motion-performance`
+- Luxury-performance baseline commit: `d145425`
+- Completed and pushed previous phase: `codex/storefront-performance-seo`
 - Stable pre-Antigravity commit: `5f49de6`
 - Antigravity snapshot branch: `codex/antigravity-snapshot`
 - Antigravity snapshot commit: `fb8a1ec`
@@ -21,7 +23,7 @@
 - Improve existing SEO, sitemap, favicon, and structured data rather than removing them.
 - Add restrained, layout-stable loading feedback where it improves perceived speed.
 
-## Confirmed Audit Findings
+## Initial Audit Findings
 
 - Lenis and Framer Motion run from the persistent application shell.
 - Primary navigation links mostly do not prefetch route data.
@@ -41,6 +43,83 @@
   `app/routes/account.orders.$id.tsx`.
 - Do not remove `app/components/layout/FloatingWhatsApp.tsx`.
 - Never commit `.env` or credentials.
+
+## Luxury Motion Phase
+
+### Approved Objective
+
+- Make Ilham feel more beautiful, fluid, and intentionally luxurious while
+  improving real and perceived mobile performance.
+- Restore clearly visible editorial parallax without restoring duplicate image
+  downloads or introducing scroll jank.
+- Make Choose Piece / Quick View feel immediate.
+- Use one coherent motion language for navigation, scrolling, drawers, modals,
+  image reveals, and route feedback.
+- Keep native touch scrolling responsive; richer desktop motion must not make
+  mobile slower.
+- Do not change protected order-detail/Admin behavior, cart correctness,
+  WhatsApp, feedback semantics, SEO URLs, sitemap endpoints, or credentials.
+
+### Confirmed Current Findings
+
+- `ParallaxImage` was not removed. It still uses Framer Motion scroll transforms;
+  duplicate desktop/mobile elements were replaced by one responsive `picture`.
+- The persistent Lenis hook was removed in the previous phase. Native scrolling
+  is objectively lighter, but the parallax can consequently feel flatter.
+- The homepage hero carousel and Wedding hero are static editorial images; only
+  selected home, About, and Gifting sections currently use `ParallaxImage`.
+- Default parallax uses a 120% image with movement from -18% to +18%; the travel
+  can exceed available overscan and should be rebuilt around measured bounds.
+- Parallax images retain `will-change: transform` even when offscreen.
+- First Quick View click is a sequential waterfall: load the modal JavaScript,
+  mount it, then start a new Shopify API request.
+- Quick View shows a small Suspense shell followed by a second full modal
+  skeleton, which makes the delay feel longer.
+- The Quick View query includes unused description/gallery data and up to 50
+  variants; its response is private and only cached briefly.
+- The root still blocks initial rendering on a 50-product taxonomy query for
+  navigation, even though its payload is much smaller than the old version.
+- Fixed SVG turbulence grain, persistent backdrop blur, permanent compositing,
+  and many scroll observers can reduce frame stability on mobile devices.
+- Motion durations are not yet governed by one system: some controls take
+  700ms while editorial reveals take 1.1-1.4s.
+- Blogs, policies, search, error, and other utility surfaces are less visually
+  resolved than Home, About, Gifting, collections, and PDP.
+- The in-app visual browser is currently blocked by the Windows process sandbox;
+  implementation must include Oxygen Preview testing on real mobile/desktop
+  browsers before production deployment.
+
+### Implementation Order
+
+1. Capture baseline performance traces and interaction videos on Home,
+   collection, PDP, Quick View, bag, and navigation.
+2. Make Quick View immediate by preloading its small module, prefetching data on
+   intent, running module/data work in parallel, rendering from card data first,
+   trimming GraphQL, and caching public product responses safely.
+3. Introduce motion tokens for fast controls, medium overlays, and slow
+   editorial movement; remove inconsistent timings.
+4. Restore adaptive Lenis only for desktop wheel/fine-pointer users, with RAF
+   cleanup, visibility/modal pausing, reduced-motion support, and native touch
+   scrolling on mobile.
+5. Rebuild parallax with measured overscan, device-specific strength,
+   intersection-based activation, and active-only `will-change`; add restrained
+   movement to suitable hero/editorial sections.
+6. Remove runtime costs: defer/remove the critical root product query, simplify
+   grain and blur, reduce offscreen observers, and review font/image decode work.
+7. Extend the Ilham visual system to utility/editorial pages and loading, empty,
+   and error states without animating every element.
+8. Validate slow network, touch, keyboard, reduced motion, iOS Safari, Android
+   Chrome, desktop Chrome, cart/checkout, SEO, and protected order behavior on
+   Oxygen Preview before production.
+
+### Continuity Protocol
+
+- Update this file after every meaningful implementation and verification step.
+- Record the exact branch, commit, tests, discovered issues, and next action.
+- Commit small independent checkpoints so work can resume safely after any chat
+  interruption or context limit.
+- At the start of a new chat: read this file, inspect Git status and recent
+  commits, then continue from `Next Step` without repeating completed work.
 
 ## Completed
 
@@ -124,10 +203,12 @@
 
 ## In Progress
 
-- None. Implementation and available verification are complete.
+- Planning and continuity setup for the luxury motion/mobile performance phase.
+- No luxury-motion implementation code has been changed yet.
 
 ## Pending
 
+- The full eight-step luxury motion/mobile implementation and QA sequence above.
 - Set `SAME_DAY_DELIVERY_VARIANT_ID` in the local/Oxygen environment after the
   hidden Shopify service product exists; until then eligibility is shown but
   the paid add-on is intentionally unavailable.
@@ -196,6 +277,7 @@
 
 ## Next Step
 
-Create the hidden Shopify same-day delivery service product, set its variant GID
-as `SAME_DAY_DELIVERY_VARIANT_ID` in local/Oxygen environment configuration,
-then deploy and run authenticated order-feedback smoke testing with a real order.
+Commit and push this continuity checkpoint. Then capture the performance and
+interaction baseline on the current Oxygen Preview build. Implement the Quick
+View latency fix first in a small independently tested commit; do not start by
+globally restoring the old always-on Lenis hook.
