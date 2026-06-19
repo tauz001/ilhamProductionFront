@@ -60,6 +60,19 @@ export function links() {
       rel: 'preconnect',
       href: 'https://shop.app',
     },
+    {
+      rel: 'preconnect',
+      href: 'https://fonts.googleapis.com',
+    },
+    {
+      rel: 'preconnect',
+      href: 'https://fonts.gstatic.com',
+      crossOrigin: 'anonymous',
+    },
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter+Tight:wght@300;400;500&family=Italiana&family=Noto+Nastaliq+Urdu:wght@500&display=swap',
+    },
     // Keep every browser and crawler pointed at the same brand mark.
     {rel: 'icon', href: '/favicon.ico', sizes: 'any'},
     {rel: 'icon', type: 'image/png', sizes: '48x48', href: LOGO_URL},

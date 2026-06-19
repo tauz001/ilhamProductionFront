@@ -99,10 +99,16 @@
 - Moved shared PDP/Quick View variant-option selection into
   `app/lib/commerce/selected-variant.ts`.
 - ESLint, Hydrogen codegen, and TypeScript passed after Quick View changes.
+- Restored stable typography roles: Italiana display, Cormorant Garamond serif,
+  Inter Tight UI/body, and Noto Nastaliq Urdu.
+- Restored the pre-Antigravity light body/heading weights and letter spacing.
+- Removed Google Font CSS imports from application styles; root now preconnects
+  and loads a trimmed set of used faces through a document stylesheet link.
+- ESLint and TypeScript passed after font restoration.
 
 ## In Progress
 
-- Font restoration and delivery optimization.
+- SEO, sitemap, robots, structured data, and favicon completion.
 
 ## Pending
 
@@ -146,8 +152,12 @@
 - `npm.cmd run codegen` - passed after adding Quick View product query.
 - `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
   lazy Quick View changes.
+- `npm.cmd run lint` - passed after font restoration.
+- `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
+  font restoration.
 
 ## Next Step
 
-Restore the approved pre-Antigravity typography while reducing blocking font
-work and preserving the same visual roles for display, serif, UI, and Urdu.
+Complete route metadata/noindex coverage, verify structured-data claims, keep
+the submitted sitemap URLs stable, and replace remote/redirected favicon assets
+with same-origin durable brand files.
