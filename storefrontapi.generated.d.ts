@@ -1421,6 +1421,64 @@ export type SameDayDeliveryVariantQuery = {
   >;
 };
 
+export type QuickViewProductQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  handle: StorefrontAPI.Scalars['String']['input'];
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+}>;
+
+export type QuickViewProductQuery = {
+  product?: StorefrontAPI.Maybe<
+    Pick<
+      StorefrontAPI.Product,
+      'id' | 'title' | 'handle' | 'vendor' | 'productType' | 'description'
+    > & {
+      featuredImage?: StorefrontAPI.Maybe<
+        Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
+      >;
+      images: {
+        nodes: Array<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+      };
+      variants: {
+        nodes: Array<
+          Pick<
+            StorefrontAPI.ProductVariant,
+            'id' | 'title' | 'availableForSale'
+          > & {
+            image?: StorefrontAPI.Maybe<
+              Pick<
+                StorefrontAPI.Image,
+                'id' | 'url' | 'altText' | 'width' | 'height'
+              >
+            >;
+            price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            product: Pick<
+              StorefrontAPI.Product,
+              'id' | 'handle' | 'title' | 'vendor' | 'productType'
+            >;
+            selectedOptions: Array<
+              Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+            >;
+          }
+        >;
+      };
+      priceRange: {
+        minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+      };
+      metafields: Array<
+        StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.Metafield, 'key' | 'namespace' | 'value'>
+        >
+      >;
+    }
+  >;
+};
+
 export type BagRecommendationsQueryVariables = StorefrontAPI.Exact<{
   country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
   language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
@@ -2754,6 +2812,10 @@ interface GeneratedQueryTypes {
   '#graphql\n  query SameDayDeliveryVariant($id: ID!, $country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    node(id: $id) {\n      __typename\n      ... on ProductVariant {\n        id\n        title\n        availableForSale\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        price {\n          amount\n          currencyCode\n        }\n        product {\n          id\n          handle\n          title\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n  }\n': {
     return: SameDayDeliveryVariantQuery;
     variables: SameDayDeliveryVariantQueryVariables;
+  };
+  '#graphql\n  query QuickViewProduct(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      handle\n      vendor\n      productType\n      description\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 3) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          id\n          title\n          availableForSale\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n          price {\n            amount\n            currencyCode\n          }\n          product {\n            id\n            handle\n            title\n            vendor\n            productType\n          }\n          selectedOptions {\n            name\n            value\n          }\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"}\n        {namespace: "custom", key: "fabric"}\n      ]) {\n        key\n        namespace\n        value\n      }\n    }\n  }\n': {
+    return: QuickViewProductQuery;
+    variables: QuickViewProductQueryVariables;
   };
   '#graphql\n  query BagRecommendations($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    products(first: 4, sortKey: BEST_SELLING) {\n      nodes {\n        id\n        handle\n        title\n        featuredImage {\n          url\n          altText\n        }\n        priceRange {\n          minVariantPrice {\n            amount\n            currencyCode\n          }\n        }\n      }\n    }\n  }\n': {
     return: BagRecommendationsQuery;

@@ -23,6 +23,10 @@ import {
   parseListField,
 } from '~/lib/commerce/shopify-fields';
 import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
+import {
+  buildVariantOptionGroups,
+  getOptionValue,
+} from '~/lib/commerce/selected-variant';
 import {getWashCareForFabric} from '~/lib/commerce/product-guidance';
 import {
   PDP_IMAGE_WIDTHS,
@@ -596,102 +600,6 @@ function buildProductDetailSections({
       body: shippingReturns,
     },
   ].filter((section) => section.body);
-}
-
-function buildVariantOptionGroups(variants: any[], selectedVariant: any) {
-  const optionNames: string[] = [];
-  const valuesByName = new Map<string, Set<string>>();
-
-  variants.forEach((variant) => {
-    variant.selectedOptions?.forEach((option: {name: string; value: string}) => {
-      if (isDefaultTitleOption(option)) return;
-
-      if (!valuesByName.has(option.name)) {
-        valuesByName.set(option.name, new Set<string>());
-        optionNames.push(option.name);
-      }
-
-      valuesByName.get(option.name)?.add(option.value);
-    });
-  });
-
-  return optionNames.map((name) => ({
-    name,
-    values: [...(valuesByName.get(name) ?? [])].map((value) => {
-      const variantIndex = findVariantIndexForOption(
-        variants,
-        selectedVariant,
-        name,
-        value,
-      );
-      const variant = variants[variantIndex];
-
-      return {
-        value,
-        selected: getOptionValue(selectedVariant, name) === value,
-        available: isVariantPurchasable(variant),
-        variantIndex,
-      };
-    }),
-  }));
-}
-
-function findVariantIndexForOption(
-  variants: any[],
-  selectedVariant: any,
-  optionName: string,
-  optionValue: string,
-) {
-  const selectedOptions = getSelectedOptionMap(selectedVariant);
-  selectedOptions.set(optionName, optionValue);
-
-  const exactIndex = variants.findIndex((variant) =>
-    variantMatchesOptions(variant, selectedOptions),
-  );
-
-  if (exactIndex >= 0) return exactIndex;
-
-  return variants.findIndex(
-    (variant) => getOptionValue(variant, optionName) === optionValue,
-  );
-}
-
-function getSelectedOptionMap(variant: any) {
-  const selectedOptions = new Map<string, string>();
-
-  variant?.selectedOptions?.forEach((option: {name: string; value: string}) => {
-    if (!isDefaultTitleOption(option)) {
-      selectedOptions.set(option.name, option.value);
-    }
-  });
-
-  return selectedOptions;
-}
-
-function variantMatchesOptions(
-  variant: any,
-  selectedOptions: Map<string, string>,
-) {
-  for (const [name, value] of selectedOptions.entries()) {
-    if (getOptionValue(variant, name) !== value) return false;
-  }
-
-  return true;
-}
-
-function getOptionValue(variant: any, optionName: string) {
-  return (
-    variant?.selectedOptions?.find(
-      (option: {name: string}) => option.name === optionName,
-    )?.value ?? ''
-  );
-}
-
-function isDefaultTitleOption(option: {name: string; value: string}) {
-  return (
-    option.name.toLowerCase() === 'title' &&
-    option.value.toLowerCase() === 'default title'
-  );
 }
 
 function logProductRequirements(product: any) {

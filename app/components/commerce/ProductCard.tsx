@@ -1,6 +1,6 @@
 import {Link} from 'react-router';
 import {Heart, ShoppingBag} from 'lucide-react';
-import {useEffect, useState} from 'react';
+import {lazy, Suspense, useEffect, useState} from 'react';
 import {useStore} from '~/lib/commerce/cart-store';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {formatMoney} from '~/lib/commerce/format-money';
@@ -15,6 +15,12 @@ import {
   shopifyImageUrl,
   shopifySrcSet,
 } from '~/lib/commerce/image';
+
+const QuickViewModal = lazy(() =>
+  import('./QuickViewModal').then((module) => ({
+    default: module.QuickViewModal,
+  })),
+);
 
 type Props = {
   product: any;
@@ -38,6 +44,7 @@ export function ProductCard({
   const [hovering, setHovering] = useState(false);
   const [imageIntent, setImageIntent] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
   const activeImageIndex = hovering ? imageIndex : 0;
 
   const price =
@@ -189,7 +196,7 @@ export function ProductCard({
             </span>
           )}
     
-          <div className="absolute inset-x-0 bottom-0 z-20 px-4 pb-4 translate-y-full opacity-0 transition-all duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100">
+          <div className="absolute inset-x-0 bottom-0 z-20 px-4 pb-4 translate-y-full opacity-0 transition-all duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
             {canAddToBag ? (
               <AddToCartButton
                 className="block w-full"
@@ -211,13 +218,17 @@ export function ProductCard({
                 </div>
               </AddToCartButton>
             ) : (
-              <Link
-                to={`/products/${product.handle}`}
-                prefetch="intent"
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setQuickViewOpen(true);
+                }}
                 className="flex h-14 w-full items-center justify-center border border-ivory/15 bg-ink/95 text-ivory shadow-[0_16px_36px_rgba(0,0,0,0.22)] backdrop-blur-sm small-caps transition-colors hover:border-gold hover:bg-gold"
               >
                 Choose piece
-              </Link>
+              </button>
             )}
           </div>
         </div>
@@ -239,8 +250,26 @@ export function ProductCard({
             {price ? formatMoney(price.amount, price.currencyCode) : ''}
           </p>
         </div>
+        {quickViewOpen ? (
+          <Suspense fallback={<QuickViewLoadingShell />}>
+            <QuickViewModal
+              productHandle={product.handle}
+              onClose={() => setQuickViewOpen(false)}
+            />
+          </Suspense>
+        ) : null}
       </div>
     );
+}
+
+function QuickViewLoadingShell() {
+  return (
+    <div className="fixed inset-0 z-[96] grid place-items-center bg-ink/55 p-6 backdrop-blur-sm">
+      <div className="h-24 w-56 border border-border bg-ivory p-5 shadow-soft">
+        <div className="h-full w-full skeleton-luxury" />
+      </div>
+    </div>
+  );
 }
 
 function getHoverImages(product: any) {

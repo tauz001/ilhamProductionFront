@@ -91,10 +91,18 @@
 - Browser storage suppresses repeat prompts when Admin persistence is unavailable.
 - The protected order-detail loader and Admin enrichment fallback were not changed.
 - ESLint, Customer Account codegen, and TypeScript passed after feedback changes.
+- Added an API route that fetches Quick View product details and variants only
+  after a product handle is explicitly requested.
+- ProductCard dynamically imports the Quick View modal only after Choose Piece.
+- Quick View supports grouped variant selection, Add to Bag, responsive imagery,
+  Escape/outside-click close, loading/error states, and prefetched View Details.
+- Moved shared PDP/Quick View variant-option selection into
+  `app/lib/commerce/selected-variant.ts`.
+- ESLint, Hydrogen codegen, and TypeScript passed after Quick View changes.
 
 ## In Progress
 
-- Lazy product Quick View.
+- Font restoration and delivery optimization.
 
 ## Pending
 
@@ -134,8 +142,12 @@
 - `npm.cmd run codegen` - passed after adding feedback ownership query.
 - `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
   per-order feedback changes.
+- `npm.cmd run lint` - passed after lazy Quick View changes.
+- `npm.cmd run codegen` - passed after adding Quick View product query.
+- `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
+  lazy Quick View changes.
 
 ## Next Step
 
-Add a click-loaded Quick View route and modal so detailed variants and modal
-code are requested only after Choose Piece, with Add to Bag and View Details.
+Restore the approved pre-Antigravity typography while reducing blocking font
+work and preserving the same visual roles for display, serif, UI, and Urdu.
