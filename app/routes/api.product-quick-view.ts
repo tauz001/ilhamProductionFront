@@ -20,7 +20,8 @@ function json(data: unknown, status = 200) {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'private, max-age=60',
+      'Cache-Control':
+        'public, max-age=30, s-maxage=60, stale-while-revalidate=300',
     },
   });
 }
@@ -37,7 +38,6 @@ const QUICK_VIEW_PRODUCT_QUERY = `#graphql
       handle
       vendor
       productType
-      description
       featuredImage {
         id
         url
@@ -45,7 +45,7 @@ const QUICK_VIEW_PRODUCT_QUERY = `#graphql
         width
         height
       }
-      images(first: 3) {
+      images(first: 1) {
         nodes {
           id
           url

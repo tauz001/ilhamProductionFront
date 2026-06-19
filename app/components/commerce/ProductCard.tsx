@@ -15,9 +15,40 @@ import {
   shopifyImageUrl,
   shopifySrcSet,
 } from '~/lib/commerce/image';
+import {prefetchQuickViewProduct} from '~/lib/commerce/quick-view';
+
+let quickViewModulePromise: ReturnType<typeof importQuickViewModule> | null = null;
+let quickViewPreloadScheduled = false;
+
+function importQuickViewModule() {
+  return import('./QuickViewModal');
+}
+
+function preloadQuickViewModule() {
+  quickViewModulePromise ??= importQuickViewModule();
+  return quickViewModulePromise;
+}
+
+function scheduleQuickViewModulePreload() {
+  if (quickViewPreloadScheduled || typeof window === 'undefined') return;
+  quickViewPreloadScheduled = true;
+
+  const preload = () => void preloadQuickViewModule();
+  const idleWindow = window as Window & {
+    requestIdleCallback?: (
+      callback: IdleRequestCallback,
+      options?: IdleRequestOptions,
+    ) => number;
+  };
+  if (idleWindow.requestIdleCallback) {
+    idleWindow.requestIdleCallback(preload, {timeout: 2500});
+  } else {
+    globalThis.setTimeout(preload, 1800);
+  }
+}
 
 const QuickViewModal = lazy(() =>
-  import('./QuickViewModal').then((module) => ({
+  preloadQuickViewModule().then((module) => ({
     default: module.QuickViewModal,
   })),
 );
@@ -71,6 +102,12 @@ export function ProductCard({
     tagIncludes(product.tags, 'new-arrival') ||
     tagIncludes(product.tags, 'new');
 
+  const prepareQuickView = () => {
+    if (canAddToBag) return;
+    void preloadQuickViewModule();
+    prefetchQuickViewProduct(product.handle);
+  };
+
   if (!firstImage) {
     logMissingShopifyField(
       `product:${product.handle}`,
@@ -109,10 +146,15 @@ export function ProductCard({
     return () => window.clearInterval(timer);
   }, [hoverImages.length, hovering]);
 
+  useEffect(() => {
+    if (!canAddToBag) scheduleQuickViewModulePreload();
+  }, [canAddToBag]);
+
     return (
       <div
         className="group block min-w-0"
         onMouseEnter={() => {
+          prepareQuickView();
           setImageIntent(true);
           setHovering(true);
           setImageIndex(hoverImages.length > 1 ? 1 : 0);
@@ -122,6 +164,7 @@ export function ProductCard({
           setImageIndex(0);
         }}
         onFocusCapture={() => {
+          prepareQuickView();
           setImageIntent(true);
           setHovering(true);
           setImageIndex(hoverImages.length > 1 ? 1 : 0);
@@ -223,8 +266,10 @@ export function ProductCard({
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
+                  prepareQuickView();
                   setQuickViewOpen(true);
                 }}
+                onPointerDown={prepareQuickView}
                 className="flex h-14 w-full items-center justify-center border border-ivory/15 bg-ink/95 text-ivory shadow-[0_16px_36px_rgba(0,0,0,0.22)] backdrop-blur-sm small-caps transition-colors hover:border-gold hover:bg-gold"
               >
                 Choose piece
@@ -253,6 +298,7 @@ export function ProductCard({
         {quickViewOpen ? (
           <Suspense fallback={<QuickViewLoadingShell />}>
             <QuickViewModal
+              initialProduct={product}
               productHandle={product.handle}
               onClose={() => setQuickViewOpen(false)}
             />
@@ -264,9 +310,14 @@ export function ProductCard({
 
 function QuickViewLoadingShell() {
   return (
-    <div className="fixed inset-0 z-[96] grid place-items-center bg-ink/55 p-6 backdrop-blur-sm">
-      <div className="h-24 w-56 border border-border bg-ivory p-5 shadow-soft">
-        <div className="h-full w-full skeleton-luxury" />
+    <div className="fixed inset-0 z-[96] flex items-end justify-center bg-ink/55 p-0 sm:items-center sm:p-6">
+      <div className="grid min-h-[620px] max-h-[94svh] w-full overflow-hidden border border-border bg-ivory shadow-soft sm:max-w-4xl md:grid-cols-2">
+        <div className="skeleton-luxury min-h-[360px] md:min-h-[620px]" />
+        <div className="p-8 pt-20">
+          <div className="h-12 w-4/5 skeleton-luxury" />
+          <div className="mt-4 h-4 w-1/2 skeleton-luxury" />
+          <div className="mt-12 h-10 w-full skeleton-luxury" />
+        </div>
       </div>
     </div>
   );

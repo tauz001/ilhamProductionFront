@@ -1431,7 +1431,7 @@ export type QuickViewProductQuery = {
   product?: StorefrontAPI.Maybe<
     Pick<
       StorefrontAPI.Product,
-      'id' | 'title' | 'handle' | 'vendor' | 'productType' | 'description'
+      'id' | 'title' | 'handle' | 'vendor' | 'productType'
     > & {
       featuredImage?: StorefrontAPI.Maybe<
         Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
@@ -2814,7 +2814,7 @@ interface GeneratedQueryTypes {
     return: SameDayDeliveryVariantQuery;
     variables: SameDayDeliveryVariantQueryVariables;
   };
-  '#graphql\n  query QuickViewProduct(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      handle\n      vendor\n      productType\n      description\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 3) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          id\n          title\n          availableForSale\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n          price {\n            amount\n            currencyCode\n          }\n          product {\n            id\n            handle\n            title\n            vendor\n            productType\n          }\n          selectedOptions {\n            name\n            value\n          }\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"}\n        {namespace: "custom", key: "fabric"}\n      ]) {\n        key\n        namespace\n        value\n      }\n    }\n  }\n': {
+  '#graphql\n  query QuickViewProduct(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      handle\n      vendor\n      productType\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 1) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          id\n          title\n          availableForSale\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n          price {\n            amount\n            currencyCode\n          }\n          product {\n            id\n            handle\n            title\n            vendor\n            productType\n          }\n          selectedOptions {\n            name\n            value\n          }\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"}\n        {namespace: "custom", key: "fabric"}\n      ]) {\n        key\n        namespace\n        value\n      }\n    }\n  }\n': {
     return: QuickViewProductQuery;
     variables: QuickViewProductQueryVariables;
   };

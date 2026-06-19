@@ -1,5 +1,5 @@
-import {useEffect, useState} from 'react';
-import {Link, useFetcher} from 'react-router';
+import {useEffect, useRef, useState} from 'react';
+import {Link} from 'react-router';
 import {AnimatePresence, motion} from 'framer-motion';
 import {LoaderCircle, ShoppingBag, X} from 'lucide-react';
 import {AddToCartButton} from '~/components/AddToCartButton';
@@ -16,20 +16,48 @@ import {
 } from '~/lib/commerce/image';
 import {useStore} from '~/lib/commerce/cart-store';
 import {easeSilk} from '~/lib/motion/variants';
+import {loadQuickViewProduct} from '~/lib/commerce/quick-view';
 
 type Props = {
+  initialProduct: any;
   onClose: () => void;
   productHandle: string;
 };
 
-export function QuickViewModal({onClose, productHandle}: Props) {
-  const fetcher = useFetcher();
+export function QuickViewModal({initialProduct, onClose, productHandle}: Props) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const [product, setProduct] = useState<any>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    void fetcher.load(
-      `/api/product-quick-view?handle=${encodeURIComponent(productHandle)}`,
-    );
-  }, [fetcher, productHandle]);
+    let active = true;
+    void loadQuickViewProduct(productHandle)
+      .then((resolvedProduct) => {
+        if (active) setProduct(resolvedProduct);
+      })
+      .catch((loadError: unknown) => {
+        if (active) {
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : 'Quick view is unavailable.',
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [productHandle]);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const frame = window.requestAnimationFrame(() => dialogRef.current?.focus());
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -38,10 +66,6 @@ export function QuickViewModal({onClose, productHandle}: Props) {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
-
-  const data = fetcher.data as
-    | {message?: string; product?: any}
-    | undefined;
 
   return (
     <AnimatePresence>
@@ -54,6 +78,8 @@ export function QuickViewModal({onClose, productHandle}: Props) {
         onClick={onClose}
       >
         <motion.div
+          ref={dialogRef}
+          tabIndex={-1}
           initial={{y: 30, opacity: 0}}
           animate={{y: 0, opacity: 1}}
           exit={{y: 30, opacity: 0}}
@@ -62,6 +88,7 @@ export function QuickViewModal({onClose, productHandle}: Props) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="quick-view-title"
+          aria-busy={!product}
           onClick={(event) => event.stopPropagation()}
         >
           <button
@@ -73,25 +100,12 @@ export function QuickViewModal({onClose, productHandle}: Props) {
             <X className="h-4 w-4" strokeWidth={1.4} />
           </button>
 
-          {data?.product ? (
-            <QuickViewContent product={data.product} onClose={onClose} />
-          ) : data?.message ? (
-            <div className="grid min-h-80 place-items-center p-8 text-center">
-              <div>
-                <p className="font-serif text-2xl text-ink">Quick view unavailable.</p>
-                <p className="mt-2 text-sm text-ink/55">{data.message}</p>
-                <Link
-                  to={`/products/${productHandle}`}
-                  prefetch="intent"
-                  className="mt-6 inline-flex h-11 items-center border border-ink px-5 small-caps text-ink"
-                >
-                  View details
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <QuickViewSkeleton />
-          )}
+          <QuickViewContent
+            error={error}
+            loading={!product && !error}
+            product={product ?? initialProduct}
+            onClose={onClose}
+          />
         </motion.div>
       </motion.div>
     </AnimatePresence>
@@ -99,9 +113,13 @@ export function QuickViewModal({onClose, productHandle}: Props) {
 }
 
 function QuickViewContent({
+  error,
+  loading,
   onClose,
   product,
 }: {
+  error: string;
+  loading: boolean;
   onClose: () => void;
   product: any;
 }) {
@@ -122,6 +140,10 @@ function QuickViewContent({
   const subtitle = getMetafieldValue(product, 'subtitle');
   const fabric = getMetafieldValue(product, 'fabric');
   const openDrawer = useStore((state) => state.openDrawer);
+
+  useEffect(() => {
+    setVariantIndex(firstAvailableIndex);
+  }, [firstAvailableIndex, product.handle, variants.length]);
 
   return (
     <div className="grid md:grid-cols-[1fr_1fr]">
@@ -160,7 +182,7 @@ function QuickViewContent({
         ) : null}
 
         <div className="mt-7 space-y-5">
-          {optionGroups.map((option) => (
+          {loading ? <QuickViewOptionSkeleton /> : optionGroups.map((option) => (
             <div key={option.name}>
               <p className="small-caps text-ink/50">{option.name}</p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -186,11 +208,17 @@ function QuickViewContent({
           ))}
         </div>
 
+        {error ? (
+          <p className="mt-6 border-l border-gold pl-4 text-sm text-ink/60">
+            {error} View the full product page to choose your piece.
+          </p>
+        ) : null}
+
         <div className="mt-auto pt-8">
           <AddToCartButton
-            disabled={!selectedVariantPurchasable}
+            disabled={loading || Boolean(error) || !selectedVariantPurchasable}
             lines={
-              selectedVariant && selectedVariantPurchasable
+              !loading && !error && selectedVariant && selectedVariantPurchasable
                 ? [
                     {
                       merchandiseId: selectedVariant.id,
@@ -208,7 +236,13 @@ function QuickViewContent({
           >
             <span className="flex h-12 w-full items-center justify-center gap-2 bg-ink px-5 small-caps text-ivory transition-colors hover:bg-gold disabled:bg-ink/35">
               <ShoppingBag className="h-4 w-4" strokeWidth={1.4} />
-              {selectedVariantPurchasable ? 'Add to bag' : 'Sold out'}
+              {loading
+                ? 'Loading options'
+                : error
+                  ? 'View details to choose'
+                  : selectedVariantPurchasable
+                    ? 'Add to bag'
+                    : 'Sold out'}
             </span>
           </AddToCartButton>
           <Link
@@ -225,15 +259,17 @@ function QuickViewContent({
   );
 }
 
-function QuickViewSkeleton() {
+function QuickViewOptionSkeleton() {
   return (
-    <div className="grid min-h-[620px] md:grid-cols-2" aria-label="Loading quick view">
-      <div className="skeleton-luxury min-h-[360px] md:min-h-[620px]" />
-      <div className="p-8 pt-20">
-        <LoaderCircle className="h-5 w-5 animate-spin text-gold" strokeWidth={1.4} />
-        <div className="mt-8 h-12 w-4/5 skeleton-luxury" />
-        <div className="mt-4 h-4 w-1/2 skeleton-luxury" />
-        <div className="mt-12 h-10 w-full skeleton-luxury" />
+    <div aria-label="Loading product options">
+      <div className="flex items-center gap-2 text-ink/45">
+        <LoaderCircle className="h-4 w-4 animate-spin text-gold" strokeWidth={1.4} />
+        <span className="small-caps text-[10px]">Preparing options</span>
+      </div>
+      <div className="mt-3 flex gap-2">
+        <div className="h-10 w-14 skeleton-luxury" />
+        <div className="h-10 w-14 skeleton-luxury" />
+        <div className="h-10 w-14 skeleton-luxury" />
       </div>
     </div>
   );

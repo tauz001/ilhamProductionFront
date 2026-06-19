@@ -123,6 +123,22 @@
 
 ## Completed
 
+- Recorded local Shopify-backed baseline timings before luxury-phase edits:
+  Home cold 2.84s / warm 0.10s TTFB; Quick View API cold 0.19s / warm
+  0.03s. These are development diagnostics, not production Web Vitals.
+- Removed the Quick View first-click waterfall: its small JavaScript module is
+  scheduled during browser idle time, while product data is prefetched on
+  pointer/focus intent and shared through an in-memory promise cache.
+- Quick View now opens at full size immediately with the card's real image,
+  title, subtitle, and price while only variant options resolve.
+- Replaced the two-stage tiny-shell/full-skeleton transition with one stable
+  modal presentation, added body scroll locking, initial dialog focus, and a
+  useful full-product fallback when variant loading fails.
+- Trimmed unused Quick View GraphQL description/gallery data and added a short
+  public stale-while-revalidate response policy. Live JSON payload dropped from
+  2,697 bytes to 1,971 bytes for the verified product.
+- Hydrogen codegen, ESLint, TypeScript, diff validation, live endpoint checks,
+  and a production client/Oxygen build passed after the Quick View changes.
 - Read-only repository, Git, performance, image, SEO, font, and feature audit.
 - ESLint passed on the snapshot.
 - TypeScript passed with `--noEmit --incremental false` on the snapshot.
@@ -203,12 +219,14 @@
 
 ## In Progress
 
-- Planning and continuity setup for the luxury motion/mobile performance phase.
-- No luxury-motion implementation code has been changed yet.
+- Adaptive motion foundation and bounded parallax rebuild.
 
 ## Pending
 
-- The full eight-step luxury motion/mobile implementation and QA sequence above.
+- Adaptive desktop smooth scrolling with native mobile touch behavior.
+- Bounded, visible, device-aware parallax and motion tokens.
+- Root query/mobile rendering-cost cleanup and luxury consistency pass.
+- Full preview browser/device QA.
 - Set `SAME_DAY_DELIVERY_VARIANT_ID` in the local/Oxygen environment after the
   hidden Shopify service product exists; until then eligibility is shown but
   the paid add-on is intentionally unavailable.
@@ -274,10 +292,15 @@
 - The in-app browser helper could not launch because Windows denied its sandbox
   process, so visual interaction QA was replaced with rendered-HTML and live
   HTTP verification.
+- Luxury-phase `npm.cmd run codegen` - passed after trimming Quick View GraphQL.
+- Luxury-phase `npm.cmd run lint` and clean TypeScript check - passed after the
+  Quick View latency changes.
+- Luxury-phase `npm.cmd run build` - client and Oxygen SSR bundles passed after
+  the Quick View latency changes.
 
 ## Next Step
 
-Commit and push this continuity checkpoint. Then capture the performance and
-interaction baseline on the current Oxygen Preview build. Implement the Quick
-View latency fix first in a small independently tested commit; do not start by
-globally restoring the old always-on Lenis hook.
+Commit and push the completed Quick View checkpoint. Then introduce shared
+motion tokens, adaptive desktop-only Lenis with correct lifecycle cleanup, and
+the bounded device-aware `ParallaxImage` rebuild. Preserve native touch scroll
+and reduced-motion behavior.
