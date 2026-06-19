@@ -246,7 +246,7 @@ export default function Gifting() {
           mobileSrc={giftingHeroMobileImage?.url ?? giftingHero}
           alt={giftingHeroImage?.altText ?? 'ilham gifting'}
           className="absolute inset-0"
-          imgClassName="!h-[150%] brightness-[0.78] object-center max-md:!h-[175%] max-md:object-top"
+          imgClassName="brightness-[0.78] object-center max-md:object-top"
           loading="eager"
           fetchPriority="high"
           width={giftingHeroImage?.width ?? undefined}

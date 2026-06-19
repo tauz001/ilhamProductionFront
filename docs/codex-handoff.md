@@ -123,6 +123,22 @@
 
 ## Completed
 
+- Added shared motion duration tokens for controls, feedback, overlays, reveals,
+  and editorial movement; Quick View, drawers, search overlay, and reveal
+  components now use the coherent timing scale.
+- Restored smooth wheel/trackpad behavior adaptively: Lenis is dynamically
+  imported only on desktop fine-pointer devices, never smooths touch, respects
+  reduced motion, pauses for drawers/hidden tabs, ignores nested modal scrolling,
+  and cancels its RAF/listeners correctly.
+- The production client isolates Lenis into a separate 5.36KB-gzip chunk, so
+  native mobile/touch users do not download it.
+- Rebuilt `ParallaxImage` with mathematically bounded image overscan, restrained
+  mobile strength, richer desktop strength, reduced-motion fallback, responsive
+  source selection, and active-only `will-change` near the viewport.
+- Removed conflicting hard-coded 150-175% image heights and added restrained
+  parallax to the homepage Wedding editorial section.
+- ESLint, clean TypeScript, diff validation, and the production client/Oxygen
+  build passed after the adaptive motion and parallax changes.
 - Recorded local Shopify-backed baseline timings before luxury-phase edits:
   Home cold 2.84s / warm 0.10s TTFB; Quick View API cold 0.19s / warm
   0.03s. These are development diagnostics, not production Web Vitals.
@@ -219,12 +235,10 @@
 
 ## In Progress
 
-- Adaptive motion foundation and bounded parallax rebuild.
+- Root query and mobile rendering-cost cleanup.
 
 ## Pending
 
-- Adaptive desktop smooth scrolling with native mobile touch behavior.
-- Bounded, visible, device-aware parallax and motion tokens.
 - Root query/mobile rendering-cost cleanup and luxury consistency pass.
 - Full preview browser/device QA.
 - Set `SAME_DAY_DELIVERY_VARIANT_ID` in the local/Oxygen environment after the
@@ -297,10 +311,13 @@
   Quick View latency changes.
 - Luxury-phase `npm.cmd run build` - client and Oxygen SSR bundles passed after
   the Quick View latency changes.
+- Luxury-phase `npm.cmd run lint`, clean TypeScript, and `git diff --check` -
+  passed after the adaptive motion/parallax changes.
+- Luxury-phase `npm.cmd run build` - passed after adaptive motion/parallax;
+  Lenis emitted as an on-demand 5.36KB-gzip client chunk.
 
 ## Next Step
 
-Commit and push the completed Quick View checkpoint. Then introduce shared
-motion tokens, adaptive desktop-only Lenis with correct lifecycle cleanup, and
-the bounded device-aware `ParallaxImage` rebuild. Preserve native touch scroll
-and reduced-motion behavior.
+Commit and push the adaptive motion/parallax checkpoint. Then remove the
+50-product root query from the critical render path without breaking wishlist
+or search behavior, and reduce fixed grain/blur/mobile compositing costs.

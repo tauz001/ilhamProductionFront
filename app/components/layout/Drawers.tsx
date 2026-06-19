@@ -11,7 +11,7 @@ import {
   type RootCart,
 } from '~/lib/commerce/cart-lines';
 import {RootCartGate} from '~/components/commerce/RootCartGate';
-import {easeSilk} from '~/lib/motion/variants';
+import {easeSilk, motionDuration} from '~/lib/motion/variants';
 import {BagLineItem} from '~/components/commerce/BagLineItem';
 import {
   getMetafieldValue,
@@ -41,7 +41,7 @@ function Backdrop() {
       initial={{opacity: 0}}
       animate={{opacity: 1}}
       exit={{opacity: 0}}
-      transition={{duration: 0.25, ease: easeSilk}}
+      transition={{duration: motionDuration.feedback, ease: easeSilk}}
       onClick={close}
     />
   );
@@ -59,7 +59,7 @@ function CartDrawer() {
           initial={{x: '100%'}}
           animate={{x: 0}}
           exit={{x: '100%'}}
-          transition={{duration: 0.42, ease: easeSilk}}
+          transition={{duration: motionDuration.overlay, ease: easeSilk}}
         >
           <div className="flex items-center justify-between border-b border-border px-8 py-6">
             <div>
@@ -204,7 +204,7 @@ function WishlistDrawer() {
           initial={{x: '100%'}}
           animate={{x: 0}}
           exit={{x: '100%'}}
-          transition={{duration: 0.42, ease: easeSilk}}
+          transition={{duration: motionDuration.overlay, ease: easeSilk}}
         >
           <div className="flex items-center justify-between border-b border-border px-8 py-6">
             <div>
@@ -305,7 +305,7 @@ function SearchOverlay() {
             initial={{opacity: 0, backdropFilter: 'blur(0px)'}}
             animate={{opacity: 1, backdropFilter: 'blur(18px)'}}
             exit={{opacity: 0, backdropFilter: 'blur(0px)'}}
-            transition={{duration: 0.9, ease: easeSilk}}
+            transition={{duration: motionDuration.feedback, ease: easeSilk}}
             style={{
               background:
                 'radial-gradient(ellipse at top, oklch(0.96 0.012 80 / 0.55), oklch(0.18 0.01 60 / 0.35))',
@@ -319,7 +319,7 @@ function SearchOverlay() {
             initial={{opacity: 0, y: -14, scale: 0.97, filter: 'blur(8px)'}}
             animate={{opacity: 1, y: 0, scale: 1, filter: 'blur(0px)'}}
             exit={{opacity: 0, y: -10, scale: 0.98, filter: 'blur(6px)'}}
-            transition={{duration: 0.75, ease: easeSilk}}
+            transition={{duration: motionDuration.overlay, ease: easeSilk}}
           >
             <div
               className="relative overflow-hidden rounded-[2px] border border-ink/10 bg-ivory/70 shadow-fabric"
@@ -359,7 +359,11 @@ function SearchOverlay() {
                   className="mt-5 flex items-center border-b border-ink/30 pb-3"
                   initial={{opacity: 0, y: 8}}
                   animate={{opacity: 1, y: 0}}
-                  transition={{duration: 0.7, ease: easeSilk, delay: 0.15}}
+                  transition={{
+                    duration: motionDuration.overlay,
+                    ease: easeSilk,
+                    delay: 0.08,
+                  }}
                 >
                   <SearchIcon
                     className="h-4 w-4 text-ink/40"
@@ -399,7 +403,10 @@ function SearchOverlay() {
                     visible: {
                       opacity: 1,
                       y: 0,
-                      transition: {duration: 0.7, ease: easeSilk},
+                      transition: {
+                        duration: motionDuration.overlay,
+                        ease: easeSilk,
+                      },
                     },
                   }}
                 >
@@ -441,7 +448,10 @@ function SearchOverlay() {
                     visible: {
                       opacity: 1,
                       y: 0,
-                      transition: {duration: 0.7, ease: easeSilk},
+                      transition: {
+                        duration: motionDuration.overlay,
+                        ease: easeSilk,
+                      },
                     },
                   }}
                 >

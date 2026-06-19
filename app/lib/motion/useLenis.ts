@@ -1,30 +1,108 @@
-import {useEffect} from 'react';
-import Lenis from 'lenis';
+import {useEffect, useRef} from 'react';
+import type Lenis from 'lenis';
 
-let instance: Lenis | null = null;
+export function useLenis(paused = false) {
+  const instanceRef = useRef<Lenis | null>(null);
+  const pausedRef = useRef(paused);
 
-export function useLenis() {
+  useEffect(() => {
+    pausedRef.current = paused;
+    const instance = instanceRef.current;
+    if (!instance) return;
+
+    if (paused || document.visibilityState === 'hidden') instance.stop();
+    else instance.start();
+  }, [paused]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (instance) return;
 
-    instance = new Lenis({
-      duration: 1.4,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-      wheelMultiplier: 0.9,
-      touchMultiplier: 1.2,
-    });
+    const finePointer = window.matchMedia('(any-pointer: fine)');
+    const desktopViewport = window.matchMedia('(min-width: 1024px)');
+    const reducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    );
+    let disposed = false;
+    let loading = false;
+    let frameId = 0;
 
-    function raf(time: number) {
-      instance?.raf(time);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
+    const shouldEnable = () =>
+      finePointer.matches &&
+      desktopViewport.matches &&
+      !reducedMotion.matches;
+
+    const raf = (time: number) => {
+      instanceRef.current?.raf(time);
+      frameId = window.requestAnimationFrame(raf);
+    };
+
+    const destroy = () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      frameId = 0;
+      instanceRef.current?.destroy();
+      instanceRef.current = null;
+    };
+
+    const enable = async () => {
+      if (loading || instanceRef.current || !shouldEnable()) return;
+      loading = true;
+
+      try {
+        const {default: LenisConstructor} = await import('lenis');
+        if (disposed || !shouldEnable()) return;
+
+        instanceRef.current = new LenisConstructor({
+          lerp: 0.115,
+          smoothWheel: true,
+          syncTouch: false,
+          wheelMultiplier: 0.88,
+          autoRaf: false,
+          overscroll: true,
+          prevent: (node) =>
+            Boolean(
+              node.closest(
+                '[data-native-scroll], [data-lenis-prevent], [role="dialog"]',
+              ),
+            ),
+        });
+
+        if (pausedRef.current || document.visibilityState === 'hidden') {
+          instanceRef.current.stop();
+        }
+        frameId = window.requestAnimationFrame(raf);
+      } finally {
+        loading = false;
+      }
+    };
+
+    const sync = () => {
+      if (shouldEnable()) void enable();
+      else destroy();
+    };
+
+    const onVisibilityChange = () => {
+      const instance = instanceRef.current;
+      if (!instance) return;
+      if (document.visibilityState === 'hidden' || pausedRef.current) {
+        instance.stop();
+      } else {
+        instance.start();
+      }
+    };
+
+    finePointer.addEventListener('change', sync);
+    desktopViewport.addEventListener('change', sync);
+    reducedMotion.addEventListener('change', sync);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    sync();
 
     return () => {
-      instance?.destroy();
-      instance = null;
+      disposed = true;
+      finePointer.removeEventListener('change', sync);
+      desktopViewport.removeEventListener('change', sync);
+      reducedMotion.removeEventListener('change', sync);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      destroy();
     };
   }, []);
 }

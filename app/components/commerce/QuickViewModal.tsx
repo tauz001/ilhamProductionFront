@@ -15,7 +15,7 @@ import {
   shopifySrcSet,
 } from '~/lib/commerce/image';
 import {useStore} from '~/lib/commerce/cart-store';
-import {easeSilk} from '~/lib/motion/variants';
+import {easeSilk, motionDuration} from '~/lib/motion/variants';
 import {loadQuickViewProduct} from '~/lib/commerce/quick-view';
 
 type Props = {
@@ -83,7 +83,7 @@ export function QuickViewModal({initialProduct, onClose, productHandle}: Props) 
           initial={{y: 30, opacity: 0}}
           animate={{y: 0, opacity: 1}}
           exit={{y: 30, opacity: 0}}
-          transition={{duration: 0.42, ease: easeSilk}}
+          transition={{duration: motionDuration.overlay, ease: easeSilk}}
           className="relative max-h-[94svh] w-full overflow-y-auto border border-border bg-ivory shadow-soft sm:max-w-4xl"
           role="dialog"
           aria-modal="true"

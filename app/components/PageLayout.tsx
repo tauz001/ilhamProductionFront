@@ -4,6 +4,8 @@ import {FloatingWhatsApp} from '~/components/layout/FloatingWhatsApp';
 import {NavigationProgress} from '~/components/layout/NavigationProgress';
 import {Navbar, MobileMenuDrawer} from '~/components/layout/Navbar';
 import {ScrollProgress} from '~/components/layout/ScrollProgress';
+import {useStore} from '~/lib/commerce/cart-store';
+import {useLenis} from '~/lib/motion/useLenis';
 
 interface PageLayoutProps {
   cart: unknown;
@@ -19,6 +21,9 @@ export function PageLayout({
   children = null,
   whatsAppUrl,
 }: PageLayoutProps) {
+  const drawer = useStore((state) => state.drawer);
+  useLenis(Boolean(drawer));
+
   return (
     <>
       <div className="grain-overlay" aria-hidden />

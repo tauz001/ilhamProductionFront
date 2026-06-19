@@ -1,5 +1,11 @@
-import {useRef} from 'react';
-import {motion, useScroll, useTransform} from 'framer-motion';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import {
+  motion,
+  useInView,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from 'framer-motion';
 import {
   HERO_IMAGE_WIDTHS,
   MOBILE_HERO_IMAGE_WIDTHS,
@@ -27,7 +33,7 @@ export function ParallaxImage({
   alt,
   className = '',
   imgClassName = '',
-  strength = 0.18,
+  strength = 0.09,
   loading = 'lazy',
   fetchPriority = 'auto',
   sizes = '100vw',
@@ -35,6 +41,29 @@ export function ParallaxImage({
   height,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const nearViewport = useInView(ref, {margin: '40% 0px'});
+  const [compactViewport, setCompactViewport] = useState(true);
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)');
+    const sync = () => setCompactViewport(query.matches);
+    sync();
+    query.addEventListener('change', sync);
+    return () => query.removeEventListener('change', sync);
+  }, []);
+
+  const resolvedStrength = useMemo(() => {
+    const deviceStrength = compactViewport ? strength * 0.62 : strength;
+    const maximum = compactViewport ? 0.06 : 0.11;
+    return Math.min(maximum, Math.max(0.035, deviceStrength));
+  }, [compactViewport, strength]);
+
+  const imageHeight = useMemo(
+    () => 100 / (1 - resolvedStrength * 2) + 2,
+    [resolvedStrength],
+  );
+  const imageInset = (imageHeight - 100) / 2;
   const {scrollYProgress} = useScroll({
     target: ref,
     offset: ['start end', 'end start'],
@@ -42,14 +71,16 @@ export function ParallaxImage({
   const y = useTransform(
     scrollYProgress,
     [0, 1],
-    [`-${strength * 100}%`, `${strength * 100}%`],
+    [`-${resolvedStrength * 100}%`, `${resolvedStrength * 100}%`],
   );
 
-  const imageClassName = `h-[120%] w-full object-cover will-change-transform ${imgClassName}`;
+  const imageClassName = `absolute left-0 w-full object-cover ${
+    nearViewport && !prefersReducedMotion ? 'will-change-transform' : ''
+  } ${imgClassName}`;
 
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`}>
-      <picture className="block h-full w-full">
+      <picture className="relative block h-full w-full">
         {mobileSrc ? (
           <source
             media="(max-width: 767px)"
@@ -68,7 +99,11 @@ export function ParallaxImage({
           width={width}
           height={height}
           className={imageClassName}
-          style={{y}}
+          style={{
+            height: `${imageHeight}%`,
+            top: `-${imageInset}%`,
+            y: prefersReducedMotion ? 0 : y,
+          }}
         />
       </picture>
     </div>

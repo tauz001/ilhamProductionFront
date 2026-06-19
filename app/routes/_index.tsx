@@ -512,7 +512,7 @@ const bestsellers = useMemo(
               src={c.img}
               alt={c.alt}
               className="absolute inset-0"
-              imgClassName="!h-[150%] brightness-90 object-center transition-[filter] duration-[900ms] group-hover:brightness-100 max-md:!h-[170%]"
+              imgClassName="brightness-90 object-center transition-[filter] duration-[900ms] group-hover:brightness-100"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/60" />
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-ivory">
@@ -529,19 +529,15 @@ const bestsellers = useMemo(
       </section>
 
       <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden bg-ink text-ivory md:h-[100svh] md:min-h-[640px]">
-        <picture className="absolute inset-0 block h-full w-full">
-          <img
-            src={shopifyImageUrl(weddingBanner, 1600)}
-            srcSet={shopifySrcSet(weddingBanner, HERO_IMAGE_WIDTHS)}
-            sizes="100vw"
-            alt={weddingBannerImage?.altText ?? 'The Wedding Edit'}
-            className="h-full w-full object-cover brightness-[0.86] md:brightness-[0.78]"
-            loading="lazy"
-            decoding="async"
-            width={weddingBannerImage?.width ?? undefined}
-            height={weddingBannerImage?.height ?? undefined}
-          />
-        </picture>
+        <ParallaxImage
+          src={weddingBanner}
+          alt={weddingBannerImage?.altText ?? 'The Wedding Edit'}
+          className="absolute inset-0"
+          imgClassName="object-cover brightness-[0.86] md:brightness-[0.78]"
+          loading="lazy"
+          width={weddingBannerImage?.width ?? undefined}
+          height={weddingBannerImage?.height ?? undefined}
+        />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/15 via-ink/20 to-ink/82 md:from-ink/25 md:via-ink/10 md:to-ink/70" />
         <div className="relative z-10 mx-auto flex min-h-[calc(100svh-4rem)] max-w-4xl flex-col items-center justify-end px-6 pb-14 pt-52 text-center md:h-full md:justify-center md:py-0">
           <p className="small-caps text-ivory/70">The Wedding Edit</p>

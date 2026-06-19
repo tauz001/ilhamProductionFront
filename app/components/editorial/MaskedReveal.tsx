@@ -1,6 +1,6 @@
 import {motion, useInView} from 'framer-motion';
 import {useRef, type ReactNode} from 'react';
-import {easeSilk} from '~/lib/motion/variants';
+import {easeSilk, motionDuration} from '~/lib/motion/variants';
 
 type Props = {
   children: ReactNode;
@@ -24,7 +24,7 @@ export function MaskedReveal({
         className="inline-block will-change-transform"
         initial={{y: '115%'}}
         animate={inView ? {y: '0%'} : {y: '115%'}}
-        transition={{duration: 1.2, ease: easeSilk, delay}}
+        transition={{duration: motionDuration.reveal, ease: easeSilk, delay}}
       >
         {children}
       </motion.span>
@@ -50,7 +50,7 @@ export function FadeUp({
       className={className}
       initial={{opacity: 0, y: 32}}
       animate={inView ? {opacity: 1, y: 0} : {opacity: 0, y: 32}}
-      transition={{duration: 1.2, ease: easeSilk, delay}}
+      transition={{duration: motionDuration.reveal, ease: easeSilk, delay}}
     >
       {children}
     </motion.div>

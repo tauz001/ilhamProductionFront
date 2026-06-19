@@ -51,6 +51,11 @@
     0 8px 30px -12px rgba(60, 40, 20, 0.1);
 
   --ease-silk: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-control: 180ms;
+  --motion-feedback: 280ms;
+  --motion-overlay: 420ms;
+  --motion-reveal: 900ms;
+  --motion-editorial: 1150ms;
 }
 
 :root {
@@ -116,6 +121,15 @@
 
   html {
     scroll-behavior: smooth;
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  html.lenis.lenis-smooth {
+    scroll-behavior: auto !important;
   }
 
   body {
