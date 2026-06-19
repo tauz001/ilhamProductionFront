@@ -4,7 +4,7 @@ import {AnimatePresence, motion} from 'framer-motion';
 import {Heart, Menu, Search, ShoppingBag, User, X} from 'lucide-react';
 import {useStore} from '~/lib/commerce/cart-store';
 import {RootCartGate} from '~/components/commerce/RootCartGate';
-import {easeSilk} from '~/lib/motion/variants';
+import {easeSilk, motionDuration} from '~/lib/motion/variants';
 import {
   getMetafieldValue,
   logMissingShopifyField,
@@ -292,7 +292,7 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${scrolled ? 'bg-ivory/85 backdrop-blur-md border-b border-border/60' : 'bg-transparent'}`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-[420ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${scrolled ? 'border-b border-border/60 bg-ivory/95 md:bg-ivory/85 md:backdrop-blur-md' : 'bg-transparent'}`}
       onMouseEnter={cancelMegaClose}
       onMouseLeave={queueMegaClose}
     >
@@ -303,7 +303,7 @@ export function Navbar() {
             animate={{height: '2.25rem', opacity: 1}}
             exit={{height: 0, opacity: 0}}
             transition={{duration: 0.45, ease: easeSilk}}
-            className="overflow-hidden border-b border-border/60 bg-ivory/92 text-ink shadow-[0_1px_0_oklch(0.78_0.04_75_/_0.22)] backdrop-blur-md"
+            className="overflow-hidden border-b border-border/60 bg-ivory/96 text-ink shadow-[0_1px_0_oklch(0.78_0.04_75_/_0.22)] md:bg-ivory/92 md:backdrop-blur-md"
           >
             <div className="relative mx-auto flex h-9 max-w-[1500px] items-center justify-center px-11 lg:px-12">
               <AnimatePresence mode="wait" initial={false}>
@@ -806,11 +806,11 @@ export function MobileMenuDrawer() {
       {drawer === 'menu' && (
         <>
           <motion.div
-            className="fixed inset-0 z-[80] bg-ink/40 backdrop-blur-sm"
+            className="fixed inset-0 z-[80] bg-ink/40 sm:backdrop-blur-sm"
             initial={{opacity: 0}}
             animate={{opacity: 1}}
             exit={{opacity: 0}}
-            transition={{duration: 0.5, ease: easeSilk}}
+            transition={{duration: motionDuration.feedback, ease: easeSilk}}
             onClick={close}
           />
           <motion.aside
@@ -818,7 +818,7 @@ export function MobileMenuDrawer() {
             initial={{x: '-100%'}}
             animate={{x: 0}}
             exit={{x: '-100%'}}
-            transition={{duration: 0.8, ease: easeSilk}}
+            transition={{duration: motionDuration.overlay, ease: easeSilk}}
           >
             <span
               aria-hidden
@@ -831,7 +831,11 @@ export function MobileMenuDrawer() {
               className="relative flex items-center justify-between"
               initial={{opacity: 0, y: -10}}
               animate={{opacity: 1, y: 0}}
-              transition={{duration: 0.6, delay: 0.25, ease: easeSilk}}
+              transition={{
+                duration: motionDuration.feedback,
+                delay: 0.08,
+                ease: easeSilk,
+              }}
             >
               <Link to="/" prefetch="intent" onClick={close} aria-label="ilham home">
                 <img
@@ -853,7 +857,7 @@ export function MobileMenuDrawer() {
               variants={{
                 hidden: {},
                 visible: {
-                  transition: {staggerChildren: 0.09, delayChildren: 0.35},
+                  transition: {staggerChildren: 0.055, delayChildren: 0.08},
                 },
               }}
             >
@@ -865,7 +869,10 @@ export function MobileMenuDrawer() {
                       visible: {
                         y: '0%',
                         opacity: 1,
-                        transition: {duration: 0.9, ease: easeSilk},
+                        transition: {
+                          duration: motionDuration.overlay,
+                          ease: easeSilk,
+                        },
                       },
                     }}
                   >
@@ -886,7 +893,11 @@ export function MobileMenuDrawer() {
               className="relative mt-auto pt-12 border-t border-border"
               initial={{opacity: 0, y: 10}}
               animate={{opacity: 1, y: 0}}
-              transition={{duration: 0.8, delay: 0.9, ease: easeSilk}}
+              transition={{
+                duration: motionDuration.overlay,
+                delay: 0.18,
+                ease: easeSilk,
+              }}
             >
               <p className="small-caps text-ink/50">Atelier, Lucknow</p>
               <p className="mt-3 font-serif text-lg italic text-ink/80">

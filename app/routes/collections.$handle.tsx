@@ -335,7 +335,7 @@ export default function Collection() {
         <ChikanMotif className="mx-auto mt-8 h-5 w-32 text-gold" />
       </header>
 
-      <div className="sticky top-16 lg:top-20 z-30 border-y border-border bg-cream/85 backdrop-blur-md">
+      <div className="sticky top-16 z-30 border-y border-border bg-cream/95 lg:top-20 lg:bg-cream/85 lg:backdrop-blur-md">
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-6 py-3.5 lg:px-12">
           <button
             onClick={() => setMobileOpen(true)}
@@ -582,7 +582,7 @@ function MobileFilters({
             animate={{opacity: 1}}
             exit={{opacity: 0}}
             onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-40 bg-ink/40 lg:hidden"
           />
           <motion.aside
             initial={{y: '100%'}}

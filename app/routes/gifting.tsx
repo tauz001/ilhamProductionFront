@@ -512,7 +512,7 @@ function ProductPickerModal({
   return (
     <div
       aria-modal="true"
-      className="fixed inset-0 z-[90] overflow-y-auto bg-ivory/95 px-4 py-5 backdrop-blur-sm md:px-8 md:py-8"
+      className="fixed inset-0 z-[90] overflow-y-auto bg-ivory px-4 py-5 md:bg-ivory/95 md:px-8 md:py-8 md:backdrop-blur-sm"
       role="dialog"
     >
       <div className="mx-auto max-w-6xl border border-border bg-ivory shadow-2xl">

@@ -247,14 +247,21 @@
   and favicon changes.
 - Aligned Hydrogen's default Storefront API market context with India (`IN`)
   instead of the scaffolded United States default.
+- Removed fullscreen grain rendering below tablet width and reduced its desktop
+  opacity, avoiding a fixed blend/compositing layer on phones.
+- Replaced mobile fullscreen backdrop blur with opaque ivory surfaces across
+  navigation, search, product overlays, collection controls, gifting, and
+  feedback while retaining restrained blur from tablet/desktop breakpoints.
+- Normalized the mobile menu to shared feedback/overlay timing tokens and
+  shorter stagger delays, and locked background scroll while any drawer is open.
 
 ## In Progress
 
-- Mobile compositing and luxury consistency cleanup.
+- Luxury consistency pass for generic public routes.
 
 ## Pending
 
-- Mobile compositing-cost cleanup and luxury consistency pass.
+- Full verification of the generic-route luxury consistency pass.
 - Full preview browser/device QA.
 - Set `SAME_DAY_DELIVERY_VARIANT_ID` in the local/Oxygen environment after the
   hidden Shopify service product exists; until then eligibility is shown but
@@ -332,9 +339,14 @@
   Lenis emitted as an on-demand 5.36KB-gzip client chunk.
 - Luxury-phase codegen, lint, clean TypeScript, diff validation, and production
   build - passed after moving layout commerce behind user intent.
+- Luxury-phase lint, clean TypeScript, and diff validation - passed after the
+  mobile compositing and interaction-timing cleanup.
+- Luxury-phase production client and Oxygen SSR build - passed after the mobile
+  compositing and interaction-timing cleanup.
 
 ## Next Step
 
-Commit and push the intent-loaded layout-commerce checkpoint. Then reduce fixed
-grain, backdrop blur, and mobile compositing costs; normalize mobile drawer and
-navbar timing without weakening the Ilham visual identity.
+Commit and push the mobile compositing checkpoint. Then bring the remaining
+generic blog, policy, page, collection-all, and error states into the same
+restrained luxury system without changing loaders, SEO URLs, or protected
+commerce behavior.

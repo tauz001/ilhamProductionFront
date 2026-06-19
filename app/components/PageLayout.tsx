@@ -1,3 +1,4 @@
+import {useEffect} from 'react';
 import {Drawers} from '~/components/layout/Drawers';
 import {Footer} from '~/components/layout/Footer';
 import {FloatingWhatsApp} from '~/components/layout/FloatingWhatsApp';
@@ -23,6 +24,15 @@ export function PageLayout({
 }: PageLayoutProps) {
   const drawer = useStore((state) => state.drawer);
   useLenis(Boolean(drawer));
+
+  useEffect(() => {
+    if (!drawer) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [drawer]);
 
   return (
     <>

@@ -310,32 +310,23 @@ function SearchOverlay() {
       {drawer === 'search' && (
         <>
           <motion.div
-            className="fixed inset-0 z-[81]"
-            initial={{opacity: 0, backdropFilter: 'blur(0px)'}}
-            animate={{opacity: 1, backdropFilter: 'blur(18px)'}}
-            exit={{opacity: 0, backdropFilter: 'blur(0px)'}}
+            className="fixed inset-0 z-[81] bg-ivory/96 sm:bg-ivory/70 sm:backdrop-blur-xl"
+            initial={{opacity: 0}}
+            animate={{opacity: 1}}
+            exit={{opacity: 0}}
             transition={{duration: motionDuration.feedback, ease: easeSilk}}
-            style={{
-              background:
-                'radial-gradient(ellipse at top, oklch(0.96 0.012 80 / 0.55), oklch(0.18 0.01 60 / 0.35))',
-              WebkitBackdropFilter: 'blur(18px)',
-            }}
             onClick={close}
           />
 
           <motion.div
             className="fixed left-1/2 top-[14vh] z-[82] w-[min(720px,92vw)] -translate-x-1/2"
-            initial={{opacity: 0, y: -14, scale: 0.97, filter: 'blur(8px)'}}
-            animate={{opacity: 1, y: 0, scale: 1, filter: 'blur(0px)'}}
-            exit={{opacity: 0, y: -10, scale: 0.98, filter: 'blur(6px)'}}
+            initial={{opacity: 0, y: -14, scale: 0.98}}
+            animate={{opacity: 1, y: 0, scale: 1}}
+            exit={{opacity: 0, y: -10, scale: 0.985}}
             transition={{duration: motionDuration.overlay, ease: easeSilk}}
           >
             <div
-              className="relative overflow-hidden rounded-[2px] border border-ink/10 bg-ivory/70 shadow-fabric"
-              style={{
-                backdropFilter: 'blur(24px) saturate(1.1)',
-                WebkitBackdropFilter: 'blur(24px) saturate(1.1)',
-              }}
+              className="relative overflow-hidden rounded-[2px] border border-ink/10 bg-ivory/95 shadow-fabric sm:bg-ivory/75 sm:backdrop-blur-2xl"
             >
               <span
                 aria-hidden

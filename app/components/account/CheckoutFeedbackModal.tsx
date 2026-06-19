@@ -125,7 +125,7 @@ export function CheckoutFeedbackModal({
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-[95] flex items-end justify-center bg-ink/50 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+        className="fixed inset-0 z-[95] flex items-end justify-center bg-ink/50 p-0 sm:items-center sm:p-6 sm:backdrop-blur-sm"
         initial={{opacity: 0}}
         animate={{opacity: 1}}
         exit={{opacity: 0}}

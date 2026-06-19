@@ -167,7 +167,7 @@ export function ProductImageCarousel({
                 height={activeImage.height ?? undefined}
                 className="h-full w-full object-contain"
               />
-              <span className="absolute right-4 top-4 grid h-10 w-10 place-items-center border border-ivory/60 bg-ivory/70 text-ink backdrop-blur">
+              <span className="absolute right-4 top-4 grid h-10 w-10 place-items-center border border-ivory/60 bg-ivory/85 text-ink sm:bg-ivory/70 sm:backdrop-blur">
                 <Maximize2 className="h-4 w-4" strokeWidth={1.4} />
               </span>
             </motion.button>
@@ -310,7 +310,7 @@ function CarouselArrow({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className={`absolute top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center border border-ivory/60 bg-ivory/75 text-ink opacity-100 backdrop-blur transition-colors hover:bg-ink hover:text-ivory sm:opacity-0 sm:group-hover:opacity-100 ${
+      className={`absolute top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center border border-ivory/60 bg-ivory/90 text-ink opacity-100 transition-colors hover:bg-ink hover:text-ivory sm:bg-ivory/75 sm:opacity-0 sm:backdrop-blur sm:group-hover:opacity-100 ${
         side === 'left' ? 'left-4' : 'right-4'
       }`}
     >

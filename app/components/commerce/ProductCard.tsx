@@ -252,7 +252,7 @@ export function ProductCard({
                 ]}
                 onClick={() => openDrawer('cart')}
               >
-                <div className="flex h-14 w-full items-center justify-center gap-3 border border-ivory/15 bg-ink/95 text-ivory shadow-[0_16px_36px_rgba(0,0,0,0.22)] backdrop-blur-sm small-caps hover:border-gold hover:bg-gold transition-colors cursor-pointer">
+                <div className="flex h-14 w-full items-center justify-center gap-3 border border-ivory/15 bg-ink/95 text-ivory shadow-[0_16px_36px_rgba(0,0,0,0.22)] small-caps hover:border-gold hover:bg-gold transition-colors cursor-pointer sm:backdrop-blur-sm">
                   <ShoppingBag
                     className="h-3.5 w-3.5"
                     strokeWidth={1.4}
@@ -270,7 +270,7 @@ export function ProductCard({
                   setQuickViewOpen(true);
                 }}
                 onPointerDown={prepareQuickView}
-                className="flex h-14 w-full items-center justify-center border border-ivory/15 bg-ink/95 text-ivory shadow-[0_16px_36px_rgba(0,0,0,0.22)] backdrop-blur-sm small-caps transition-colors hover:border-gold hover:bg-gold"
+                className="flex h-14 w-full items-center justify-center border border-ivory/15 bg-ink/95 text-ivory shadow-[0_16px_36px_rgba(0,0,0,0.22)] small-caps transition-colors hover:border-gold hover:bg-gold sm:backdrop-blur-sm"
               >
                 Choose piece
               </button>
