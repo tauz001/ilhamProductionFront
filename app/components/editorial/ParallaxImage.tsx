@@ -79,7 +79,7 @@ export function ParallaxImage({
   } ${imgClassName}`;
 
   return (
-    <div ref={ref} className={`relative overflow-hidden ${className}`}>
+    <div ref={ref} className={`overflow-hidden ${className}`}>
       <picture className="relative block h-full w-full">
         {mobileSrc ? (
           <source

@@ -8,7 +8,7 @@ import {
   recommendProductSize,
   type ProductAudience,
 } from '~/lib/commerce/product-guidance';
-import {easeSilk} from '~/lib/motion/variants';
+import {easeSilk, motionDuration} from '~/lib/motion/variants';
 
 type Props = {
   product: any;
@@ -82,15 +82,16 @@ export function SizeAndFitGuide({product, selectedSize}: Props) {
             initial={{opacity: 0}}
             animate={{opacity: 1}}
             exit={{opacity: 0}}
+            transition={{duration: motionDuration.modal, ease: easeSilk}}
             onClick={() => setOpenMode(null)}
             role="presentation"
           >
             <motion.div
-              initial={{y: 32, opacity: 0}}
-              animate={{y: 0, opacity: 1}}
-              exit={{y: 32, opacity: 0}}
-              transition={{duration: 0.45, ease: easeSilk}}
-              className="max-h-[92svh] w-full overflow-y-auto border border-border bg-ivory p-5 shadow-soft sm:max-w-2xl sm:p-7"
+              initial={{y: 22, opacity: 0, scale: 0.992}}
+              animate={{y: 0, opacity: 1, scale: 1}}
+              exit={{y: 16, opacity: 0, scale: 0.995}}
+              transition={{duration: motionDuration.modal, ease: easeSilk}}
+              className="max-h-[92svh] w-full transform-gpu overflow-y-auto border border-border bg-ivory p-5 shadow-soft sm:max-w-2xl sm:p-7"
               onClick={(event) => event.stopPropagation()}
               role="dialog"
               aria-modal="true"

@@ -1,7 +1,7 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {LoaderCircle, X} from 'lucide-react';
-import {easeSilk} from '~/lib/motion/variants';
+import {easeSilk, motionDuration} from '~/lib/motion/variants';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -129,15 +129,16 @@ export function CheckoutFeedbackModal({
         initial={{opacity: 0}}
         animate={{opacity: 1}}
         exit={{opacity: 0}}
+        transition={{duration: motionDuration.modal, ease: easeSilk}}
         role="presentation"
         onClick={close}
       >
         <motion.div
-          initial={{y: 30, opacity: 0}}
-          animate={{y: 0, opacity: 1}}
-          exit={{y: 30, opacity: 0}}
-          transition={{duration: 0.45, ease: easeSilk}}
-          className="w-full border border-border bg-ivory p-5 shadow-soft sm:max-w-xl sm:p-7"
+          initial={{y: 22, opacity: 0, scale: 0.992}}
+          animate={{y: 0, opacity: 1, scale: 1}}
+          exit={{y: 16, opacity: 0, scale: 0.995}}
+          transition={{duration: motionDuration.modal, ease: easeSilk}}
+          className="w-full transform-gpu border border-border bg-ivory p-5 shadow-soft sm:max-w-xl sm:p-7"
           role="dialog"
           aria-modal="true"
           aria-labelledby="order-feedback-title"

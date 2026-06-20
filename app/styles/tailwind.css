@@ -54,6 +54,7 @@
   --motion-control: 180ms;
   --motion-feedback: 280ms;
   --motion-overlay: 420ms;
+  --motion-modal: 520ms;
   --motion-reveal: 900ms;
   --motion-editorial: 1150ms;
 }

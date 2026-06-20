@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import {Link} from 'react-router';
-import {AnimatePresence, motion} from 'framer-motion';
+import {motion} from 'framer-motion';
 import {LoaderCircle, ShoppingBag, X} from 'lucide-react';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {formatMoney} from '~/lib/commerce/format-money';
@@ -68,29 +68,29 @@ export function QuickViewModal({initialProduct, onClose, productHandle}: Props) 
   }, [onClose]);
 
   return (
-    <AnimatePresence>
+    <motion.div
+      className="fixed inset-0 z-[96] flex items-end justify-center bg-ink/55 p-0 sm:items-center sm:p-6 sm:backdrop-blur-sm"
+      initial={{opacity: 0}}
+      animate={{opacity: 1}}
+      exit={{opacity: 0}}
+      transition={{duration: motionDuration.modal, ease: easeSilk}}
+      role="presentation"
+      onClick={onClose}
+    >
       <motion.div
-        className="fixed inset-0 z-[96] flex items-end justify-center bg-ink/55 p-0 sm:items-center sm:p-6 sm:backdrop-blur-sm"
-        initial={{opacity: 0}}
-        animate={{opacity: 1}}
-        exit={{opacity: 0}}
-        role="presentation"
-        onClick={onClose}
+        ref={dialogRef}
+        tabIndex={-1}
+        initial={{y: 22, opacity: 0, scale: 0.992}}
+        animate={{y: 0, opacity: 1, scale: 1}}
+        exit={{y: 16, opacity: 0, scale: 0.995}}
+        transition={{duration: motionDuration.modal, ease: easeSilk}}
+        className="relative max-h-[94svh] w-full transform-gpu overflow-y-auto border border-border bg-ivory shadow-soft sm:max-w-4xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quick-view-title"
+        aria-busy={!product}
+        onClick={(event) => event.stopPropagation()}
       >
-        <motion.div
-          ref={dialogRef}
-          tabIndex={-1}
-          initial={{y: 30, opacity: 0}}
-          animate={{y: 0, opacity: 1}}
-          exit={{y: 30, opacity: 0}}
-          transition={{duration: motionDuration.overlay, ease: easeSilk}}
-          className="relative max-h-[94svh] w-full overflow-y-auto border border-border bg-ivory shadow-soft sm:max-w-4xl"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="quick-view-title"
-          aria-busy={!product}
-          onClick={(event) => event.stopPropagation()}
-        >
           <button
             type="button"
             onClick={onClose}
@@ -106,9 +106,8 @@ export function QuickViewModal({initialProduct, onClose, productHandle}: Props) 
             product={product ?? initialProduct}
             onClose={onClose}
           />
-        </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </motion.div>
   );
 }
 

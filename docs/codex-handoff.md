@@ -267,14 +267,24 @@
   files. WhatsApp keeps the same href/target behavior; only its mobile surface
   styling changed to avoid blur compositing.
 - Confirmed `.env` remains ignored and untracked; only `.env.example` is tracked.
+- Corrected the shared parallax wrapper positioning conflict that caused
+  absolute hero image layers to collapse after deployment.
+- Product cards now expose one stable alternate image only during genuine
+  non-touch hover or keyboard focus; the three-second gallery rotation and
+  third card-image request were removed.
+- Added a dedicated 520ms modal timing with smaller transform travel and subtle
+  scale settling for Quick View, Find My Size, and feedback. Quick View exit is
+  now retained by a parent `AnimatePresence` instead of being cut off on unmount.
 
 ## In Progress
 
-- None. Luxury-phase implementation and local static/build verification are
-  complete at `5e2e66a`.
+- None. The screenshot-reported parallax/card/modal regression fix is locally
+  complete and ready for deployment verification.
 
 ## Pending
 
+- Confirm restored imagery on deployed Home, About, and Gifting pages and tune
+  the 520ms modal duration only if real-device capture still feels abrupt.
 - Full preview browser/device QA.
 - Set `SAME_DAY_DELIVERY_VARIANT_ID` in the local/Oxygen environment after the
   hidden Shopify service product exists; until then eligibility is shown but
@@ -369,10 +379,15 @@
   TypeScript, and both production bundles passed.
 - `git diff d145425..5e2e66a` protected-file audit passed, WhatsApp behavior was
   preserved, `.env` remained ignored, and the implementation worktree was clean.
+- Regression follow-up lint, clean TypeScript, and `git diff --check` passed
+  after the parallax, product-card, and modal-motion corrections.
+- Regression follow-up production client and Oxygen SSR build passed;
+  `ProductCard` decreased to 3.39KB gzip and `ParallaxImage` remained 0.92KB.
+- Static follow-up audit confirmed no change to order-detail/Admin, feedback
+  network/storage semantics, cart/bag, SEO, sitemap/robots, WhatsApp behavior,
+  or `.env` tracking.
 
 ## Next Step
 
-Run the already-pushed `codex/luxury-motion-performance` branch in Oxygen
-Preview and complete real iOS/Android/desktop visual and interaction QA. Do not
-begin more optimization before that evidence; implementation is complete at
-`5e2e66a` and the only local change after it should be this handoff checkpoint.
+Commit and push the parallax/card/modal regression checkpoint, deploy it, then
+confirm the restored image layers on Home, About, and Gifting in a real browser.

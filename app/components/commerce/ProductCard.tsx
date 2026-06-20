@@ -1,4 +1,5 @@
 import {Link} from 'react-router';
+import {AnimatePresence} from 'framer-motion';
 import {Heart, ShoppingBag} from 'lucide-react';
 import {lazy, Suspense, useEffect, useState} from 'react';
 import {useStore} from '~/lib/commerce/cart-store';
@@ -71,12 +72,12 @@ export function ProductCard({
   const openDrawer = useStore((s) => s.openDrawer);
 
   const hoverImages = getHoverImages(product);
+  const displayImages = hoverImages.slice(0, 2);
   const firstImage = hoverImages[0];
   const [hovering, setHovering] = useState(false);
   const [imageIntent, setImageIntent] = useState(false);
-  const [imageIndex, setImageIndex] = useState(0);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
-  const activeImageIndex = hovering ? imageIndex : 0;
+  const activeImageIndex = hovering && displayImages.length > 1 ? 1 : 0;
 
   const price =
     product.priceRange?.minVariantPrice;
@@ -131,48 +132,33 @@ export function ProductCard({
   }
 
   useEffect(() => {
-    if (!hovering || hoverImages.length < 2) return;
-    if (hoverImages.length === 2) return;
-
-    // On hover the second image appears immediately; this timer then loops the
-    // remaining gallery images slowly so the card feels alive, not jumpy.
-    const timer = window.setInterval(() => {
-      setImageIndex((current) => {
-        const next = current + 1;
-        return next >= hoverImages.length ? 1 : next;
-      });
-    }, 3000);
-
-    return () => window.clearInterval(timer);
-  }, [hoverImages.length, hovering]);
-
-  useEffect(() => {
     if (!canAddToBag) scheduleQuickViewModulePreload();
   }, [canAddToBag]);
 
-    return (
-      <div
+  const activateCardIntent = () => {
+    prepareQuickView();
+    setImageIntent(true);
+    setHovering(true);
+  };
+
+  return (
+    <div
         className="group block min-w-0"
-        onMouseEnter={() => {
-          prepareQuickView();
-          setImageIntent(true);
-          setHovering(true);
-          setImageIndex(hoverImages.length > 1 ? 1 : 0);
+        onPointerEnter={(event) => {
+          if (event.pointerType === 'touch') return;
+          activateCardIntent();
         }}
-        onMouseLeave={() => {
+        onPointerLeave={(event) => {
+          if (event.pointerType === 'touch') return;
           setHovering(false);
-          setImageIndex(0);
         }}
-        onFocusCapture={() => {
-          prepareQuickView();
-          setImageIntent(true);
-          setHovering(true);
-          setImageIndex(hoverImages.length > 1 ? 1 : 0);
+        onFocusCapture={(event) => {
+          const target = event.target as HTMLElement;
+          if (target.matches(':focus-visible')) activateCardIntent();
         }}
         onBlurCapture={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) {
             setHovering(false);
-            setImageIndex(0);
           }
         }}
       >
@@ -190,9 +176,8 @@ export function ProductCard({
             className="absolute inset-0 z-10"
           />
 
-          {hoverImages.map((image: any, i: number) => {
+          {displayImages.map((image: any, i: number) => {
             if (i > 0 && !imageIntent) return null;
-            if (i > 1 && imageIndex < i) return null;
 
             return (
               <img
@@ -295,15 +280,17 @@ export function ProductCard({
             {price ? formatMoney(price.amount, price.currencyCode) : ''}
           </p>
         </div>
-        {quickViewOpen ? (
-          <Suspense fallback={<QuickViewLoadingShell />}>
-            <QuickViewModal
-              initialProduct={product}
-              productHandle={product.handle}
-              onClose={() => setQuickViewOpen(false)}
-            />
-          </Suspense>
-        ) : null}
+        <AnimatePresence initial={false}>
+          {quickViewOpen ? (
+            <Suspense key="quick-view" fallback={<QuickViewLoadingShell />}>
+              <QuickViewModal
+                initialProduct={product}
+                productHandle={product.handle}
+                onClose={() => setQuickViewOpen(false)}
+              />
+            </Suspense>
+          ) : null}
+        </AnimatePresence>
       </div>
     );
 }
@@ -334,7 +321,7 @@ function getHoverImages(product: any) {
     return true;
   });
 
-  return images.slice(0, 3);
+  return images.slice(0, 2);
 }
 
 function shouldChooseVariantOnPdp(
