@@ -4,7 +4,7 @@
 
 - Current branch: `codex/luxury-motion-performance`
 - Luxury-performance baseline commit: `d145425`
-- Latest luxury implementation commit: `5e2e66a`
+- Latest luxury implementation commit: `1f6f2c7`
 - Completed and pushed previous phase: `codex/storefront-performance-seo`
 - Stable pre-Antigravity commit: `5f49de6`
 - Antigravity snapshot branch: `codex/antigravity-snapshot`
@@ -386,6 +386,7 @@
 - Static follow-up audit confirmed no change to order-detail/Admin, feedback
   network/storage semantics, cart/bag, SEO, sitemap/robots, WhatsApp behavior,
   or `.env` tracking.
+- Screenshot-reported regression fix committed and pushed as `1f6f2c7`.
 
 ## Next Step
 
