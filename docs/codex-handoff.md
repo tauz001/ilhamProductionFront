@@ -4,6 +4,7 @@
 
 - Current branch: `codex/luxury-motion-performance`
 - Luxury-performance baseline commit: `d145425`
+- Latest luxury implementation commit: `5e2e66a`
 - Completed and pushed previous phase: `codex/storefront-performance-seo`
 - Stable pre-Antigravity commit: `5f49de6`
 - Antigravity snapshot branch: `codex/antigravity-snapshot`
@@ -261,14 +262,19 @@
   this consistency pass adds no route query, client state, or animation runtime.
 - Added accurate responsive image sizing and restrained CSS hover treatment to
   article and all-products cards while preserving their existing destinations.
+- Static Git audit from `d145425..5e2e66a` confirms no luxury-phase change to
+  order detail/Admin, feedback API, cart/bag, SEO helper, robots, or sitemap
+  files. WhatsApp keeps the same href/target behavior; only its mobile surface
+  styling changed to avoid blur compositing.
+- Confirmed `.env` remains ignored and untracked; only `.env.example` is tracked.
 
 ## In Progress
 
-- Live route and protected-behavior QA for the completed luxury phase.
+- None. Luxury-phase implementation and local static/build verification are
+  complete at `5e2e66a`.
 
 ## Pending
 
-- Final handoff reconciliation and phase completion checkpoint.
 - Full preview browser/device QA.
 - Set `SAME_DAY_DELIVERY_VARIANT_ID` in the local/Oxygen environment after the
   hidden Shopify service product exists; until then eligibility is shown but
@@ -355,9 +361,18 @@
 - Luxury-phase diff validation and production client/Oxygen SSR build - passed
   after the generic public-route consistency implementation; the shared
   `EditorialHeader` client chunk is 0.43KB gzip.
+- A second `npm.cmd run preview -- --port 3000` production build passed, but
+  MiniOxygen's Workers runtime could not start in the Windows sandbox, so no
+  fresh rendered-HTTP session was available for the final generic-route pass.
+- The in-app browser bootstrap also failed because Windows denied its sandbox
+  process. These are local QA-environment limitations; compile, codegen, lint,
+  TypeScript, and both production bundles passed.
+- `git diff d145425..5e2e66a` protected-file audit passed, WhatsApp behavior was
+  preserved, `.env` remained ignored, and the implementation worktree was clean.
 
 ## Next Step
 
-Commit and push the generic-route checkpoint. Finish with live route checks,
-static protected-behavior checks, and a clean-worktree audit before declaring
-the luxury phase complete.
+Run the already-pushed `codex/luxury-motion-performance` branch in Oxygen
+Preview and complete real iOS/Android/desktop visual and interaction QA. Do not
+begin more optimization before that evidence; implementation is complete at
+`5e2e66a` and the only local change after it should be this handoff checkpoint.
