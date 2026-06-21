@@ -2,7 +2,7 @@
 
 ## Repository State
 
-- Current branch: `codex/luxury-motion-performance`
+- Current branch: `codex/order-tracking`
 - Luxury-performance baseline commit: `d145425`
 - Latest luxury implementation commit: `1f6f2c7`
 - Completed and pushed previous phase: `codex/storefront-performance-seo`
@@ -121,6 +121,31 @@
   interruption or context limit.
 - At the start of a new chat: read this file, inspect Git status and recent
   commits, then continue from `Next Step` without repeating completed work.
+
+## Real-Time Order Tracking Phase
+
+### Approved Objective
+
+- Add a public, no-index `Track My Order` page with a refined shipment timeline.
+- Accept a Shiprocket AWB directly, or a Shopify order number plus the matching
+  order email; never allow guessable order-number-only lookups.
+- Resolve order fulfillment/AWB server-side through Shopify Admin, then request
+  current carrier scans from Shiprocket on every lookup with `no-store` caching.
+- Return only sanitized shipment status, carrier, AWB, ETA, tracking URL, and
+  scan events. Never return customer names, email, phone, address, payment data,
+  credentials, or raw provider payloads.
+- Preserve the protected order-detail/Admin loader, feedback behavior, cart,
+  WhatsApp, SEO URLs, sitemap endpoints, and all existing credentials.
+
+### Implementation Order
+
+1. Save and push this branch/handoff recovery checkpoint.
+2. Add a server-only Shopify/Shiprocket tracking service with input validation,
+   email ownership verification, sanitized normalization, and provider errors.
+3. Add the public `/track-order` form and responsive luxury timeline UI.
+4. Add restrained discovery links without indexing the private utility route.
+5. Validate live provider contracts without logging or exposing PII/secrets,
+   then run lint, clean TypeScript, diff checks, and the production build.
 
 ## Completed
 
@@ -278,8 +303,7 @@
 
 ## In Progress
 
-- None. The screenshot-reported parallax/card/modal regression fix is locally
-  complete and ready for deployment verification.
+- Real-time order tracking branch recovery checkpoint.
 
 ## Pending
 
@@ -390,5 +414,5 @@
 
 ## Next Step
 
-Commit and push the parallax/card/modal regression checkpoint, deploy it, then
-confirm the restored image layers on Home, About, and Gifting in a real browser.
+Commit and push the order-tracking handoff checkpoint. Then implement the
+server-only provider service without changing `account.orders.$id.tsx`.
