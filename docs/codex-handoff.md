@@ -303,10 +303,12 @@
 
 ## In Progress
 
-- Real-time order tracking branch recovery checkpoint.
+- Server-only tracking service verification and public timeline route.
 
 ## Pending
 
+- Local Shopify Admin order lookup returned `401`; validate the production
+  Oxygen token has `read_orders` (and `read_all_orders` for older orders).
 - Confirm restored imagery on deployed Home, About, and Gifting pages and tune
   the 520ms modal duration only if real-device capture still feels abrupt.
 - Full preview browser/device QA.
@@ -411,8 +413,15 @@
   network/storage semantics, cart/bag, SEO, sitemap/robots, WhatsApp behavior,
   or `.env` tracking.
 - Screenshot-reported regression fix committed and pushed as `1f6f2c7`.
+- Official Shiprocket published Postman collection confirmed AWB endpoint
+  `/v1/external/courier/track/awb/{awb_code}`.
+- Configured Shiprocket authentication and a fake-AWB read-only request passed;
+  the live endpoint returned the documented `tracking_data` error shape with
+  HTTP 200 and `track_status: 0`, which the adapter treats as not found.
+- Read-only local Shopify tracking-query validation returned HTTP 401, so no
+  customer/order data was read and production Admin-token scope remains pending.
 
 ## Next Step
 
-Commit and push the order-tracking handoff checkpoint. Then implement the
-server-only provider service without changing `account.orders.$id.tsx`.
+Finish the public `/track-order` route and navigation links, then run the full
+static/build/protected-file verification. Do not modify `account.orders.$id.tsx`.
