@@ -5,6 +5,7 @@
 - Current branch: `codex/order-tracking`
 - Luxury-performance baseline commit: `d145425`
 - Latest luxury implementation commit: `1f6f2c7`
+- Real-time order tracking implementation commit: `c8f7050`
 - Completed and pushed previous phase: `codex/storefront-performance-seo`
 - Stable pre-Antigravity commit: `5f49de6`
 - Antigravity snapshot branch: `codex/antigravity-snapshot`
@@ -303,12 +304,14 @@
 
 ## In Progress
 
-- Final order-tracking verification and checkpoint.
+- None. Order-tracking implementation is committed and pushed at `c8f7050`.
 
 ## Pending
 
 - Local Shopify Admin order lookup returned `401`; validate the production
   Oxygen token has `read_orders` (and `read_all_orders` for older orders).
+- Deploy `codex/order-tracking` to Oxygen Preview and visually verify the empty,
+  loading, safe-error, pre-fulfillment, in-transit, exception, and delivered UI.
 - Confirm restored imagery on deployed Home, About, and Gifting pages and tune
   the 520ms modal duration only if real-device capture still feels abrupt.
 - Full preview browser/device QA.
@@ -430,8 +433,11 @@
 - In-app visual browser setup and the local Workers runtime remain blocked by
   the Windows sandbox, so interactive layout QA remains a deployment-preview
   task rather than a claimed local pass.
+- Luxury real-time `/track-order` route, footer link, environment guidance, and
+  server normalization were committed and pushed as `c8f7050`.
 
 ## Next Step
 
-Commit and push the `/track-order` UI checkpoint, then perform the final clean
-worktree/protected-file audit and record the exact implementation commit.
+Validate or replace the production Shopify Admin token, deploy
+`codex/order-tracking` to Oxygen Preview, and exercise one owned order and AWB.
+Do not use another customer's reference for testing and do not log response PII.
