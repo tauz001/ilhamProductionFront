@@ -67,16 +67,25 @@ type ShiprocketActivity = {
 };
 
 export class TrackingLookupError extends Error {
+  readonly code:
+    | 'INVALID_INPUT'
+    | 'NOT_FOUND'
+    | 'CONFIGURATION'
+    | 'PROVIDER_UNAVAILABLE';
+  readonly status: number;
+
   constructor(
     message: string,
-    readonly code:
+    code:
       | 'INVALID_INPUT'
       | 'NOT_FOUND'
       | 'CONFIGURATION'
       | 'PROVIDER_UNAVAILABLE',
-    readonly status: number,
+    status: number,
   ) {
     super(message);
+    this.code = code;
+    this.status = status;
   }
 }
 
@@ -430,12 +439,11 @@ function normalizeShiprocketTracking(
     events[0]?.status,
     'Shipment confirmed',
   );
-  const resolvedAwb = firstUsefulText(
-    shipment.awb_code,
-    trackingData.awb,
-    root?.awb,
-    awb,
-  );
+  const resolvedAwb =
+    safeText(shipment.awb_code, 80) ??
+    safeText(trackingData.awb, 80) ??
+    safeText(root?.awb, 80) ??
+    awb;
   const courier = firstUsefulText(
     shipment.courier_name,
     trackingData.courier_name,
@@ -577,7 +585,7 @@ function trackingDateValue(value?: string | null) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-const SHOPIFY_TRACKING_ORDER_QUERY = `#graphql
+const SHOPIFY_TRACKING_ORDER_QUERY = `
   query TrackingOrderLookup($query: String!) {
     orders(first: 5, query: $query, reverse: true, sortKey: CREATED_AT) {
       nodes {

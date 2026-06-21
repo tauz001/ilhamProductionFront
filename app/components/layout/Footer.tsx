@@ -122,6 +122,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/track-order" className="hover:text-gold">
+                  Track my order
+                </Link>
+              </li>
+              <li>
                 <Link to="/terms-and-conditions" className="hover:text-gold">
                   Terms & conditions
                 </Link>

@@ -303,7 +303,7 @@
 
 ## In Progress
 
-- Server-only tracking service verification and public timeline route.
+- Final order-tracking verification and checkpoint.
 
 ## Pending
 
@@ -420,8 +420,18 @@
   HTTP 200 and `track_status: 0`, which the adapter treats as not found.
 - Read-only local Shopify tracking-query validation returned HTTP 401, so no
   customer/order data was read and production Admin-token scope remains pending.
+- Shopify's official current Admin GraphQL documentation confirmed the queried
+  Order/Fulfillment fields and the `name`/`confirmation_number` search filters.
+- Full Hydrogen codegen, lint, clean TypeScript, diff validation, and production
+  client/Oxygen build passed. The isolated tracking route is 4.32KB gzip and the
+  server-only provider module/credential names are absent from client assets.
+- Direct fake-AWB execution through the new service returned the intended safe
+  `NOT_FOUND`/404 contract; no raw Shiprocket response reached the route DTO.
+- In-app visual browser setup and the local Workers runtime remain blocked by
+  the Windows sandbox, so interactive layout QA remains a deployment-preview
+  task rather than a claimed local pass.
 
 ## Next Step
 
-Finish the public `/track-order` route and navigation links, then run the full
-static/build/protected-file verification. Do not modify `account.orders.$id.tsx`.
+Commit and push the `/track-order` UI checkpoint, then perform the final clean
+worktree/protected-file audit and record the exact implementation commit.
