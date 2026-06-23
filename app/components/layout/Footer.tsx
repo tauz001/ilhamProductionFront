@@ -2,9 +2,6 @@ import {Link} from 'react-router';
 import {ChikanMotif} from '~/components/editorial/ChikanMotif';
 import {SOCIAL_LINKS} from '~/lib/social-links';
 
-const LOGO_URL =
-  'https://cdn.shopify.com/s/files/1/0820/4389/6063/files/ilham_logo_wo_bg.png?v=1780461025';
-
 export function Footer() {
   return (
     <footer className="relative overflow-hidden bg-ink text-ivory">
@@ -16,13 +13,17 @@ export function Footer() {
       </span>
       <div className="relative mx-auto max-w-[1500px] px-6 py-24 lg:px-12">
         <div className="flex flex-col items-center text-center">
-          <Link to="/" aria-label="ilham home">
-            <img
-              src={LOGO_URL}
-              alt="ilham"
-              className="h-11 w-auto object-contain invert"
-              loading="lazy"
-            />
+          <Link
+            to="/"
+            aria-label="ilham home"
+            className="group inline-flex flex-col items-center"
+          >
+            <span className="font-display text-5xl leading-none tracking-[0.14em] text-gold-soft transition-colors group-hover:text-gold">
+              ilham
+            </span>
+            <span className="mt-2 small-caps text-ivory/45">
+              Lucknow chikankari atelier
+            </span>
           </Link>
           <ChikanMotif className="mt-8 h-8 w-48 text-gold-soft" />
           <h2 className="mt-10 font-display text-5xl tracking-[0.04em] md:text-7xl">
@@ -122,6 +123,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/policies/refund-policy" className="hover:text-gold">
+                  Refund policy
+                </Link>
+              </li>
+              <li>
                 <Link to="/track-order" className="hover:text-gold">
                   Track my order
                 </Link>
@@ -160,23 +166,14 @@ export function Footer() {
             <Link to="/terms-and-conditions" className="hover:text-gold">
               Terms
             </Link>
+            <Link to="/policies/refund-policy" className="hover:text-gold">
+              Refunds
+            </Link>
             <Link to="/blogs" className="hover:text-gold">
               Journal
             </Link>
           </div>
         </div>
-
-        <p className="mt-6 text-center text-xs text-ivory/35">
-          Developed by{' '}
-          <a
-            href="https://tauz001.github.io/PortfolioTauz/"
-            target="_blank"
-            rel="noreferrer"
-            className="text-ivory/55 transition-colors hover:text-gold"
-          >
-            Love
-          </a>
-        </p>
       </div>
     </footer>
   );

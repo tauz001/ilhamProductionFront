@@ -4,7 +4,7 @@ import {Heart, ShoppingBag} from 'lucide-react';
 import {lazy, Suspense, useEffect, useState} from 'react';
 import {useStore} from '~/lib/commerce/cart-store';
 import {AddToCartButton} from '~/components/AddToCartButton';
-import {formatMoney} from '~/lib/commerce/format-money';
+import {PriceWithSavings} from './PriceWithSavings';
 import {
   getMetafieldValue,
   logMissingShopifyField,
@@ -79,9 +79,6 @@ export function ProductCard({
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const activeImageIndex = hovering && displayImages.length > 1 ? 1 : 0;
 
-  const price =
-    product.priceRange?.minVariantPrice;
-
   const subtitle = getMetafieldValue(product, 'subtitle');
   const variants = product.variants?.nodes ?? [];
   const purchasableVariants = variants.filter(isVariantPurchasable);
@@ -102,6 +99,8 @@ export function ProductCard({
   const isNew =
     tagIncludes(product.tags, 'new-arrival') ||
     tagIncludes(product.tags, 'new');
+  const price = variant?.price ?? product.priceRange?.minVariantPrice;
+  const compareAtPrice = variant?.compareAtPrice;
 
   const prepareQuickView = () => {
     if (canAddToBag) return;
@@ -276,9 +275,12 @@ export function ProductCard({
             </p>
           </div>
     
-          <p className="self-start whitespace-nowrap text-sm text-ink/80 sm:shrink-0">
-            {price ? formatMoney(price.amount, price.currencyCode) : ''}
-          </p>
+          <PriceWithSavings
+            className="self-start whitespace-nowrap text-ink/80 sm:shrink-0"
+            compareAtPrice={compareAtPrice}
+            price={price}
+            size="card"
+          />
         </div>
         <AnimatePresence initial={false}>
           {quickViewOpen ? (

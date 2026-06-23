@@ -195,6 +195,14 @@ export function getWashCareForFabric(
   return 'Dry clean recommended for hand-embroidered chikankari. Store folded in breathable cloth and keep away from direct sunlight.';
 }
 
+export function getFabricTransparencyNote(fabric?: string | null) {
+  const normalized = fabric?.toLowerCase() ?? '';
+
+  if (!/(chiffon|georgette)/.test(normalized)) return '';
+
+  return 'Chiffon and georgette are light, sheer fabrics with a soft net-like openness. This piece is best worn with the inner/slip provided by ilham.';
+}
+
 export function isSameDayDeliveryPincode(
   pincode: string,
   configuredPrefixes = '226',

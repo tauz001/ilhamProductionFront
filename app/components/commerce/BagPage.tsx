@@ -1,19 +1,23 @@
-import {Link, useSearchParams} from 'react-router';
+import {Await, Link, useSearchParams} from 'react-router';
 import {motion} from 'framer-motion';
+import {Suspense} from 'react';
 import {Gift, RefreshCw, ShieldCheck, Truck} from 'lucide-react';
 import {useOptimisticCart} from '@shopify/hydrogen';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import {UrduCalligraphy} from '~/components/editorial/UrduCalligraphy';
+import {DiscountTicket} from '~/components/commerce/DiscountTicket';
 import {formatMoney} from '~/lib/commerce/format-money';
 import {
   getDisplayShipping,
   getDisplayTotal,
 } from '~/lib/commerce/cart-pricing';
+import type {DiscountTicketOffer} from '~/lib/commerce/discount-ticket';
 import {
   getCartLineQuantityTotal,
   getVisibleCartLines,
   hasCartLineIssue,
 } from '~/lib/commerce/cart-lines';
+import {getCartCompareAtSavings} from '~/lib/commerce/pricing';
 import {easeSilk} from '~/lib/motion/variants';
 import {BagLineItem} from './BagLineItem';
 import {DeliveryEstimator} from './DeliveryEstimator';
@@ -28,10 +32,15 @@ export type BagRecommendation = {
 
 type Props = {
   cart: CartApiQueryFragment | null;
+  discountOffer?: DiscountTicketOffer | Promise<DiscountTicketOffer | null> | null;
   recommendations?: BagRecommendation[];
 };
 
-export function BagPage({cart: originalCart, recommendations = []}: Props) {
+export function BagPage({
+  cart: originalCart,
+  discountOffer = null,
+  recommendations = [],
+}: Props) {
   const [searchParams] = useSearchParams();
   const cart = useOptimisticCart(originalCart);
   const lines = getVisibleCartLines(cart as CartApiQueryFragment | null);
@@ -42,6 +51,8 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
     ? parseFloat(String(subtotalMoney.amount))
     : 0;
   const currencyCode = subtotalMoney?.currencyCode ?? 'INR';
+  const compareAtSavings = getCartCompareAtSavings(lines);
+  const hasCompareAtSavings = compareAtSavings.amount > 0;
   const shipping = getDisplayShipping(subtotal, currencyCode);
   const total = getDisplayTotal(subtotal, currencyCode);
   const checkoutUrl = cart?.checkoutUrl;
@@ -112,6 +123,18 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
                         : '-'}
                     </dd>
                   </div>
+                  {hasCompareAtSavings && (
+                    <div className="flex justify-between text-gold">
+                      <dt>Piece savings</dt>
+                      <dd>
+                        -
+                        {formatMoney(
+                          compareAtSavings.amount,
+                          compareAtSavings.currencyCode || currencyCode,
+                        )}
+                      </dd>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <dt className="text-ink/65">Shipping</dt>
                     <dd className="text-right italic">{shipping.label}</dd>
@@ -136,6 +159,19 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
                   enableSameDayCart
                   className="mt-6 bg-ivory/60"
                 />
+
+                <Suspense fallback={null}>
+                  <Await resolve={discountOffer}>
+                    {(offer) => (
+                      <DiscountTicket
+                        applied={isDiscountApplied(cart, offer?.code)}
+                        className="mt-6"
+                        offer={offer}
+                        redirectTo="/bag"
+                      />
+                    )}
+                  </Await>
+                </Suspense>
 
                 {(invalidLines.length > 0 || checkoutBlocked) && (
                   <p className="mt-6 border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -165,6 +201,20 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
                 </Link>
 
                 <ul className="mt-8 space-y-3 text-xs text-ink/60">
+                  {hasCompareAtSavings && (
+                    <li className="flex items-start gap-2 text-gold">
+                      <ShieldCheck
+                        className="mt-0.5 h-3.5 w-3.5"
+                        strokeWidth={1.4}
+                      />{' '}
+                      You save{' '}
+                      {formatMoney(
+                        compareAtSavings.amount,
+                        compareAtSavings.currencyCode || currencyCode,
+                      )}{' '}
+                      against the original piece price.
+                    </li>
+                  )}
                   <li className="flex items-start gap-2">
                     <Gift
                       className="mt-0.5 h-3.5 w-3.5 text-gold"
@@ -242,6 +292,23 @@ export function BagPage({cart: originalCart, recommendations = []}: Props) {
         )}
       </div>
     </div>
+  );
+}
+
+function isDiscountApplied(
+  cart:
+    | {discountCodes?: Array<{applicable?: boolean | null; code?: string | null}>}
+    | null
+    | undefined,
+  code?: string,
+) {
+  if (!code) return false;
+  return Boolean(
+    cart?.discountCodes?.some(
+      (discount) =>
+        discount.applicable &&
+        discount.code?.toLowerCase() === code.toLowerCase(),
+    ),
   );
 }
 

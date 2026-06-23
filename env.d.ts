@@ -8,6 +8,7 @@ import '@total-typescript/ts-reset';
 
 declare global {
   interface Env {
+    DISCOUNT_TICKET_TAG?: string;
     SAME_DAY_DELIVERY_ENABLED?: string;
     SAME_DAY_DELIVERY_FEE_INR?: string;
     SAME_DAY_DELIVERY_PINCODE_PREFIXES?: string;

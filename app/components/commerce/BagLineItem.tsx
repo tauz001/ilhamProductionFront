@@ -1,6 +1,10 @@
 import {Link} from 'react-router';
 import {motion} from 'framer-motion';
 import {formatMoney} from '~/lib/commerce/format-money';
+import {PriceWithSavings} from './PriceWithSavings';
+import {
+  getCartLineCompareAtSavings,
+} from '~/lib/commerce/pricing';
 import {
   getLineProductType,
   getLineSizeLabel,
@@ -24,6 +28,8 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
   const {merchandise, cost, quantity} = line;
   const {product, image, title} = merchandise;
   const unitAmount = cost?.amountPerQuantity;
+  const compareAtUnitAmount =
+    cost?.compareAtAmountPerQuantity ?? merchandise.compareAtPrice;
   const lineTotal = cost?.totalAmount;
   const handle = product.handle;
   const productType = getLineProductType(line);
@@ -37,6 +43,7 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
       ? 'This saved bag line has zero quantity. Increase it to 1 or remove it and add again.'
       : '';
   const giftDetails = getGiftLineDetails(line);
+  const lineSavings = getCartLineCompareAtSavings(line);
 
   if (layout === 'drawer') {
     return (
@@ -67,11 +74,12 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
               {issueMessage}
             </p>
           )}
-          {unitAmount && (
-            <p className="mt-2 text-sm">
-              {formatMoney(unitAmount.amount, unitAmount.currencyCode)}
-            </p>
-          )}
+          <PriceWithSavings
+            className="mt-2"
+            compareAtPrice={compareAtUnitAmount}
+            price={unitAmount}
+            size="line"
+          />
           <div className="mt-3 flex items-center justify-between">
             <CartLineQuantityControls line={line} compact />
             <CartLineRemoveControl
@@ -140,9 +148,15 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
             {formatMoney(lineTotal.amount, lineTotal.currencyCode)}
           </p>
         ) : null}
-        {unitAmount && (
-          <p className="mt-1 text-xs text-ink/45">
-            {formatMoney(unitAmount.amount, unitAmount.currencyCode)} each
+        <PriceWithSavings
+          className="mt-1 md:flex md:flex-col md:items-end"
+          compareAtPrice={compareAtUnitAmount}
+          price={unitAmount}
+          size="line"
+        />
+        {lineSavings && (
+          <p className="mt-1 text-xs text-gold">
+            Saved {formatMoney(lineSavings.amount, lineSavings.currencyCode)}
           </p>
         )}
       </div>

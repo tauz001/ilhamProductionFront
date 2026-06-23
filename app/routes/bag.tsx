@@ -1,6 +1,7 @@
 import {useLoaderData} from 'react-router';
 import type {Route} from './+types/bag';
 import {BagPage, type BagRecommendation} from '~/components/commerce/BagPage';
+import {fetchFeaturedDiscountOffer} from '~/lib/commerce/discount-ticket.server';
 import {privatePageMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
@@ -44,6 +45,7 @@ export async function loader({context}: Route.LoaderArgs) {
       return null;
     }),
   ]);
+  const discountOffer = fetchFeaturedDiscountOffer(context.env);
 
   const recommendations: BagRecommendation[] =
     recommendationsResult?.products?.nodes?.map(
@@ -64,10 +66,16 @@ export async function loader({context}: Route.LoaderArgs) {
       }),
     ) ?? [];
 
-  return {cart: cartResult, recommendations};
+  return {cart: cartResult, discountOffer, recommendations};
 }
 
 export default function BagRoute() {
-  const {cart, recommendations} = useLoaderData<typeof loader>();
-  return <BagPage cart={cart} recommendations={recommendations} />;
+  const {cart, discountOffer, recommendations} = useLoaderData<typeof loader>();
+  return (
+    <BagPage
+      cart={cart}
+      discountOffer={discountOffer}
+      recommendations={recommendations}
+    />
+  );
 }

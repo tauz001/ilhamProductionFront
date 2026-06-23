@@ -5,6 +5,8 @@ import {ChevronDown, Heart, Minus, Plus} from 'lucide-react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Analytics} from '@shopify/hydrogen';
 import {AddToCartButton} from '~/components/AddToCartButton';
+import {DiscountTicket} from '~/components/commerce/DiscountTicket';
+import {PriceWithSavings} from '~/components/commerce/PriceWithSavings';
 import {ProductAssurancePanel} from '~/components/commerce/ProductAssurancePanel';
 import {ProductCard} from '~/components/commerce/ProductCard';
 import {ProductImageCarousel} from '~/components/commerce/ProductImageCarousel';
@@ -13,7 +15,6 @@ import {JsonLd} from '~/components/seo/JsonLd';
 import {FadeUp} from '~/components/editorial/MaskedReveal';
 import {ChikanMotif} from '~/components/editorial/ChikanMotif';
 import {useStore} from '~/lib/commerce/cart-store';
-import {formatMoney} from '~/lib/commerce/format-money';
 import {easeSilk} from '~/lib/motion/variants';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {
@@ -27,7 +28,11 @@ import {
   buildVariantOptionGroups,
   getOptionValue,
 } from '~/lib/commerce/selected-variant';
-import {getWashCareForFabric} from '~/lib/commerce/product-guidance';
+import {
+  getFabricTransparencyNote,
+  getWashCareForFabric,
+} from '~/lib/commerce/product-guidance';
+import {fetchFeaturedDiscountOffer} from '~/lib/commerce/discount-ticket.server';
 import {
   PDP_IMAGE_WIDTHS,
   shopifyImageUrl,
@@ -77,13 +82,15 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
     });
 
   return {
+    discountOffer: fetchFeaturedDiscountOffer(context.env),
     product,
     recommendations,
   };
 }
 
 export default function Product() {
-  const {product, recommendations} = useLoaderData<typeof loader>();
+  const {discountOffer, product, recommendations} =
+    useLoaderData<typeof loader>();
   const variants = product.variants?.nodes ?? [];
   const firstAvailableIndex = Math.max(
     0,
@@ -110,6 +117,7 @@ export default function Product() {
     fabric,
     getMetafieldValue(product, 'wash_care') ?? care,
   );
+  const fabricTransparencyNote = getFabricTransparencyNote(fabric);
   const craftHours = getRequiredMetafield(product, 'craft_hours');
   const artisan = getRequiredMetafield(product, 'artisan');
   const origin = getRequiredMetafield(product, 'origin');
@@ -136,6 +144,7 @@ export default function Product() {
     craftHours,
     description: product.description,
     fabric,
+    fabricTransparencyNote,
     origin,
     reviewSummary,
     shippingReturns,
@@ -168,7 +177,9 @@ export default function Product() {
     {
       id: 'fabric',
       title: 'Fabric & care',
-      body: [fabric, washCare].filter(Boolean).join('. '),
+      body: [fabric, fabricTransparencyNote, washCare]
+        .filter(Boolean)
+        .join('. '),
     },
     {
       id: 'craft',
@@ -213,11 +224,12 @@ export default function Product() {
               {subtitle}
             </p>
           )}
-          {price && (
-            <p className="mt-4 text-2xl">
-              {formatMoney(price.amount, price.currencyCode)}
-            </p>
-          )}
+          <PriceWithSavings
+            className="mt-4"
+            compareAtPrice={selectedVariant?.compareAtPrice}
+            price={price}
+            size="pdp"
+          />
           <p className="mt-1 text-xs text-ink/45">
             Inclusive of all taxes. Checkout and shipping calculated by Shopify
           </p>
@@ -318,6 +330,18 @@ export default function Product() {
               />
             </button>
           </div>
+
+          <Suspense fallback={null}>
+            <Await resolve={discountOffer}>
+              {(offer) => (
+                <DiscountTicket
+                  className="mt-4"
+                  offer={offer}
+                  redirectTo={`/products/${product.handle}`}
+                />
+              )}
+            </Await>
+          </Suspense>
 
           <ProductAssurancePanel priceAmount={price?.amount} />
 
@@ -540,6 +564,7 @@ function buildProductDetailSections({
   craftHours,
   description,
   fabric,
+  fabricTransparencyNote,
   origin,
   reviewSummary,
   shippingReturns,
@@ -549,6 +574,7 @@ function buildProductDetailSections({
   craftHours?: string | null;
   description?: string | null;
   fabric?: string | null;
+  fabricTransparencyNote?: string | null;
   origin?: string | null;
   reviewSummary?: string | null;
   shippingReturns?: string | null;
@@ -565,6 +591,14 @@ function buildProductDetailSections({
     {
       title: 'Description',
       body: description,
+    },
+    {
+      title: 'Shade note',
+      body: 'Each ilham piece is photographed under controlled studio light. Hand-dyed fabric, embroidery depth, and your screen settings can make the shade appear slightly warmer or cooler in person.',
+    },
+    {
+      title: 'Fabric transparency',
+      body: fabricTransparencyNote,
     },
     {
       title: 'Craft',

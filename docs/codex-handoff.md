@@ -2,7 +2,7 @@
 
 ## Repository State
 
-- Current branch: `codex/order-tracking`
+- Current branch: `codex/premium-discount-experience`
 - Luxury-performance baseline commit: `d145425`
 - Latest luxury implementation commit: `1f6f2c7`
 - Real-time order tracking implementation commit: `c8f7050`
@@ -147,6 +147,55 @@
 4. Add restrained discovery links without indexing the private utility route.
 5. Validate live provider contracts without logging or exposing PII/secrets,
    then run lint, clean TypeScript, diff checks, and the production build.
+
+## Premium Discount / PDP Trust Phase
+
+### Approved Objective
+
+- Add a premium copyable discount-ticket surface on PDP and bag/cart pages.
+- Fetch the displayed code from Shopify Admin discounts; do not hardcode a
+  storefront code in React, loaders, or environment files.
+- Keep the ticket hidden if the Admin token/scope is unavailable rather than
+  showing a stale or fake offer.
+- Add PDP trust copy below the product description for shade variation and
+  transparent chiffon/georgette fabric guidance.
+- Improve sale/anchor pricing so sale products show compare-at price, sale
+  price, and percentage saved, and cart/bag shows total compare-at savings.
+- Refresh the footer to remove the remote/blue logo dependency and improve
+  refund-policy discovery.
+- Preserve protected order-detail/Admin API behavior, feedback semantics, cart
+  correctness, WhatsApp, SEO URLs, sitemap endpoints, and credentials.
+
+### Implementation Order
+
+1. Add a server-only Shopify Admin discount reader using `discountNodes` with
+   graceful no-offer behavior when `read_discounts` is missing.
+2. Add a shared premium discount-ticket component for PDP, bag/cart, and the
+   cart drawer.
+3. Add pricing helpers for compare-at/anchor savings and wire them into PDP,
+   product cards, bag lines, and summary totals without changing cart actions.
+4. Add PDP shade/fabric guidance using existing product metafields/options.
+5. Refine footer/logo and policy links; rely on Shopify's real refund policy
+   route where possible.
+6. Run codegen, lint, TypeScript, diff checks, and build; commit and push a
+   checkpoint.
+
+### Current Notes
+
+- Shopify Admin `discountNodes` requires `read_discounts`; the existing
+  private Admin token will need that scope in Oxygen/local `.env` before the
+  ticket can render real codes.
+- The work starts from clean pushed order-tracking commit `970bb9d`.
+- Implemented the first pass locally: server-only Shopify discount reader,
+  copy/apply ticket UI, PDP and bag/cart ticket slots, compare-at sale pricing,
+  cart compare-at savings, chiffon/georgette PDP guidance, footer refund links,
+  and `/refund-policy` redirect.
+- Discount-ticket selection is controlled by Shopify discount tag
+  `DISCOUNT_TICKET_TAG` (default/example `storefront-ticket`) so private
+  influencer/customer codes are not accidentally exposed.
+- Local verification passed: codegen, lint, clean TypeScript, diff checks,
+  production build, client-secret scan, `.env` ignore check, and protected-file
+  audit.
 
 ## Completed
 
@@ -304,14 +353,21 @@
 
 ## In Progress
 
-- None. Order-tracking implementation is committed and pushed at `c8f7050`.
+- Premium discount/PDP/footer implementation is locally verified on
+  `codex/premium-discount-experience` and ready for checkpoint commit/push.
 
 ## Pending
 
 - Local Shopify Admin order lookup returned `401`; validate the production
   Oxygen token has `read_orders` (and `read_all_orders` for older orders).
+- For the new discount ticket, the Shopify Admin token also needs
+  `read_discounts`, and one active public code discount must be tagged with
+  `DISCOUNT_TICKET_TAG` (default/example `storefront-ticket`).
 - Deploy `codex/order-tracking` to Oxygen Preview and visually verify the empty,
   loading, safe-error, pre-fulfillment, in-transit, exception, and delivered UI.
+- Deploy `codex/premium-discount-experience` to Oxygen Preview and verify PDP
+  ticket copy/apply, bag/cart ticket, sale-price display, cart savings, footer
+  policy links, and `/refund-policy` redirect with a tagged test discount.
 - Confirm restored imagery on deployed Home, About, and Gifting pages and tune
   the 520ms modal duration only if real-device capture still feels abrupt.
 - Full preview browser/device QA.
@@ -435,9 +491,28 @@
   task rather than a claimed local pass.
 - Luxury real-time `/track-order` route, footer link, environment guidance, and
   server normalization were committed and pushed as `c8f7050`.
+- Premium discount phase `npm.cmd run codegen` - passed after adding
+  `/refund-policy` route and Admin-backed discount ticket data.
+- Premium discount phase `npm.cmd run lint` - passed after fixing the
+  clipboard handler.
+- Premium discount phase clean TypeScript
+  `node_modules/.bin/tsc.cmd --noEmit --incremental false` - passed after
+  widening money/cart helper types.
+- Premium discount phase `git diff --check` - passed.
+- Premium discount phase `npm.cmd run build` - production client and Oxygen SSR
+  bundles passed.
+- Client bundle scan found no `PRIVATE_SHOPIFY_ADMIN_API_TOKEN`,
+  `X-Shopify-Access-Token`, `admin/api/2026-04`, `discountNodes`, or
+  `DISCOUNT_TICKET_TAG` strings in `dist/client`.
+- Protected-file audit showed no diff to order-detail/Admin route, feedback API,
+  WhatsApp, checkout redirect, cart mutation helpers, cart pricing/line helpers,
+  robots, or sitemap routes. `.env` remains ignored by `.gitignore`.
 
 ## Next Step
 
-Validate or replace the production Shopify Admin token, deploy
-`codex/order-tracking` to Oxygen Preview, and exercise one owned order and AWB.
-Do not use another customer's reference for testing and do not log response PII.
+Commit and push `codex/premium-discount-experience`, then deploy it to Oxygen
+Preview. In Shopify Admin, grant the private Admin token `read_discounts`, tag
+one intended public active code discount with `storefront-ticket` (or set
+`DISCOUNT_TICKET_TAG` to your chosen tag), and verify the ticket/sale/refund UI
+on a real PDP and bag. Continue to avoid using another customer's order data
+while order tracking token setup remains pending.

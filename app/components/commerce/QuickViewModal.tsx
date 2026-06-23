@@ -3,7 +3,7 @@ import {Link} from 'react-router';
 import {motion} from 'framer-motion';
 import {LoaderCircle, ShoppingBag, X} from 'lucide-react';
 import {AddToCartButton} from '~/components/AddToCartButton';
-import {formatMoney} from '~/lib/commerce/format-money';
+import {PriceWithSavings} from './PriceWithSavings';
 import {getMetafieldValue} from '~/lib/commerce/shopify-fields';
 import {
   buildVariantOptionGroups,
@@ -136,6 +136,7 @@ function QuickViewContent({
     product.featuredImage ??
     product.images?.nodes?.[0];
   const price = selectedVariant?.price ?? product.priceRange?.minVariantPrice;
+  const compareAtPrice = selectedVariant?.compareAtPrice;
   const subtitle = getMetafieldValue(product, 'subtitle');
   const fabric = getMetafieldValue(product, 'fabric');
   const openDrawer = useStore((state) => state.openDrawer);
@@ -171,11 +172,12 @@ function QuickViewContent({
         {subtitle ? (
           <p className="mt-2 font-serif text-lg italic text-ink/55">{subtitle}</p>
         ) : null}
-        {price ? (
-          <p className="mt-5 text-xl text-ink">
-            {formatMoney(price.amount, price.currencyCode)}
-          </p>
-        ) : null}
+        <PriceWithSavings
+          className="mt-5 text-ink"
+          compareAtPrice={compareAtPrice}
+          price={price}
+          size="quick"
+        />
         {fabric ? (
           <p className="mt-3 text-xs leading-relaxed text-ink/50">{fabric}</p>
         ) : null}

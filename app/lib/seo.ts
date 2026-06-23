@@ -17,6 +17,7 @@ const CORE_NAVIGATION_LINKS = [
   {name: 'Gifting', path: '/gifting'},
   {name: 'Heritage', path: '/about'},
   {name: 'Contact', path: '/contact'},
+  {name: 'Refund Policy', path: '/policies/refund-policy'},
   {name: 'Terms and Conditions', path: '/terms-and-conditions'},
 ];
 

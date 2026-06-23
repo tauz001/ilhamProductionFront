@@ -10,6 +10,7 @@ import {
   removeLinesWithoutMarketContext,
   updateLinesWithoutMarketContext,
 } from '~/lib/commerce/storefront-cart';
+import {fetchFeaturedDiscountOffer} from '~/lib/commerce/discount-ticket.server';
 import {privatePageMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
@@ -140,10 +141,13 @@ export async function action({request, context}: Route.ActionArgs) {
 
 export async function loader({context}: Route.LoaderArgs) {
   const {cart} = context;
-  return await cart.get();
+  return {
+    cart: await cart.get(),
+    discountOffer: fetchFeaturedDiscountOffer(context.env),
+  };
 }
 
 export default function Cart() {
-  const cart = useLoaderData<typeof loader>();
-  return <BagPage cart={cart} />;
+  const {cart, discountOffer} = useLoaderData<typeof loader>();
+  return <BagPage cart={cart} discountOffer={discountOffer} />;
 }
