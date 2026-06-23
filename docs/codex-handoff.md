@@ -198,6 +198,8 @@
   production build, client-secret scan, `.env` ignore check, and protected-file
   audit.
 - Implementation committed as `1a7a829` on `codex/premium-discount-experience`.
+- Branch was pushed to `origin/codex/premium-discount-experience` after the
+  handoff checkpoint `b1d8ff3`.
 
 ## Completed
 
@@ -356,7 +358,7 @@
 ## In Progress
 
 - None. Premium discount/PDP/footer implementation is committed locally as
-  `1a7a829`; push is the next checkpoint action.
+  `1a7a829` and pushed on `codex/premium-discount-experience`.
 
 ## Pending
 
@@ -512,9 +514,9 @@
 
 ## Next Step
 
-Push `codex/premium-discount-experience`, then deploy it to Oxygen Preview. In
-Shopify Admin, grant the private Admin token `read_discounts`, tag one intended
-public active code discount with `storefront-ticket` (or set
-`DISCOUNT_TICKET_TAG` to your chosen tag), and verify the ticket/sale/refund UI
-on a real PDP and bag. Continue to avoid using another customer's order data
-while order tracking token setup remains pending.
+Deploy `codex/premium-discount-experience` to Oxygen Preview. In Shopify Admin,
+grant the private Admin token `read_discounts`, tag one intended public active
+code discount with `storefront-ticket` (or set `DISCOUNT_TICKET_TAG` to your
+chosen tag), and verify the ticket/sale/refund UI on a real PDP and bag.
+Continue to avoid using another customer's order data while order tracking token
+setup remains pending.
