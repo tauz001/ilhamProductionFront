@@ -6,6 +6,7 @@
 - Luxury-performance baseline commit: `d145425`
 - Latest luxury implementation commit: `1f6f2c7`
 - Real-time order tracking implementation commit: `c8f7050`
+- Premium discount/PDP trust implementation commit: `1a7a829`
 - Completed and pushed previous phase: `codex/storefront-performance-seo`
 - Stable pre-Antigravity commit: `5f49de6`
 - Antigravity snapshot branch: `codex/antigravity-snapshot`
@@ -196,6 +197,7 @@
 - Local verification passed: codegen, lint, clean TypeScript, diff checks,
   production build, client-secret scan, `.env` ignore check, and protected-file
   audit.
+- Implementation committed as `1a7a829` on `codex/premium-discount-experience`.
 
 ## Completed
 
@@ -353,8 +355,8 @@
 
 ## In Progress
 
-- Premium discount/PDP/footer implementation is locally verified on
-  `codex/premium-discount-experience` and ready for checkpoint commit/push.
+- None. Premium discount/PDP/footer implementation is committed locally as
+  `1a7a829`; push is the next checkpoint action.
 
 ## Pending
 
@@ -510,9 +512,9 @@
 
 ## Next Step
 
-Commit and push `codex/premium-discount-experience`, then deploy it to Oxygen
-Preview. In Shopify Admin, grant the private Admin token `read_discounts`, tag
-one intended public active code discount with `storefront-ticket` (or set
+Push `codex/premium-discount-experience`, then deploy it to Oxygen Preview. In
+Shopify Admin, grant the private Admin token `read_discounts`, tag one intended
+public active code discount with `storefront-ticket` (or set
 `DISCOUNT_TICKET_TAG` to your chosen tag), and verify the ticket/sale/refund UI
 on a real PDP and bag. Continue to avoid using another customer's order data
 while order tracking token setup remains pending.
