@@ -22,10 +22,11 @@ type AdminDiscountNode = {
 
 type CachedOffer = {
   expiresAt: number;
+  key: string;
   promise: Promise<DiscountTicketOffer | null>;
 };
 
-const DEFAULT_TICKET_TAG = 'storefront-ticket';
+const DEFAULT_TICKET_SELECTOR = 'storefront-ticket';
 const CACHE_MS = 5 * 60 * 1000;
 const ERROR_CACHE_MS = 45 * 1000;
 
@@ -33,19 +34,31 @@ let cachedOffer: CachedOffer | null = null;
 
 export function fetchFeaturedDiscountOffer(env: DiscountEnv) {
   const now = Date.now();
-  if (cachedOffer && cachedOffer.expiresAt > now) {
+  const cacheKey = getDiscountCacheKey(env);
+  if (cachedOffer?.key === cacheKey && cachedOffer.expiresAt > now) {
     return cachedOffer.promise;
   }
 
   const promise = readFeaturedDiscountOffer(env);
   cachedOffer = {
     expiresAt: now + CACHE_MS,
+    key: cacheKey,
     promise,
   };
+
+  void promise.then((offer) => {
+    if (offer || cachedOffer?.key !== cacheKey) return;
+    cachedOffer = {
+      expiresAt: Date.now() + ERROR_CACHE_MS,
+      key: cacheKey,
+      promise: Promise.resolve(null),
+    };
+  });
 
   void promise.catch(() => {
     cachedOffer = {
       expiresAt: Date.now() + ERROR_CACHE_MS,
+      key: cacheKey,
       promise: Promise.resolve(null),
     };
   });
@@ -58,44 +71,49 @@ async function readFeaturedDiscountOffer(
 ): Promise<DiscountTicketOffer | null> {
   const shopDomain = normalizeShopDomain(env.PUBLIC_STORE_DOMAIN);
   const token = env.PRIVATE_SHOPIFY_ADMIN_API_TOKEN;
-  const tag = normalizeTag(env.DISCOUNT_TICKET_TAG);
+  const selector = normalizeDiscountSelector(env.DISCOUNT_TICKET_TAG);
 
   if (!shopDomain || !token) {
     return null;
   }
 
-  const response = await fetch(
-    `https://${shopDomain}/admin/api/2026-04/graphql.json`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': token,
-      },
-      body: JSON.stringify({
-        query: FEATURED_DISCOUNT_QUERY,
-        variables: {
-          first: 10,
-          query: `method:code status:active tag:${tag}`,
+  for (const query of buildDiscountQueries(selector)) {
+    const response = await fetch(
+      `https://${shopDomain}/admin/api/2026-04/graphql.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': token,
         },
-      }),
-    },
-  );
-
-  const payload = (await response.json().catch(() => ({}))) as {
-    data?: {discountNodes?: {nodes?: AdminDiscountNode[] | null} | null};
-    errors?: Array<{message?: string}>;
-  };
-
-  if (!response.ok || payload.errors?.length) {
-    console.warn(
-      '[discount-ticket] Could not read Shopify discounts. Confirm PRIVATE_SHOPIFY_ADMIN_API_TOKEN has read_discounts and one active discount is tagged for the storefront ticket.',
+        body: JSON.stringify({
+          query: FEATURED_DISCOUNT_QUERY,
+          variables: {
+            first: 10,
+            query,
+          },
+        }),
+      },
     );
-    return null;
+
+    const payload = (await response.json().catch(() => ({}))) as {
+      data?: {discountNodes?: {nodes?: AdminDiscountNode[] | null} | null};
+      errors?: Array<{message?: string}>;
+    };
+
+    if (!response.ok || payload.errors?.length) {
+      console.warn(
+        '[discount-ticket] Could not read Shopify discounts. Confirm PRIVATE_SHOPIFY_ADMIN_API_TOKEN has read_discounts and one active code discount matches DISCOUNT_TICKET_TAG by tag, code, or title.',
+      );
+      return null;
+    }
+
+    const nodes = payload.data?.discountNodes?.nodes ?? [];
+    const offer = nodes.map(normalizeDiscountNode).find(Boolean);
+    if (offer) return offer;
   }
 
-  const nodes = payload.data?.discountNodes?.nodes ?? [];
-  return nodes.map(normalizeDiscountNode).find(Boolean) ?? null;
+  return null;
 }
 
 function normalizeDiscountNode(
@@ -134,8 +152,30 @@ function getDiscountType(typename?: string): DiscountTicketOffer['type'] {
   return 'unknown';
 }
 
-function normalizeTag(tag?: string) {
-  return tag?.trim().replace(/\s+/g, '-') || DEFAULT_TICKET_TAG;
+function buildDiscountQueries(selector: string) {
+  const value = escapeSearchValue(selector);
+  return [
+    `method:code status:active tag:${value}`,
+    `method:code status:active code:${value}`,
+    `method:code status:active title:${value}`,
+    `method:code status:active ${value}`,
+  ];
+}
+
+function escapeSearchValue(value: string) {
+  if (/^[a-zA-Z0-9_-]+$/.test(value)) return value;
+  return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+function normalizeDiscountSelector(selector?: string) {
+  return selector?.trim() || DEFAULT_TICKET_SELECTOR;
+}
+
+function getDiscountCacheKey(env: DiscountEnv) {
+  return [
+    normalizeShopDomain(env.PUBLIC_STORE_DOMAIN),
+    normalizeDiscountSelector(env.DISCOUNT_TICKET_TAG),
+  ].join('|');
 }
 
 function normalizeShopDomain(domain?: string) {

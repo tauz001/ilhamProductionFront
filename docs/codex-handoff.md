@@ -191,9 +191,11 @@
   copy/apply ticket UI, PDP and bag/cart ticket slots, compare-at sale pricing,
   cart compare-at savings, chiffon/georgette PDP guidance, footer refund links,
   and `/refund-policy` redirect.
-- Discount-ticket selection is controlled by Shopify discount tag
-  `DISCOUNT_TICKET_TAG` (default/example `storefront-ticket`) so private
-  influencer/customer codes are not accidentally exposed.
+- Discount-ticket selection is controlled by `DISCOUNT_TICKET_TAG`
+  (default/example `storefront-ticket`). The reader now prefers a matching
+  Shopify discount tag, then falls back to matching active code discount code or
+  title so an env value like `New-Customer` works even when it is the code/title
+  rather than a tag.
 - Local verification passed: codegen, lint, clean TypeScript, diff checks,
   production build, client-secret scan, `.env` ignore check, and protected-file
   audit.
@@ -365,8 +367,8 @@
 - Local Shopify Admin order lookup returned `401`; validate the production
   Oxygen token has `read_orders` (and `read_all_orders` for older orders).
 - For the new discount ticket, the Shopify Admin token also needs
-  `read_discounts`, and one active public code discount must be tagged with
-  `DISCOUNT_TICKET_TAG` (default/example `storefront-ticket`).
+  `read_discounts`, and one intended public active code discount must match
+  `DISCOUNT_TICKET_TAG` by tag, code, or title.
 - Deploy `codex/order-tracking` to Oxygen Preview and visually verify the empty,
   loading, safe-error, pre-fulfillment, in-transit, exception, and delivered UI.
 - Deploy `codex/premium-discount-experience` to Oxygen Preview and verify PDP
@@ -515,8 +517,8 @@
 ## Next Step
 
 Deploy `codex/premium-discount-experience` to Oxygen Preview. In Shopify Admin,
-grant the private Admin token `read_discounts`, tag one intended public active
-code discount with `storefront-ticket` (or set `DISCOUNT_TICKET_TAG` to your
-chosen tag), and verify the ticket/sale/refund UI on a real PDP and bag.
+grant the private Admin token `read_discounts`, then set `DISCOUNT_TICKET_TAG`
+to the intended public active code discount's tag, code, or title, and verify
+the ticket/sale/refund UI on a real PDP and bag.
 Continue to avoid using another customer's order data while order tracking token
 setup remains pending.
