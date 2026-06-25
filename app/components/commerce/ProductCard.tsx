@@ -11,6 +11,7 @@ import {
   tagIncludes,
 } from '~/lib/commerce/shopify-fields';
 import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
+import {isProductSoldOut} from '~/lib/commerce/product-availability';
 import {
   CARD_IMAGE_WIDTHS,
   shopifyImageUrl,
@@ -86,6 +87,7 @@ export function ProductCard({
     product.selectedOrFirstAvailableVariant ??
     purchasableVariants[0] ??
     variants[0];
+  const soldOut = isProductSoldOut(product);
   const variantId = variant?.id;
   const variantCount = product.variantsCount?.count ?? variants.length;
   const requiresVariantSelection = shouldChooseVariantOnPdp(
@@ -94,7 +96,10 @@ export function ProductCard({
     variant,
   );
   const canAddToBag = Boolean(
-    variantId && isVariantPurchasable(variant) && !requiresVariantSelection,
+    variantId &&
+      isVariantPurchasable(variant) &&
+      !requiresVariantSelection &&
+      !soldOut,
   );
   const isNew =
     tagIncludes(product.tags, 'new-arrival') ||
@@ -103,7 +108,7 @@ export function ProductCard({
   const compareAtPrice = variant?.compareAtPrice;
 
   const prepareQuickView = () => {
-    if (canAddToBag) return;
+    if (canAddToBag || soldOut) return;
     void preloadQuickViewModule();
     prefetchQuickViewProduct(product.handle);
   };
@@ -131,8 +136,8 @@ export function ProductCard({
   }
 
   useEffect(() => {
-    if (!canAddToBag) scheduleQuickViewModulePreload();
-  }, [canAddToBag]);
+    if (!canAddToBag && !soldOut) scheduleQuickViewModulePreload();
+  }, [canAddToBag, soldOut]);
 
   const activateCardIntent = () => {
     prepareQuickView();
@@ -171,7 +176,7 @@ export function ProductCard({
           <Link
             to={`/products/${product.handle}`}
             prefetch="intent"
-            aria-label={`View ${product.title}`}
+            aria-label={`View ${product.title}${soldOut ? ' (sold out)' : ''}`}
             className="absolute inset-0 z-10"
           />
 
@@ -192,10 +197,18 @@ export function ProductCard({
                 height={image.height ?? undefined}
                 className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-in-out ${
                   i === activeImageIndex ? 'opacity-100' : 'opacity-0'
-                }`}
+                } ${soldOut ? 'saturate-[0.72]' : ''}`}
               />
             );
           })}
+
+          {soldOut ? (
+            <div className="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center bg-ink/10">
+              <span className="border border-ivory/70 bg-ivory/90 px-4 py-2 text-[10px] text-ink/70 shadow-[0_12px_30px_rgba(28,22,17,0.14)] small-caps">
+                Sold out
+              </span>
+            </div>
+          ) : null}
     
           <button
             type="button"
@@ -217,14 +230,22 @@ export function ProductCard({
             />
           </button>
     
-          {isNew && (
+          {isNew && !soldOut && (
             <span className="absolute top-4 left-4 z-20 small-caps text-ink/60">
               New
             </span>
           )}
     
           <div className="absolute inset-x-0 bottom-0 z-20 px-4 pb-4 translate-y-full opacity-0 transition-all duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
-            {canAddToBag ? (
+            {soldOut ? (
+              <Link
+                to={`/products/${product.handle}`}
+                prefetch="intent"
+                className="flex h-14 w-full items-center justify-center border border-ivory/20 bg-ivory/95 text-ink shadow-[0_16px_36px_rgba(0,0,0,0.18)] small-caps transition-colors hover:border-gold hover:text-gold"
+              >
+                View details
+              </Link>
+            ) : canAddToBag ? (
               <AddToCartButton
                 className="block w-full"
                 lines={[

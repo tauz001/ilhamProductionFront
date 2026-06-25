@@ -15,6 +15,7 @@ import {
   logMissingShopifyField,
   tagIncludes,
 } from '~/lib/commerce/shopify-fields';
+import {compareProductsByAvailability} from '~/lib/commerce/product-availability';
 import {seoMeta} from '~/lib/seo';
 import {
   HERO_IMAGE_WIDTHS,
@@ -81,7 +82,7 @@ export async function loader({context}: Route.LoaderArgs) {
         }
       }
 
-      products(first: 12) {
+      products(first: 12, sortKey: CREATED_AT, reverse: true) {
         nodes {
           id
           title
@@ -89,6 +90,7 @@ export async function loader({context}: Route.LoaderArgs) {
           vendor
           productType
           tags
+          availableForSale
 
           featuredImage {
             id
@@ -186,22 +188,26 @@ const allCollections = collections.nodes;
 
 const newArrivals = useMemo(
   () =>
-    allProducts.filter(
-      (product: any) =>
-        tagIncludes(product.tags, 'new-arrival') ||
-        tagIncludes(product.tags, 'new'),
-    ),
+    allProducts
+      .filter(
+        (product: any) =>
+          tagIncludes(product.tags, 'new-arrival') ||
+          tagIncludes(product.tags, 'new'),
+      )
+      .sort(compareProductsByAvailability),
   [allProducts],
 );
 
 const bestsellers = useMemo(
   () =>
-    allProducts.filter(
-      (product: any) =>
-        tagIncludes(product.tags, 'best-seller') ||
-        tagIncludes(product.tags, 'best-sellers') ||
-        tagIncludes(product.tags, 'bestseller'),
-    ),
+    allProducts
+      .filter(
+        (product: any) =>
+          tagIncludes(product.tags, 'best-seller') ||
+          tagIncludes(product.tags, 'best-sellers') ||
+          tagIncludes(product.tags, 'bestseller'),
+      )
+      .sort(compareProductsByAvailability),
   [allProducts],
 );
   const [slide, setSlide] = useState(0);

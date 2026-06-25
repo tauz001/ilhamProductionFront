@@ -203,6 +203,39 @@
 - Branch was pushed to `origin/codex/premium-discount-experience` after the
   handoff checkpoint `b1d8ff3`.
 
+## Sold-Out Merchandising Phase
+
+### Approved Objective
+
+- Add a subtle sold-out treatment to shared product cards so unavailable pieces
+  remain visible but feel intentional and premium.
+- Keep sold-out products at the very end of storefront listing grids unless the
+  customer explicitly filters to in-stock only.
+- Make homepage New Arrivals prioritize the most recent Shopify products first
+  before applying the existing `new-arrival` / `new` tag filter.
+- Preserve cart correctness, ProductCard quick-view semantics, WhatsApp,
+  protected order-detail/Admin API behavior, feedback, SEO URLs, sitemap
+  endpoints, and credentials.
+
+### Current Notes
+
+- Started from a clean pushed `codex/premium-discount-experience` branch at
+  `ff90d82`.
+- Inspection confirmed `ProductCard` already receives variant availability in
+  the main collection/homepage paths, but it does not visually mark sold-out
+  products.
+- The main collection route currently supports an `In stock only` filter; the
+  merchandising change should preserve that filter while default browsing ranks
+  sold-out products last.
+- The homepage New Arrivals rail currently uses `products(first: 12)` and then
+  filters by tag, so the query should request recent products first.
+- Implemented locally: shared product availability helper, subtle sold-out
+  overlays for shared product cards, sold-out cards routed to View Details,
+  main collection availability-first sorting, homepage recent-first product
+  query, and `/collections/all` availability/recent-first treatment.
+- Verification passed: codegen, lint, clean TypeScript, diff checks, production
+  build, and protected-file diff audit.
+
 ## Completed
 
 - Removed the 50-product/30-collection layout query from the root critical
@@ -356,11 +389,20 @@
 - Added a dedicated 520ms modal timing with smaller transform travel and subtle
   scale settling for Quick View, Find My Size, and feedback. Quick View exit is
   now retained by a parent `AnimatePresence` instead of being cut off on unmount.
+- Added a shared product availability helper and subtle sold-out overlays to
+  shared storefront product cards; sold-out cards now guide customers to product
+  details instead of purchase/quick-view actions.
+- Main collection listings and `/collections/all` now rank available pieces
+  before sold-out pieces while preserving the chosen price/new/featured order
+  inside each availability group.
+- Homepage product sourcing now requests recent Shopify products first so the
+  New Arrivals rail feels freshly merchandised before applying its existing
+  new-product tag filter.
 
 ## In Progress
 
-- None. Premium discount/PDP/footer implementation is committed locally as
-  `1a7a829` and pushed on `codex/premium-discount-experience`.
+- None. Sold-out merchandising and homepage recent-first ordering are verified
+  on `codex/premium-discount-experience`.
 
 ## Pending
 
@@ -513,6 +555,16 @@
 - Protected-file audit showed no diff to order-detail/Admin route, feedback API,
   WhatsApp, checkout redirect, cart mutation helpers, cart pricing/line helpers,
   robots, or sitemap routes. `.env` remains ignored by `.gitignore`.
+- Sold-out merchandising phase `npm.cmd run codegen` - passed after adding
+  product-level availability to homepage, PDP recommendation, and all-products
+  queries.
+- Sold-out merchandising phase `npm.cmd run lint`, clean TypeScript, and
+  `git diff --check` - passed.
+- Sold-out merchandising phase `npm.cmd run build` - production client and
+  Oxygen SSR bundles passed; the new shared availability helper emitted as a
+  0.25KB gzip client chunk.
+- Sold-out merchandising protected-file audit showed no diff to order-detail/
+  Admin, feedback API, WhatsApp, sitemap/robots, or `.env`.
 
 ## Next Step
 

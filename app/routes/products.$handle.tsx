@@ -684,6 +684,7 @@ const PRODUCT_CARD_FRAGMENT = `#graphql
     vendor
     productType
     tags
+    availableForSale
     featuredImage {
       id
       url

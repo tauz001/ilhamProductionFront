@@ -1,11 +1,13 @@
 import type {Route} from './+types/collections.all';
 import {useLoaderData} from 'react-router';
 import {getPaginationVariables} from '@shopify/hydrogen';
+import {useMemo} from 'react';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {ProductItem} from '~/components/ProductItem';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
 import {seoMeta} from '~/lib/seo';
 import {EditorialHeader} from '~/components/editorial/EditorialHeader';
+import {compareProductsByAvailability} from '~/lib/commerce/product-availability';
 
 export const meta: Route.MetaFunction = () => {
   return seoMeta({
@@ -56,6 +58,13 @@ function loadDeferredData({context}: Route.LoaderArgs) {
 
 export default function Collection() {
   const {products} = useLoaderData<typeof loader>();
+  const merchandisedProducts = useMemo(
+    () => ({
+      ...products,
+      nodes: [...(products?.nodes ?? [])].sort(compareProductsByAvailability),
+    }),
+    [products],
+  );
 
   return (
     <main className="min-h-screen bg-ivory">
@@ -66,7 +75,7 @@ export default function Collection() {
       />
       <section className="mx-auto max-w-[1500px] px-4 pb-28 sm:px-6 md:pb-36 lg:px-12">
         <PaginatedResourceSection<CollectionItemFragment>
-          connection={products}
+          connection={merchandisedProducts}
           resourcesClassName="grid grid-cols-2 gap-x-3 gap-y-12 sm:gap-x-6 md:gap-y-20 lg:grid-cols-4"
         >
           {({node: product, index}) => (
@@ -91,6 +100,7 @@ const COLLECTION_ITEM_FRAGMENT = `#graphql
     id
     handle
     title
+    availableForSale
     featuredImage {
       id
       altText
@@ -119,7 +129,14 @@ const CATALOG_QUERY = `#graphql
     $startCursor: String
     $endCursor: String
   ) @inContext(country: $country, language: $language) {
-    products(first: $first, last: $last, before: $startCursor, after: $endCursor) {
+    products(
+      first: $first,
+      last: $last,
+      before: $startCursor,
+      after: $endCursor,
+      sortKey: CREATED_AT,
+      reverse: true
+    ) {
       nodes {
         ...CollectionItem
       }

@@ -34,6 +34,10 @@ import {
   type CollectionFilterState,
 } from '~/lib/commerce/collection-filters';
 import {productMatchesText} from '~/lib/commerce/product-facets';
+import {
+  compareProductsByAvailability,
+  isProductSoldOut,
+} from '~/lib/commerce/product-availability';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {breadcrumbJsonLd, collectionItemListJsonLd, seoMeta} from '~/lib/seo';
 
@@ -274,10 +278,11 @@ export default function Collection() {
         }
       }
 
-      if (filters.availability.includes('in-stock')) {
-        if (!product.availableForSale) {
-          return false;
-        }
+      if (
+        filters.availability.includes('in-stock') &&
+        isProductSoldOut(product)
+      ) {
+        return false;
       }
 
       return true;
@@ -287,6 +292,8 @@ export default function Collection() {
   const sorted = useMemo(
     () =>
       [...filtered].sort((a: any, b: any) => {
+        const availabilityOrder = compareProductsByAvailability(a, b);
+        if (availabilityOrder !== 0) return availabilityOrder;
         if (sort === 'price-asc') return getProductPrice(a) - getProductPrice(b);
         if (sort === 'price-desc') return getProductPrice(b) - getProductPrice(a);
         if (sort === 'new') {
