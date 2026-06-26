@@ -1,5 +1,6 @@
 import {Link, useLocation} from 'react-router';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import type {HeaderQuery} from 'storefrontapi.generated';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Heart, Menu, Search, ShoppingBag, User, X} from 'lucide-react';
 import {useStore} from '~/lib/commerce/cart-store';
@@ -43,18 +44,27 @@ const navLinks = [
   {label: 'Heritage', href: '/about'},
 ];
 
-const announcements = [
+type AnnouncementItem = {
+  text: string;
+  href: string;
+  external: boolean;
+};
+
+const fallbackAnnouncements: AnnouncementItem[] = [
   {
     text: 'Hand-embroidered in Lucknow - all India shipping',
     href: '/collections',
+    external: false,
   },
   {
     text: 'Occasion gifting and bulk offers - contact the atelier',
     href: '/contact',
+    external: false,
   },
   {
     text: '14-day return or exchange on eligible pieces',
     href: '/policies/refund-policy',
+    external: false,
   },
 ];
 
@@ -231,7 +241,13 @@ const menuTypeSeeds: Record<string, MenuLinkSeed[]> = {
   ],
 };
 
-export function Navbar() {
+export function Navbar({
+  header,
+  publicStoreDomain,
+}: {
+  header?: HeaderQuery | null;
+  publicStoreDomain?: string;
+}) {
   const [scrolled, setScrolled] = useState(false);
   const [megaOpen, setMegaOpen] = useState<string | null>(null);
   const [announcementVisible, setAnnouncementVisible] = useState(true);
@@ -240,6 +256,10 @@ export function Navbar() {
   const wishlist = useStore((s) => s.wishlist.length);
   const openDrawer = useStore((s) => s.openDrawer);
   const location = useLocation();
+  const announcements = useMemo(
+    () => getAnnouncementItems(header, publicStoreDomain),
+    [header, publicStoreDomain],
+  );
 
   const cancelMegaClose = () => {
     if (megaCloseTimer.current) {
@@ -271,6 +291,10 @@ export function Navbar() {
   }, [location.pathname]);
 
   useEffect(() => {
+    setAnnouncementIndex(0);
+  }, [announcements]);
+
+  useEffect(() => {
     return () => cancelMegaClose();
   }, []);
 
@@ -282,13 +306,15 @@ export function Navbar() {
       4200,
     );
     return () => window.clearInterval(id);
-  }, [announcementVisible]);
+  }, [announcementVisible, announcements.length]);
 
   const dismissAnnouncement = () => {
     setAnnouncementVisible(false);
   };
 
-  const activeAnnouncement = announcements[announcementIndex];
+  const activeAnnouncement =
+    announcements[announcementIndex % announcements.length] ??
+    fallbackAnnouncements[0];
 
   return (
     <header
@@ -300,35 +326,29 @@ export function Navbar() {
         {announcementVisible && (
           <motion.div
             initial={{height: 0, opacity: 0}}
-            animate={{height: '2.25rem', opacity: 1}}
+            animate={{height: '2.55rem', opacity: 1}}
             exit={{height: 0, opacity: 0}}
             transition={{duration: 0.45, ease: easeSilk}}
-            className="overflow-hidden border-b border-border/60 bg-ivory/96 text-ink shadow-[0_1px_0_oklch(0.78_0.04_75_/_0.22)] md:bg-ivory/92 md:backdrop-blur-md"
+            className="overflow-hidden border-b border-gold/35 bg-ink text-ivory shadow-[0_10px_28px_rgba(28,19,12,0.18)]"
           >
-            <div className="relative mx-auto flex h-9 max-w-[1500px] items-center justify-center px-11 lg:px-12">
+            <div className="relative mx-auto flex h-10 max-w-[1500px] items-center justify-center px-11 lg:px-12">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
-                  key={activeAnnouncement.text}
+                  key={`${activeAnnouncement.text}-${activeAnnouncement.href}`}
                   initial={{y: 10, opacity: 0}}
                   animate={{y: 0, opacity: 1}}
                   exit={{y: -10, opacity: 0}}
                   transition={{duration: 0.45, ease: easeSilk}}
                   className="max-w-full"
                 >
-                  <Link
-                    to={activeAnnouncement.href}
-                    prefetch="intent"
-                    className="block max-w-[calc(100vw-5.75rem)] truncate text-center small-caps text-[10px] tracking-[0.24em] text-ink/62 transition-colors hover:text-gold md:max-w-none md:tracking-[0.28em]"
-                  >
-                    {activeAnnouncement.text}
-                  </Link>
+                  <AnnouncementLink announcement={activeAnnouncement} />
                 </motion.div>
               </AnimatePresence>
               <button
                 type="button"
                 onClick={dismissAnnouncement}
                 aria-label="Dismiss announcement"
-                className="absolute right-3 grid h-6 w-6 place-items-center text-ink/45 transition-colors hover:text-ink lg:right-8"
+                className="absolute right-3 grid h-7 w-7 place-items-center text-ivory/55 transition-colors hover:text-gold lg:right-8"
               >
                 <X className="h-3.5 w-3.5" strokeWidth={1.3} />
               </button>
@@ -909,5 +929,106 @@ export function MobileMenuDrawer() {
       )}
     </AnimatePresence>
   );
+}
+
+function AnnouncementLink({announcement}: {announcement: AnnouncementItem}) {
+  const className =
+    'group flex max-w-[calc(100vw-5.75rem)] items-center justify-center gap-2 truncate text-center small-caps text-[10px] tracking-[0.24em] text-ivory transition-colors hover:text-gold md:max-w-none md:text-[11px] md:tracking-[0.3em]';
+  const content = (
+    <>
+      <span
+        aria-hidden
+        className="h-1.5 w-1.5 shrink-0 rounded-full bg-gold shadow-[0_0_14px_rgba(190,143,68,0.85)]"
+      />
+      <span className="truncate">{announcement.text}</span>
+      <span className="hidden text-gold/80 transition-transform group-hover:translate-x-0.5 sm:inline">
+        Explore
+      </span>
+    </>
+  );
+
+  if (announcement.external) {
+    return (
+      <a className={className} href={announcement.href}>
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <Link className={className} prefetch="intent" to={announcement.href}>
+      {content}
+    </Link>
+  );
+}
+
+function getAnnouncementItems(
+  header?: HeaderQuery | null,
+  publicStoreDomain?: string,
+): AnnouncementItem[] {
+  const items = header?.announcementMenu?.items ?? [];
+  const primaryDomainUrl = header?.shop?.primaryDomain?.url;
+  const announcements = items
+    .map((item) => {
+      const text = item.title?.trim();
+      const href = normalizeAnnouncementHref(
+        item.url,
+        publicStoreDomain,
+        primaryDomainUrl,
+      );
+
+      if (!text || !href) return null;
+
+      return {
+        text,
+        href: href.value,
+        external: href.external,
+      };
+    })
+    .filter((item): item is AnnouncementItem => Boolean(item));
+
+  return announcements.length ? announcements : fallbackAnnouncements;
+}
+
+function normalizeAnnouncementHref(
+  url?: string | null,
+  publicStoreDomain?: string,
+  primaryDomainUrl?: string | null,
+): {value: string; external: boolean} | null {
+  if (!url) return null;
+  if (url.startsWith('/')) return {value: url, external: false};
+
+  try {
+    const parsedUrl = new URL(url);
+    const internalHosts = [
+      getHostname(publicStoreDomain),
+      getHostname(primaryDomainUrl),
+    ].filter(Boolean);
+
+    if (internalHosts.includes(parsedUrl.hostname)) {
+      return {
+        value: `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`,
+        external: false,
+      };
+    }
+
+    return {value: url, external: true};
+  } catch {
+    return {value: url, external: false};
+  }
+}
+
+function getHostname(value?: string | null) {
+  if (!value) return null;
+
+  try {
+    return new URL(value).hostname;
+  } catch {
+    try {
+      return new URL(`https://${value}`).hostname;
+    } catch {
+      return null;
+    }
+  }
 }
 

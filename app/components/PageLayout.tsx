@@ -1,4 +1,6 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
+import {useLocation, useNavigationType} from 'react-router';
+import type {HeaderQuery} from 'storefrontapi.generated';
 import {Drawers} from '~/components/layout/Drawers';
 import {Footer} from '~/components/layout/Footer';
 import {FloatingWhatsApp} from '~/components/layout/FloatingWhatsApp';
@@ -11,7 +13,7 @@ import {useLenis} from '~/lib/motion/useLenis';
 interface PageLayoutProps {
   cart: unknown;
   footer: unknown;
-  header: unknown;
+  header: HeaderQuery | null;
   isLoggedIn: unknown;
   publicStoreDomain: string;
   whatsAppUrl?: string;
@@ -20,6 +22,8 @@ interface PageLayoutProps {
 
 export function PageLayout({
   children = null,
+  header,
+  publicStoreDomain,
   whatsAppUrl,
 }: PageLayoutProps) {
   const drawer = useStore((state) => state.drawer);
@@ -38,8 +42,9 @@ export function PageLayout({
     <>
       <div className="grain-overlay" aria-hidden />
       <NavigationProgress />
+      <RouteScrollReset />
       <ScrollProgress />
-      <Navbar />
+      <Navbar header={header} publicStoreDomain={publicStoreDomain} />
       <MobileMenuDrawer />
       <Drawers />
       {/* Keep routes responsible for top padding, to match TanStack layouts (home hero is full-bleed). */}
@@ -48,4 +53,28 @@ export function PageLayout({
       <Footer />
     </>
   );
+}
+
+function RouteScrollReset() {
+  const location = useLocation();
+  const navigationType = useNavigationType();
+  const previousPathnameRef = useRef(location.pathname);
+
+  useEffect(() => {
+    const pathnameChanged = previousPathnameRef.current !== location.pathname;
+    previousPathnameRef.current = location.pathname;
+
+    if (!pathnameChanged || navigationType === 'POP' || location.hash) return;
+
+    const scrollToTop = () => {
+      window.dispatchEvent(new Event('ilham:route-scroll-top'));
+      window.scrollTo({top: 0, left: 0, behavior: 'auto'});
+    };
+
+    scrollToTop();
+    const frameId = window.requestAnimationFrame(scrollToTop);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [location.hash, location.pathname, navigationType]);
+
+  return null;
 }

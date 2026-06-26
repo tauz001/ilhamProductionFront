@@ -344,6 +344,36 @@
   `node_modules\.bin\tsc.cmd --noEmit --incremental false`,
   `git diff --check`, and `npm.cmd run build`.
 
+## Route Scroll And Announcement Bar Phase
+
+### Approved Objective
+
+- Fix in-site navigation preserving the previous page's scroll position, e.g.
+  opening a PDP or Contact from a scrolled Home page.
+- Check for the same issue globally and fix route-path navigation without
+  disturbing PDP variant query changes, collection filters, or browser
+  back/forward scroll restoration.
+- Make the top announcement bar Shopify-controlled, clickable, and more
+  noticeable while keeping a safe fallback if Shopify setup is missing.
+
+### Current Notes
+
+- Implemented locally: `PageLayout` now runs a route-path scroll reset on
+  non-POP navigation and dispatches a Lenis reset event so desktop smooth
+  scrolling cannot retain the old page offset.
+- The reset skips hash links and same-path search-param updates, preserving PDP
+  color/size query updates and collection filter behavior.
+- Implemented locally: root `HEADER_QUERY` now fetches Shopify menu handle
+  `announcement-bar`; `Navbar` uses those menu item titles/URLs as rotating
+  announcement messages.
+- Announcement links normalize internal store URLs to React Router links and
+  leave true external URLs as normal anchors.
+- Visual update: announcement bar is now a darker ink/gold strip with a glow dot
+  and `Explore` cue so it is easier to notice.
+- Verification passed: `npm.cmd run codegen`, `npm.cmd run lint`, clean
+  TypeScript `node_modules\.bin\tsc.cmd --noEmit --incremental false`,
+  `git diff --check`, and `npm.cmd run build`.
+
 ## Completed
 
 - Removed the 50-product/30-collection layout query from the root critical

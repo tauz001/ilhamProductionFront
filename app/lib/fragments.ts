@@ -224,6 +224,9 @@ export const HEADER_QUERY = `#graphql
     menu(handle: $headerMenuHandle) {
       ...Menu
     }
+    announcementMenu: menu(handle: "announcement-bar") {
+      ...Menu
+    }
   }
   ${MENU_FRAGMENT}
 ` as const;

@@ -90,10 +90,15 @@ export function useLenis(paused = false) {
       }
     };
 
+    const onRouteScrollTop = () => {
+      instanceRef.current?.scrollTo(0, {force: true, immediate: true});
+    };
+
     finePointer.addEventListener('change', sync);
     desktopViewport.addEventListener('change', sync);
     reducedMotion.addEventListener('change', sync);
     document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('ilham:route-scroll-top', onRouteScrollTop);
     sync();
 
     return () => {
@@ -102,6 +107,7 @@ export function useLenis(paused = false) {
       desktopViewport.removeEventListener('change', sync);
       reducedMotion.removeEventListener('change', sync);
       document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('ilham:route-scroll-top', onRouteScrollTop);
       destroy();
     };
   }, []);
