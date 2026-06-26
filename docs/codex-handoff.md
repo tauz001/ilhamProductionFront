@@ -254,6 +254,12 @@
   a soft pulse layer, and a slow float animation.
 - Verification passed: lint, clean TypeScript, diff checks, production build,
   and protected-file scope review.
+- Follow-up refinement in progress: tooltip text now rotates every 10 seconds
+  across Need Size Help, Fabric Details, Available Colors, Delivery Time,
+  Customize Color, and Chat on WhatsApp; pulse visibility was increased with
+  two staggered gold rings and a soft glow.
+- Follow-up verification passed: lint, clean TypeScript, diff checks,
+  production build, and protected-file scope review.
 
 ## Completed
 
@@ -423,7 +429,7 @@
 
 ## In Progress
 
-- None. WhatsApp trust nudge is verified on
+- None. WhatsApp rotating tooltip and stronger pulse are verified on
   `codex/premium-discount-experience`.
 
 ## Pending
@@ -595,6 +601,12 @@
 - WhatsApp trust nudge protected-file audit showed no diff to order-detail/
   Admin, feedback API, sitemap/robots, or `.env`; only the intended WhatsApp
   component, stylesheet, and handoff changed.
+- WhatsApp rotating-tooltip follow-up `npm.cmd run lint`, clean TypeScript, and
+  `git diff --check` - passed.
+- WhatsApp rotating-tooltip follow-up `npm.cmd run build` - production client
+  and Oxygen SSR bundles passed.
+- WhatsApp rotating-tooltip follow-up protected-file audit showed no diff to
+  order-detail/Admin, feedback API, sitemap/robots, or `.env`.
 
 ## Next Step
 
