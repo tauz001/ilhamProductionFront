@@ -323,6 +323,27 @@
   this handoff changed; protected order-detail/Admin, feedback API, checkout,
   WhatsApp, sitemap/robots, and `.env` surfaces were untouched.
 
+## Mobile Color Selection Scroll Phase
+
+### Approved Objective
+
+- On mobile PDP, when a customer selects a color that changes the product image,
+  take them back to the image gallery so the selected shade is visible.
+- Keep desktop PDP behavior, size selection, Add to bag, cart, checkout, and
+  design unchanged.
+
+### Current Notes
+
+- Implemented locally: the PDP gallery wrapper now has a ref, and selecting a
+  `Color`/`Colour` option scrolls to that gallery on screens below `md`.
+- Size selection and non-color options continue to update the selected variant
+  without scrolling.
+- The scroll honors `prefers-reduced-motion` by using an instant jump instead
+  of smooth scrolling for reduced-motion users.
+- Verification passed: `npm.cmd run lint`, clean TypeScript
+  `node_modules\.bin\tsc.cmd --noEmit --incremental false`,
+  `git diff --check`, and `npm.cmd run build`.
+
 ## Completed
 
 - Removed the 50-product/30-collection layout query from the root critical

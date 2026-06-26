@@ -1,6 +1,6 @@
 import {Await, Link, useLoaderData, useSearchParams} from 'react-router';
 import type {Route} from './+types/products.$handle';
-import {Suspense, useEffect, useMemo, useState} from 'react';
+import {Suspense, useEffect, useMemo, useRef, useState} from 'react';
 import {ChevronDown, Heart, Minus, Plus} from 'lucide-react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Analytics} from '@shopify/hydrogen';
@@ -106,6 +106,7 @@ export default function Product() {
   );
   const [qty, setQty] = useState(1);
   const [openSection, setOpenSection] = useState<string | null>('fabric');
+  const productGalleryRef = useRef<HTMLDivElement | null>(null);
   const wishlist = useStore((s) => s.wishlist);
   const toggleW = useStore((s) => s.toggleWishlist);
   const openDrawer = useStore((s) => s.openDrawer);
@@ -173,7 +174,28 @@ export default function Product() {
     );
   }, [firstAvailableIndex, searchParams, variants]);
 
-  const selectVariantIndex = (nextIndex: number) => {
+  const scrollToProductGalleryOnMobile = () => {
+    if (
+      typeof window === 'undefined' ||
+      window.matchMedia('(min-width: 768px)').matches
+    ) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      productGalleryRef.current?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth',
+        block: 'start',
+      });
+    });
+  };
+
+  const selectVariantIndex = (
+    nextIndex: number,
+    options?: {scrollToGallery?: boolean},
+  ) => {
     const nextVariant = variants[nextIndex];
     if (!nextVariant) return;
 
@@ -185,6 +207,10 @@ export default function Product() {
         replace: true,
       },
     );
+
+    if (options?.scrollToGallery) {
+      scrollToProductGalleryOnMobile();
+    }
   };
 
   if (!fabricDetailMetafieldImage && galleryImages.length < 2) {
@@ -243,7 +269,7 @@ export default function Product() {
   return (
     <div className="overflow-x-hidden pt-24 md:pt-28">
       <section className="mx-auto grid max-w-[1500px] gap-8 px-4 sm:px-6 md:grid-cols-12 md:items-start lg:px-12">
-        <div className="min-w-0 md:col-span-7">
+        <div ref={productGalleryRef} className="min-w-0 md:col-span-7">
           <ProductImageCarousel
             activeImageKey={activeCarouselImageKey}
             images={carouselImages}
@@ -290,7 +316,9 @@ export default function Product() {
                         type="button"
                         onClick={() => {
                           if (value.available && value.variantIndex >= 0) {
-                            selectVariantIndex(value.variantIndex);
+                            selectVariantIndex(value.variantIndex, {
+                              scrollToGallery: isColorOptionName(option.name),
+                            });
                           }
                         }}
                         disabled={!value.available || value.variantIndex < 0}
@@ -675,6 +703,11 @@ function isDefaultTitleOption(option: {
     option.name?.toLowerCase() === 'title' &&
     option.value?.toLowerCase() === 'default title'
   );
+}
+
+function isColorOptionName(name: string) {
+  const normalizedName = name.trim().toLowerCase();
+  return normalizedName === 'color' || normalizedName === 'colour';
 }
 
 function buildProductDetailSections({
