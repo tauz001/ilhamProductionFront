@@ -1,6 +1,6 @@
-import {Await, Link, useLoaderData} from 'react-router';
+import {Await, Link, useLoaderData, useSearchParams} from 'react-router';
 import type {Route} from './+types/products.$handle';
-import {Suspense, useState} from 'react';
+import {Suspense, useEffect, useMemo, useState} from 'react';
 import {ChevronDown, Heart, Minus, Plus} from 'lucide-react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Analytics} from '@shopify/hydrogen';
@@ -91,12 +91,19 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
 export default function Product() {
   const {discountOffer, product, recommendations} =
     useLoaderData<typeof loader>();
-  const variants = product.variants?.nodes ?? [];
-  const firstAvailableIndex = Math.max(
-    0,
-    variants.findIndex(isVariantPurchasable),
+  const [searchParams, setSearchParams] = useSearchParams();
+  const variants = useMemo(
+    () => product.variants?.nodes ?? [],
+    [product.variants?.nodes],
   );
-  const [variantIdx, setVariantIdx] = useState(firstAvailableIndex);
+  const firstAvailableIndex = getDefaultVariantIndex(variants);
+  const selectedUrlVariantIndex = getVariantIndexFromSearchParams(
+    variants,
+    searchParams,
+  );
+  const [variantIdx, setVariantIdx] = useState(
+    selectedUrlVariantIndex >= 0 ? selectedUrlVariantIndex : firstAvailableIndex,
+  );
   const [qty, setQty] = useState(1);
   const [openSection, setOpenSection] = useState<string | null>('fabric');
   const wishlist = useStore((s) => s.wishlist);
@@ -131,10 +138,17 @@ export default function Product() {
     [fabricDetailMetafieldImage],
     galleryImages,
   );
+  const selectedVariantImage = selectedVariant?.image?.url
+    ? selectedVariant.image
+    : null;
   const carouselImages = getUniqueImages([
+    selectedVariantImage,
     ...galleryImages,
     fabricDetailImage,
   ]);
+  const activeCarouselImageKey = getImageKey(
+    selectedVariantImage ?? product.featuredImage ?? galleryImages[0],
+  );
   const artisanImage =
     getMetafieldImage(product, 'artisan_image') ?? galleryImages[3] ?? null;
   const occasions = parseListField(getMetafieldValue(product, 'occasions'));
@@ -150,6 +164,28 @@ export default function Product() {
     shippingReturns,
     washCare,
   });
+
+  useEffect(() => {
+    const nextIndex = getVariantIndexFromSearchParams(variants, searchParams);
+    const resolvedIndex = nextIndex >= 0 ? nextIndex : firstAvailableIndex;
+    setVariantIdx((current) =>
+      current === resolvedIndex ? current : resolvedIndex,
+    );
+  }, [firstAvailableIndex, searchParams, variants]);
+
+  const selectVariantIndex = (nextIndex: number) => {
+    const nextVariant = variants[nextIndex];
+    if (!nextVariant) return;
+
+    setVariantIdx(nextIndex);
+    setSearchParams(
+      getSearchParamsForVariant(searchParams, variants, nextVariant),
+      {
+        preventScrollReset: true,
+        replace: true,
+      },
+    );
+  };
 
   if (!fabricDetailMetafieldImage && galleryImages.length < 2) {
     logMissingShopifyField(
@@ -209,6 +245,7 @@ export default function Product() {
       <section className="mx-auto grid max-w-[1500px] gap-8 px-4 sm:px-6 md:grid-cols-12 md:items-start lg:px-12">
         <div className="min-w-0 md:col-span-7">
           <ProductImageCarousel
+            activeImageKey={activeCarouselImageKey}
             images={carouselImages}
             productTitle={product.title}
           />
@@ -253,7 +290,7 @@ export default function Product() {
                         type="button"
                         onClick={() => {
                           if (value.available && value.variantIndex >= 0) {
-                            setVariantIdx(value.variantIndex);
+                            selectVariantIndex(value.variantIndex);
                           }
                         }}
                         disabled={!value.available || value.variantIndex < 0}
@@ -557,6 +594,87 @@ function getImageKey(image: any) {
   if (!image?.url) return '';
 
   return image.id ?? image.url.split('?')[0];
+}
+
+function getDefaultVariantIndex(variants: any[]) {
+  return Math.max(0, variants.findIndex(isVariantPurchasable));
+}
+
+function getVariantIndexFromSearchParams(
+  variants: any[],
+  searchParams: URLSearchParams,
+) {
+  const requestedOptions = getVariantOptionNames(variants)
+    .map((name) => [name, searchParams.get(name)] as const)
+    .filter(
+      (entry): entry is readonly [string, string] =>
+        Boolean(entry[1]?.trim()),
+    );
+
+  if (!requestedOptions.length) return -1;
+
+  const matches = variants
+    .map((variant, index) => ({index, variant}))
+    .filter(({variant}) =>
+      requestedOptions.every(
+        ([name, value]) => getOptionValue(variant, name) === value,
+      ),
+    );
+
+  return (
+    matches.find(({variant}) => isVariantPurchasable(variant)) ??
+    matches[0] ?? {index: -1}
+  ).index;
+}
+
+function getSearchParamsForVariant(
+  currentSearchParams: URLSearchParams,
+  variants: any[],
+  variant: any,
+) {
+  const next = new URLSearchParams(currentSearchParams);
+
+  getVariantOptionNames(variants).forEach((name) => next.delete(name));
+
+  variant.selectedOptions?.forEach(
+    (option: {name?: string | null; value?: string | null}) => {
+      if (!option.name || !option.value || isDefaultTitleOption(option)) return;
+      next.set(option.name, option.value);
+    },
+  );
+
+  return next;
+}
+
+function getVariantOptionNames(variants: any[]) {
+  const names: string[] = [];
+  const seen = new Set<string>();
+
+  variants.forEach((variant) => {
+    variant.selectedOptions?.forEach(
+      (option: {name?: string | null; value?: string | null}) => {
+        if (!option.name || !option.value || isDefaultTitleOption(option)) {
+          return;
+        }
+        if (seen.has(option.name)) return;
+
+        seen.add(option.name);
+        names.push(option.name);
+      },
+    );
+  });
+
+  return names;
+}
+
+function isDefaultTitleOption(option: {
+  name?: string | null;
+  value?: string | null;
+}) {
+  return (
+    option.name?.toLowerCase() === 'title' &&
+    option.value?.toLowerCase() === 'default title'
+  );
 }
 
 function buildProductDetailSections({

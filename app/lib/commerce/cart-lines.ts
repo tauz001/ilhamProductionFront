@@ -55,6 +55,22 @@ export function getLineSizeLabel(line: ShopifyCartLine): string {
   return size?.value ?? line.merchandise.title;
 }
 
+export function getLineSelectedOptionsLabel(line: ShopifyCartLine): string {
+  const options =
+    line.merchandise.selectedOptions?.filter(
+      (option) =>
+        option.value &&
+        !(
+          option.name.toLowerCase() === 'title' &&
+          option.value.toLowerCase() === 'default title'
+        ),
+    ) ?? [];
+
+  return options.length
+    ? options.map((option) => option.value).join(' / ')
+    : getLineSizeLabel(line);
+}
+
 export function getLineProductType(line: ShopifyCartLine): string {
   const product = line.merchandise.product;
   if ('productType' in product && product.productType) {

@@ -2,12 +2,13 @@ import {Link} from 'react-router';
 import {motion} from 'framer-motion';
 import {formatMoney} from '~/lib/commerce/format-money';
 import {PriceWithSavings} from './PriceWithSavings';
+import {useVariantUrl} from '~/lib/variants';
 import {
   getCartLineCompareAtSavings,
 } from '~/lib/commerce/pricing';
 import {
   getLineProductType,
-  getLineSizeLabel,
+  getLineSelectedOptionsLabel,
   hasCartLineIssue,
   type ShopifyCartLine,
 } from '~/lib/commerce/cart-lines';
@@ -32,8 +33,9 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
     cost?.compareAtAmountPerQuantity ?? merchandise.compareAtPrice;
   const lineTotal = cost?.totalAmount;
   const handle = product.handle;
+  const lineItemUrl = useVariantUrl(handle, merchandise.selectedOptions);
   const productType = getLineProductType(line);
-  const sizeLabel = getLineSizeLabel(line);
+  const selectedOptionsLabel = getLineSelectedOptionsLabel(line);
   const hasIssue = hasCartLineIssue(line);
   const hasZeroQuantity = !quantity || quantity < 1;
   const merchandiseUnavailable = merchandise.availableForSale === false;
@@ -49,7 +51,7 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
     return (
       <li className="flex gap-5">
         <Link
-          to={`/products/${handle}`}
+          to={lineItemUrl}
           onClick={onNavigate}
           className="aspect-[3/4] w-24 shrink-0 overflow-hidden bg-cream"
         >
@@ -65,7 +67,7 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
         </Link>
         <div className="flex-1">
           <p className="font-serif text-lg">{product.title}</p>
-          <p className="text-xs text-ink/55">Size {sizeLabel}</p>
+          <p className="text-xs text-ink/55">{selectedOptionsLabel}</p>
           {giftDetails ? (
             <GiftLineDetails compact details={giftDetails} />
           ) : null}
@@ -100,7 +102,7 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
       className="grid grid-cols-[92px_minmax(0,1fr)] gap-5 py-8 sm:grid-cols-[120px_minmax(0,1fr)] md:grid-cols-[160px_minmax(0,1fr)_auto] md:gap-10"
     >
       <Link
-        to={`/products/${handle}`}
+        to={lineItemUrl}
         className="aspect-[3/4] overflow-hidden bg-cream"
       >
         {image?.url ? (
@@ -116,12 +118,14 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
       <div className="flex min-w-0 flex-col">
         <p className="small-caps text-ink/45">{productType}</p>
         <Link
-          to={`/products/${handle}`}
+          to={lineItemUrl}
           className="mt-2 break-words font-serif text-2xl leading-tight text-ink transition-colors hover:text-gold"
         >
           {product.title}
         </Link>
-        <p className="mt-1 text-xs italic text-ink/55">Size {sizeLabel}</p>
+        <p className="mt-1 text-xs italic text-ink/55">
+          {selectedOptionsLabel}
+        </p>
         {hasIssue && (
           <p className="mt-3 border border-destructive/25 bg-destructive/10 px-3 py-2 text-xs text-destructive">
             {issueMessage}

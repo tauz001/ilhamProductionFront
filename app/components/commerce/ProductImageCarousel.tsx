@@ -17,6 +17,7 @@ type ProductMediaImage = {
 };
 
 type ProductImageCarouselProps = {
+  activeImageKey?: string;
   images: ProductMediaImage[];
   productTitle: string;
 };
@@ -24,6 +25,7 @@ type ProductImageCarouselProps = {
 const AUTOPLAY_MS = 10000;
 
 export function ProductImageCarousel({
+  activeImageKey,
   images,
   productTitle,
 }: ProductImageCarouselProps) {
@@ -34,6 +36,7 @@ export function ProductImageCarousel({
   const [activeIndex, setActiveIndex] = useState(0);
   const [zoomIndex, setZoomIndex] = useState<number | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const activeImageKeyRef = useRef<string | null>(null);
   const touchStartXRef = useRef<number | null>(null);
   const didSwipeRef = useRef(false);
   const activeImage = slides[activeIndex] ?? slides[0];
@@ -54,6 +57,19 @@ export function ProductImageCarousel({
 
     setActiveIndex((current) => Math.min(current, slides.length - 1));
   }, [slides.length]);
+
+  useEffect(() => {
+    if (!activeImageKey || activeImageKeyRef.current === activeImageKey) return;
+
+    const nextIndex = slides.findIndex(
+      (image) => getImageKey(image) === activeImageKey,
+    );
+    if (nextIndex < 0) return;
+
+    activeImageKeyRef.current = activeImageKey;
+    setActiveIndex(nextIndex);
+    setZoomIndex(null);
+  }, [activeImageKey, slides]);
 
   useEffect(() => {
     if (zoomIndex === null) return;
@@ -354,4 +370,10 @@ function getPreviousIndex(current: number, length: number) {
   if (length <= 0) return 0;
 
   return (current - 1 + length) % length;
+}
+
+function getImageKey(image?: ProductMediaImage | null) {
+  if (!image?.url) return '';
+
+  return image.id ?? image.url.split('?')[0];
 }

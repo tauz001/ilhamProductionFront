@@ -261,6 +261,41 @@
 - Follow-up verification passed: lint, clean TypeScript, diff checks,
   production build, and protected-file scope review.
 
+## Variant Image Handling Phase
+
+### Approved Objective
+
+- Keep the current PDP and cart design almost unchanged while correcting
+  selected Shopify variant behavior.
+- PDP variant selection should preserve compatible options, use the selected
+  Shopify variant ID for Add to Cart, and show the selected variant image first
+  when Shopify provides one.
+- Bag drawer/page should continue using the cart line's `merchandise.image` and
+  show the selected variant options cleanly under the product title.
+- Do not duplicate collection cards by color, do not redesign PDP/cart, do not
+  customize checkout, and do not add heavy gallery filtering.
+
+### Current Notes
+
+- Started from clean pushed `codex/premium-discount-experience` at `56113ac`.
+- Inspection confirms PDP already queries variant image/selectedOptions/price
+  and Add to Cart already submits `selectedVariant.id`.
+- Inspection confirms cart fragments already query `line.merchandise.image` and
+  `line.merchandise.selectedOptions`.
+- Current gaps: PDP variant state is local only, the carousel does not
+  prioritize selected variant image, and bag lines show only `Size` instead of
+  the full selected option set.
+- Implemented locally: PDP selected variant now syncs from URL option search
+  params, option clicks update those params without scroll reset, the existing
+  carousel prioritizes `selectedVariant.image` and resets to it when the
+  selected color image changes, and bag drawer/page lines render the full
+  selected option values while linking back to the selected variant URL.
+- Cart line imagery remains sourced from `line.merchandise.image`; checkout is
+  untouched and still depends on Shopify Admin variant image assignment.
+- Verification passed: lint, clean TypeScript, diff checks, production build,
+  and protected-file scope review. Checkout customization was intentionally not
+  attempted.
+
 ## Completed
 
 - Removed the 50-product/30-collection layout query from the root critical
@@ -426,10 +461,14 @@
 - Floating WhatsApp now has a CSS-only trust nudge: size-help tooltip, soft
   gold pulse, small trust dot, and slow floating motion while preserving the
   existing href/target/fallback behavior and reduced-motion handling.
+- PDP variant selection now syncs from URL option params, Add to Cart continues
+  to submit the selected Shopify variant ID, the existing carousel prioritizes
+  `selectedVariant.image`, and bag lines show the full selected option values
+  while continuing to use `line.merchandise.image`.
 
 ## In Progress
 
-- None. WhatsApp rotating tooltip and stronger pulse are verified on
+- None. Variant image handling is verified on
   `codex/premium-discount-experience`.
 
 ## Pending
@@ -607,6 +646,13 @@
   and Oxygen SSR bundles passed.
 - WhatsApp rotating-tooltip follow-up protected-file audit showed no diff to
   order-detail/Admin, feedback API, sitemap/robots, or `.env`.
+- Variant image handling `npm.cmd run lint`, clean TypeScript, and
+  `git diff --check` - passed after memoizing PDP variants to satisfy React hook
+  dependency lint.
+- Variant image handling `npm.cmd run build` - production client and Oxygen SSR
+  bundles passed.
+- Variant image handling protected-file audit showed no diff to order-detail/
+  Admin, feedback API, WhatsApp, checkout route, sitemap/robots, or `.env`.
 
 ## Next Step
 
