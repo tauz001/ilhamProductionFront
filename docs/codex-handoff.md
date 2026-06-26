@@ -296,6 +296,33 @@
   and protected-file scope review. Checkout customization was intentionally not
   attempted.
 
+## PDP Deferred Discount Stability Phase
+
+### Approved Objective
+
+- Fix delayed PDP 500s that appear after initial render without changing PDP
+  design or checkout/cart behavior.
+- Keep the Shopify Admin-backed discount ticket optional: if the Admin lookup
+  fails, the ticket should hide rather than crash the product page.
+
+### Current Notes
+
+- Screenshot showed PDP rendering first, then switching to the route error
+  boundary after several seconds. That timing points to a deferred `<Await>`
+  promise rejection rather than the main product loader.
+- The PDP deferred `discountOffer` uses `fetchFeaturedDiscountOffer`; its cache
+  side-effect handled rejections, but the returned promise could still reject
+  and bubble into the route boundary.
+- Implemented locally: `fetchFeaturedDiscountOffer` now catches Admin/network
+  lookup failures and resolves `null`, so the ticket hides and the storefront
+  stays open.
+- Verification passed: `npm.cmd run lint`, clean TypeScript
+  `node_modules\.bin\tsc.cmd --noEmit --incremental false`,
+  `git diff --check`, and `npm.cmd run build`.
+- Scope check passed: only `app/lib/commerce/discount-ticket.server.ts` and
+  this handoff changed; protected order-detail/Admin, feedback API, checkout,
+  WhatsApp, sitemap/robots, and `.env` surfaces were untouched.
+
 ## Completed
 
 - Removed the 50-product/30-collection layout query from the root critical
@@ -468,7 +495,7 @@
 
 ## In Progress
 
-- None. Variant image handling is verified on
+- None. PDP deferred discount stability is verified on
   `codex/premium-discount-experience`.
 
 ## Pending

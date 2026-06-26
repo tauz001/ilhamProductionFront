@@ -39,7 +39,13 @@ export function fetchFeaturedDiscountOffer(env: DiscountEnv) {
     return cachedOffer.promise;
   }
 
-  const promise = readFeaturedDiscountOffer(env);
+  const promise = readFeaturedDiscountOffer(env).catch((error) => {
+    console.warn(
+      '[discount-ticket] Discount ticket lookup failed. Hiding the ticket instead of interrupting the storefront.',
+      error,
+    );
+    return null;
+  });
   cachedOffer = {
     expiresAt: now + CACHE_MS,
     key: cacheKey,
@@ -48,14 +54,6 @@ export function fetchFeaturedDiscountOffer(env: DiscountEnv) {
 
   void promise.then((offer) => {
     if (offer || cachedOffer?.key !== cacheKey) return;
-    cachedOffer = {
-      expiresAt: Date.now() + ERROR_CACHE_MS,
-      key: cacheKey,
-      promise: Promise.resolve(null),
-    };
-  });
-
-  void promise.catch(() => {
     cachedOffer = {
       expiresAt: Date.now() + ERROR_CACHE_MS,
       key: cacheKey,
