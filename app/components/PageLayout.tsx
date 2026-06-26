@@ -1,6 +1,7 @@
 import {useEffect, useRef} from 'react';
 import {useLocation, useNavigationType} from 'react-router';
 import type {HeaderQuery} from 'storefrontapi.generated';
+import {AnimatePresence, motion, useReducedMotion} from 'framer-motion';
 import {Drawers} from '~/components/layout/Drawers';
 import {Footer} from '~/components/layout/Footer';
 import {FloatingWhatsApp} from '~/components/layout/FloatingWhatsApp';
@@ -9,6 +10,7 @@ import {Navbar, MobileMenuDrawer} from '~/components/layout/Navbar';
 import {ScrollProgress} from '~/components/layout/ScrollProgress';
 import {useStore} from '~/lib/commerce/cart-store';
 import {useLenis} from '~/lib/motion/useLenis';
+import {easeSilk} from '~/lib/motion/variants';
 
 interface PageLayoutProps {
   cart: unknown;
@@ -47,11 +49,30 @@ export function PageLayout({
       <Navbar header={header} publicStoreDomain={publicStoreDomain} />
       <MobileMenuDrawer />
       <Drawers />
-      {/* Keep routes responsible for top padding, to match TanStack layouts (home hero is full-bleed). */}
-      <main className="min-h-screen">{children}</main>
+      <PageTransition>{children}</PageTransition>
       <FloatingWhatsApp href={whatsAppUrl} />
       <Footer />
     </>
+  );
+}
+
+function PageTransition({children}: {children?: React.ReactNode}) {
+  const location = useLocation();
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <AnimatePresence initial={false} mode="sync">
+      <motion.main
+        key={location.pathname}
+        className="min-h-screen"
+        initial={prefersReducedMotion ? false : {opacity: 0.72, y: 10}}
+        animate={{opacity: 1, y: 0}}
+        exit={prefersReducedMotion ? {opacity: 1} : {opacity: 0.82, y: -6}}
+        transition={{duration: 0.42, ease: easeSilk}}
+      >
+        {children}
+      </motion.main>
+    </AnimatePresence>
   );
 }
 

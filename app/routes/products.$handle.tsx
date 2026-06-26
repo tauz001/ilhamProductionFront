@@ -48,6 +48,13 @@ import {
 } from '~/lib/commerce/image';
 import {breadcrumbJsonLd, productJsonLd, seoMeta} from '~/lib/seo';
 
+type RecommendedProduct = {
+  handle: string;
+  title: string;
+  id?: string | null;
+  [key: string]: unknown;
+};
+
 export const meta: Route.MetaFunction = ({data}) => {
   const product = data?.product;
   return seoMeta({
@@ -83,7 +90,23 @@ export async function loader({context, params, request}: Route.LoaderArgs) {
     .query(PRODUCT_RECOMMENDATIONS_QUERY, {
       variables: {productId: product.id},
     })
-    .then((result) => result?.productRecommendations ?? [])
+    .then(async (result) => {
+      const recommendedProducts = normalizeRecommendations(
+        result?.productRecommendations,
+      );
+      if (recommendedProducts.length) return recommendedProducts;
+
+      const fallbackResult = await storefront.query(
+        PRODUCT_RECOMMENDATIONS_FALLBACK_QUERY,
+        {
+          variables: {first: 8},
+        },
+      );
+
+      return normalizeRecommendations(fallbackResult?.products?.nodes)
+        .filter((recommended) => recommended.handle !== product.handle)
+        .slice(0, 4);
+    })
     .catch((error: Error) => {
       console.error('[product] Shopify productRecommendations query failed:', error);
       return [];
@@ -596,21 +619,28 @@ function ProductRecommendations({recommendations}: {recommendations: any[]}) {
       <h3 className="font-display text-4xl md:text-5xl">You may also love</h3>
       <div className="mt-12 grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 sm:gap-y-14 md:grid-cols-4">
         {recommendations.slice(0, 4).map((recommended: any) => (
-          <FadeUp key={recommended.handle}>
-            <ProductCard product={recommended} />
-          </FadeUp>
+          <ProductDeferredBoundary
+            key={recommended.id ?? recommended.handle}
+            label={`recommended product ${recommended.handle}`}
+          >
+            <FadeUp>
+              <ProductCard product={recommended} />
+            </FadeUp>
+          </ProductDeferredBoundary>
         ))}
       </div>
     </section>
   );
 }
 
-function normalizeRecommendations(recommendations: unknown) {
+function normalizeRecommendations(
+  recommendations: unknown,
+): RecommendedProduct[] {
   if (!Array.isArray(recommendations)) return [];
 
   return recommendations.filter(
-    (product) =>
-      product &&
+    (product): product is RecommendedProduct =>
+      Boolean(product) &&
       typeof product === 'object' &&
       typeof (product as {handle?: unknown}).handle === 'string' &&
       typeof (product as {title?: unknown}).title === 'string',
@@ -1027,6 +1057,21 @@ const PRODUCT_RECOMMENDATIONS_QUERY = `#graphql
   ) @inContext(country: $country, language: $language) {
     productRecommendations(productId: $productId) {
       ...IlhamProductCard
+    }
+  }
+  ${PRODUCT_CARD_FRAGMENT}
+` as const;
+
+const PRODUCT_RECOMMENDATIONS_FALLBACK_QUERY = `#graphql
+  query ProductRecommendationsFallback(
+    $country: CountryCode
+    $first: Int!
+    $language: LanguageCode
+  ) @inContext(country: $country, language: $language) {
+    products(first: $first, sortKey: CREATED_AT, reverse: true) {
+      nodes {
+        ...IlhamProductCard
+      }
     }
   }
   ${PRODUCT_CARD_FRAGMENT}

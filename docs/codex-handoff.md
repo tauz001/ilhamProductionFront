@@ -405,6 +405,38 @@
   `node_modules\.bin\tsc.cmd --noEmit --incremental false`,
   `git diff --check`, and `npm.cmd run build`.
 
+## Page Transition Recommendations And Ticket Diagnosis Phase
+
+### Approved Objective
+
+- Make every route change feel smoother instead of hard-loaded.
+- Keep PDP recommendations working even when Shopify's recommendation endpoint
+  returns no products or a malformed item.
+- Find why the Shopify-backed discount ticket is not showing and harden the code
+  where possible.
+
+### Current Notes
+
+- Implemented locally: global route content is now wrapped in a Framer Motion
+  page transition keyed by pathname, with reduced-motion support.
+- Implemented locally: PDP recommendations now fall back to recent Shopify
+  products if `productRecommendations` returns empty, excluding the current
+  product.
+- Implemented locally: each recommended product card is isolated in a small error
+  boundary so one bad item cannot take down the whole rail.
+- Implemented locally: discount ticket lookup now quotes hyphenated selectors
+  such as `New-Customer`, removes the unsupported tag-first dependency, and
+  scans active code discounts by title/code/summary when exact Shopify search
+  returns nothing.
+- Diagnostic result: `.env` has `DISCOUNT_TICKET_TAG=New-Customer` and a
+  Shopify-shaped private Admin token, but even a basic Admin GraphQL `shop`
+  query returned HTTP 401 for `qvkgah-er.myshopify.com`. This means the ticket
+  cannot fetch real discounts until the Oxygen/local `PRIVATE_SHOPIFY_ADMIN_API_TOKEN`
+  belongs to this exact store and has `read_discounts`.
+- Verification passed: `npm.cmd run codegen`, `npm.cmd run lint`, clean
+  TypeScript `node_modules\.bin\tsc.cmd --noEmit --incremental false`,
+  `git diff --check`, and `npm.cmd run build`.
+
 ## Completed
 
 - Removed the 50-product/30-collection layout query from the root critical

@@ -101,13 +101,16 @@ async function readFeaturedDiscountOffer(
 
     if (!response.ok || payload.errors?.length) {
       console.warn(
-        '[discount-ticket] Could not read Shopify discounts. Confirm PRIVATE_SHOPIFY_ADMIN_API_TOKEN has read_discounts and one active code discount matches DISCOUNT_TICKET_TAG by tag, code, or title.',
+        `[discount-ticket] Could not read Shopify discounts (${response.status}). Confirm PRIVATE_SHOPIFY_ADMIN_API_TOKEN belongs to ${shopDomain}, has read_discounts, and one active code discount matches DISCOUNT_TICKET_TAG by code or title.`,
       );
       return null;
     }
 
     const nodes = payload.data?.discountNodes?.nodes ?? [];
-    const offer = nodes.map(normalizeDiscountNode).find(Boolean);
+    const offer = nodes
+      .filter((node) => discountNodeMatchesSelector(node, selector))
+      .map(normalizeDiscountNode)
+      .find(Boolean);
     if (offer) return offer;
   }
 
@@ -153,16 +156,45 @@ function getDiscountType(typename?: string): DiscountTicketOffer['type'] {
 function buildDiscountQueries(selector: string) {
   const value = escapeSearchValue(selector);
   return [
-    `method:code status:active tag:${value}`,
     `method:code status:active code:${value}`,
     `method:code status:active title:${value}`,
     `method:code status:active ${value}`,
+    'method:code status:active',
   ];
 }
 
 function escapeSearchValue(value: string) {
-  if (/^[a-zA-Z0-9_-]+$/.test(value)) return value;
+  if (/^[a-zA-Z0-9_]+$/.test(value)) return value;
   return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+function discountNodeMatchesSelector(node: AdminDiscountNode, selector: string) {
+  const normalizedSelector = normalizeSearchText(selector);
+  if (!normalizedSelector) return false;
+
+  const discount = node.discount;
+  if (!discount) return false;
+
+  const codes = discount.codes?.nodes?.map((code) => code.code) ?? [];
+  const searchableValues = [
+    discount.title,
+    discount.shortSummary,
+    discount.summary,
+    ...codes,
+  ]
+    .map(normalizeSearchText)
+    .filter(Boolean);
+
+  return searchableValues.some(
+    (value) =>
+      value === normalizedSelector ||
+      value.includes(normalizedSelector) ||
+      normalizedSelector.includes(value),
+  );
+}
+
+function normalizeSearchText(value?: string | null) {
+  return value?.trim().toLowerCase().replace(/\s+/g, ' ') ?? '';
 }
 
 function normalizeDiscountSelector(selector?: string) {
