@@ -397,6 +397,40 @@
     }
   }
 
+  .whatsapp-float {
+    animation: whatsapp-float 5.6s var(--ease-silk) infinite;
+  }
+
+  .whatsapp-pulse {
+    animation: whatsapp-pulse 2.8s ease-out infinite;
+    transform-origin: center;
+  }
+
+  @keyframes whatsapp-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
+  @keyframes whatsapp-pulse {
+    0% {
+      opacity: 0.32;
+      transform: scale(0.92);
+    }
+    70% {
+      opacity: 0;
+      transform: scale(1.52);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.52);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;

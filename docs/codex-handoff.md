@@ -236,6 +236,25 @@
 - Verification passed: codegen, lint, clean TypeScript, diff checks, production
   build, and protected-file diff audit.
 
+## WhatsApp Trust Nudge Phase
+
+### Approved Objective
+
+- Make the floating WhatsApp control more noticeable and trust-building without
+  changing its existing link behavior.
+- Add restrained pulse/floating motion plus a small guidance tooltip for size,
+  delivery, and styling help.
+- Keep the effect lightweight, CSS-only, and respectful of reduced-motion
+  preferences.
+
+### Current Notes
+
+- Implemented locally: the existing floating WhatsApp component now keeps its
+  current href/target fallback, adds a small guidance tooltip, a gold trust dot,
+  a soft pulse layer, and a slow float animation.
+- Verification passed: lint, clean TypeScript, diff checks, production build,
+  and protected-file scope review.
+
 ## Completed
 
 - Removed the 50-product/30-collection layout query from the root critical
@@ -398,11 +417,14 @@
 - Homepage product sourcing now requests recent Shopify products first so the
   New Arrivals rail feels freshly merchandised before applying its existing
   new-product tag filter.
+- Floating WhatsApp now has a CSS-only trust nudge: size-help tooltip, soft
+  gold pulse, small trust dot, and slow floating motion while preserving the
+  existing href/target/fallback behavior and reduced-motion handling.
 
 ## In Progress
 
-- None. Sold-out merchandising and homepage recent-first ordering are verified
-  on `codex/premium-discount-experience`.
+- None. WhatsApp trust nudge is verified on
+  `codex/premium-discount-experience`.
 
 ## Pending
 
@@ -565,6 +587,14 @@
   0.25KB gzip client chunk.
 - Sold-out merchandising protected-file audit showed no diff to order-detail/
   Admin, feedback API, WhatsApp, sitemap/robots, or `.env`.
+- WhatsApp trust nudge `npm.cmd run lint` - first parallel run timed out at
+  120s, rerun alone passed.
+- WhatsApp trust nudge clean TypeScript and `git diff --check` - passed.
+- WhatsApp trust nudge `npm.cmd run build` - production client and Oxygen SSR
+  bundles passed.
+- WhatsApp trust nudge protected-file audit showed no diff to order-detail/
+  Admin, feedback API, sitemap/robots, or `.env`; only the intended WhatsApp
+  component, stylesheet, and handoff changed.
 
 ## Next Step
 
