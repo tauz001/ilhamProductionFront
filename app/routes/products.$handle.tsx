@@ -1,6 +1,14 @@
 import {Await, Link, useLoaderData, useSearchParams} from 'react-router';
 import type {Route} from './+types/products.$handle';
-import {Suspense, useEffect, useMemo, useRef, useState} from 'react';
+import {
+  Component,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import {ChevronDown, Heart, Minus, Plus} from 'lucide-react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Analytics} from '@shopify/hydrogen';
@@ -396,17 +404,22 @@ export default function Product() {
             </button>
           </div>
 
-          <Suspense fallback={null}>
-            <Await resolve={discountOffer}>
-              {(offer) => (
-                <DiscountTicket
-                  className="mt-4"
-                  offer={offer}
-                  redirectTo={`/products/${product.handle}`}
-                />
-              )}
-            </Await>
-          </Suspense>
+          <ProductDeferredBoundary
+            key={`${product.handle}-discount`}
+            label="discount ticket"
+          >
+            <Suspense fallback={null}>
+              <Await resolve={discountOffer} errorElement={null}>
+                {(offer) => (
+                  <DiscountTicket
+                    className="mt-4"
+                    offer={offer}
+                    redirectTo={`/products/${product.handle}`}
+                  />
+                )}
+              </Await>
+            </Suspense>
+          </ProductDeferredBoundary>
 
           <ProductAssurancePanel priceAmount={price?.amount} />
 
@@ -512,13 +525,22 @@ export default function Product() {
         </section>
       )}
 
-      <Suspense fallback={<ProductRecommendationsSkeleton />}>
-        <Await resolve={recommendations}>
-          {(resolvedRecommendations) => (
-            <ProductRecommendations recommendations={resolvedRecommendations} />
-          )}
-        </Await>
-      </Suspense>
+      <ProductDeferredBoundary
+        key={`${product.handle}-recommendations`}
+        label="recommendations"
+      >
+        <Suspense fallback={<ProductRecommendationsSkeleton />}>
+          <Await resolve={recommendations} errorElement={null}>
+            {(resolvedRecommendations) => (
+              <ProductRecommendations
+                recommendations={normalizeRecommendations(
+                  resolvedRecommendations,
+                )}
+              />
+            )}
+          </Await>
+        </Suspense>
+      </ProductDeferredBoundary>
 
       <Analytics.ProductView
         data={{
@@ -546,6 +568,26 @@ export default function Product() {
   );
 }
 
+class ProductDeferredBoundary extends Component<
+  {children: ReactNode; label: string},
+  {hasError: boolean}
+> {
+  state = {hasError: false};
+
+  static getDerivedStateFromError() {
+    return {hasError: true};
+  }
+
+  componentDidCatch(error: unknown) {
+    console.error(`[product] Deferred ${this.props.label} failed:`, error);
+  }
+
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
+
 function ProductRecommendations({recommendations}: {recommendations: any[]}) {
   if (!recommendations.length) return null;
 
@@ -560,6 +602,18 @@ function ProductRecommendations({recommendations}: {recommendations: any[]}) {
         ))}
       </div>
     </section>
+  );
+}
+
+function normalizeRecommendations(recommendations: unknown) {
+  if (!Array.isArray(recommendations)) return [];
+
+  return recommendations.filter(
+    (product) =>
+      product &&
+      typeof product === 'object' &&
+      typeof (product as {handle?: unknown}).handle === 'string' &&
+      typeof (product as {title?: unknown}).title === 'string',
   );
 }
 

@@ -66,13 +66,24 @@ function RouteScrollReset() {
 
     if (!pathnameChanged || navigationType === 'POP' || location.hash) return;
 
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    const behavior: ScrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
+
     const scrollToTop = () => {
-      window.dispatchEvent(new Event('ilham:route-scroll-top'));
-      window.scrollTo({top: 0, left: 0, behavior: 'auto'});
+      window.dispatchEvent(
+        new CustomEvent('ilham:route-scroll-top', {
+          detail: {immediate: prefersReducedMotion},
+        }),
+      );
+      window.scrollTo({top: 0, left: 0, behavior});
     };
 
     scrollToTop();
-    const frameId = window.requestAnimationFrame(scrollToTop);
+    const frameId = window.requestAnimationFrame(() => {
+      if (prefersReducedMotion) scrollToTop();
+    });
     return () => window.cancelAnimationFrame(frameId);
   }, [location.hash, location.pathname, navigationType]);
 

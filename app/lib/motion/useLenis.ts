@@ -90,8 +90,15 @@ export function useLenis(paused = false) {
       }
     };
 
-    const onRouteScrollTop = () => {
-      instanceRef.current?.scrollTo(0, {force: true, immediate: true});
+    const onRouteScrollTop = (event: Event) => {
+      const detail = (event as CustomEvent<{immediate?: boolean}>).detail;
+      const immediate = Boolean(detail?.immediate);
+      instanceRef.current?.scrollTo(0, {
+        duration: immediate ? 0 : 0.62,
+        easing: (time) => 1 - Math.pow(1 - time, 3),
+        force: true,
+        immediate,
+      });
     };
 
     finePointer.addEventListener('change', sync);

@@ -374,6 +374,37 @@
   TypeScript `node_modules\.bin\tsc.cmd --noEmit --incremental false`,
   `git diff --check`, and `npm.cmd run build`.
 
+## PDP Deferred Crash Hardening And Soft Scroll Phase
+
+### Approved Objective
+
+- Prioritize the reported PDP crash on
+  `/products/gulnaz-chikankari-sharara-set`.
+- Keep the PDP open even if optional deferred sections fail after initial
+  render.
+- Soften the route scroll reset so navigating from a scrolled page feels like a
+  short scroll-to-top instead of a hard reload/jump.
+
+### Current Notes
+
+- Live production check on `https://ilhamchikankari.com/products/gulnaz-chikankari-sharara-set`
+  returned HTTP 200 initially, matching the report that the PDP appears and then
+  falls into the route error boundary.
+- Live asset inspection showed the deployed `products._handle` bundle does not
+  contain the previous non-fatal discount-ticket fix or mobile color-scroll code,
+  so production is still serving an older PDP bundle until the next deploy.
+- Implemented locally: PDP discount ticket and recommendations are wrapped in a
+  small error boundary plus `<Await errorElement={null}>`, so optional deferred
+  failures hide that section rather than crashing the product route.
+- Implemented locally: recommendation results are sanitized before rendering
+  product cards.
+- Implemented locally: route scroll reset now uses smooth scroll on normal
+  navigation and instant scroll only for reduced-motion users; Lenis receives the
+  same smooth reset event.
+- Verification passed: `npm.cmd run lint`, clean TypeScript
+  `node_modules\.bin\tsc.cmd --noEmit --incremental false`,
+  `git diff --check`, and `npm.cmd run build`.
+
 ## Completed
 
 - Removed the 50-product/30-collection layout query from the root critical
