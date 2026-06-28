@@ -9,6 +9,7 @@ const STATIC_PAGES = [
   '/blogs',
   '/gifting',
   '/about',
+  '/ilhams-wall',
   '/contact',
   '/terms-and-conditions',
   '/policies',

@@ -67,6 +67,11 @@ export function Footer() {
                   The process
                 </Link>
               </li>
+              <li>
+                <Link to="/ilhams-wall" className="hover:text-gold">
+                  ilham&apos;s wall
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
