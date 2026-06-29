@@ -174,7 +174,7 @@ export default function IlhamsWall() {
 }
 
 function StickyReviewNote({review}: {review: IlhamsWallReview}) {
-  const style = getNoteStyle(review.styleSeed);
+  const style = getNoteStyle(getReviewVisualSeed(review));
   const photo = review.photo?.url ? review.photo : null;
   const hasPhoto = Boolean(photo);
   const centerNote = !hasPhoto && review.note.length <= 70;
@@ -188,11 +188,11 @@ function StickyReviewNote({review}: {review: IlhamsWallReview}) {
     >
       <span
         aria-hidden
-        className="absolute top-0 h-7 -translate-x-1/2 -translate-y-1/2 border border-white/30 bg-white/45 shadow-[0_4px_12px_rgba(78,56,31,0.08)] backdrop-blur-[1px]"
+        className="absolute top-3 z-10 h-7 border border-white/35 bg-white/50 shadow-[0_4px_12px_rgba(78,56,31,0.1)] backdrop-blur-[1px]"
         style={{
           left: `${style.tapeLeft}%`,
           opacity: style.tapeOpacity,
-          transform: `translate(-50%, -50%) rotate(${style.tapeRotation}deg)`,
+          transform: `translate(-50%, -54%) rotate(${style.tapeRotation}deg)`,
           width: `${style.tapeWidth}px`,
         }}
       />
@@ -447,22 +447,38 @@ function WallPattern() {
   );
 }
 
+function getReviewVisualSeed(review: IlhamsWallReview) {
+  return getTextSeed(`${review.id}:${review.styleSeed}`);
+}
+
+function getTextSeed(value: string) {
+  let hash = 0;
+  for (const char of value) {
+    hash = (hash * 33 + char.charCodeAt(0)) % 104729;
+  }
+  return Math.abs(hash || 1);
+}
+
 function getNoteStyle(seed: number) {
   const backgrounds = [
-    '#f8e8c9',
-    '#efe2cf',
-    '#f4decf',
-    '#e8e0c4',
-    '#f1e7d9',
-    '#ead8be',
+    '#f5d7cf',
+    '#f2df9f',
+    '#cfe4da',
+    '#d9d5ee',
+    '#f0cbd7',
+    '#cfe0ed',
+    '#ecd4ae',
+    '#d7e0bf',
+    '#f1d7bd',
+    '#d6e3d5',
   ];
   const normalizedSeed = Math.abs(seed || 1);
   const background = backgrounds[normalizedSeed % backgrounds.length];
-  const rotation = (((normalizedSeed * 7) % 11) - 5) * 0.55;
-  const tapeLeft = 38 + ((normalizedSeed * 13) % 25);
-  const tapeRotation = (((normalizedSeed * 17) % 9) - 4) * 0.8;
-  const tapeWidth = 78 + ((normalizedSeed * 19) % 42);
-  const tapeOpacity = 0.38 + (((normalizedSeed * 23) % 12) / 100);
+  const rotation = (((normalizedSeed * 7) % 11) - 5) * 0.5;
+  const tapeLeft = 35 + ((normalizedSeed * 13) % 31);
+  const tapeRotation = (((normalizedSeed * 17) % 11) - 5) * 0.65;
+  const tapeWidth = 74 + ((normalizedSeed * 19) % 48);
+  const tapeOpacity = 0.44 + (((normalizedSeed * 23) % 12) / 100);
 
   return {
     background,

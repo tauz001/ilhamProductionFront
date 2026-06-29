@@ -110,8 +110,11 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
   GraphQL validation error and makes the wall appear empty.
 - Sticky note visual identity must be stable per review. Permanent style values
   such as note color, rotation, tape position, tape width, tape opacity, and tape
-  rotation should depend only on `style_seed`, not the review's grid index.
-  Review grid position/order may change when newer reviews are added.
+  rotation should depend on a stable review-specific seed, not the review's grid
+  index. Review grid position/order may change when newer reviews are added.
+- Manual reviews can accidentally reuse the same `style_seed`, so the wall route
+  combines review `id` with `style_seed` for visual styling. This keeps existing
+  notes stable while making each note look more distinct.
 
 ## Next Exact Steps
 
