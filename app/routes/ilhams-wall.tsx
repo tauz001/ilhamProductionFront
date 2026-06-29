@@ -124,12 +124,8 @@ export default function IlhamsWall() {
 
           {hasReviews ? (
             <div className="grid grid-cols-1 gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {wall.reviews.map((review, index) => (
-                <StickyReviewNote
-                  index={index}
-                  key={review.id}
-                  review={review}
-                />
+              {wall.reviews.map((review) => (
+                <StickyReviewNote key={review.id} review={review} />
               ))}
             </div>
           ) : (
@@ -177,17 +173,14 @@ export default function IlhamsWall() {
   );
 }
 
-function StickyReviewNote({
-  index,
-  review,
-}: {
-  index: number;
-  review: IlhamsWallReview;
-}) {
-  const style = getNoteStyle(review.styleSeed, index);
+function StickyReviewNote({review}: {review: IlhamsWallReview}) {
+  const style = getNoteStyle(review.styleSeed);
+  const photo = review.photo?.url ? review.photo : null;
+  const hasPhoto = Boolean(photo);
+  const centerNote = !hasPhoto && review.note.length <= 70;
   return (
     <article
-      className="group relative mx-auto flex min-h-[260px] w-full max-w-[22rem] flex-col justify-between border border-black/[0.05] p-5 shadow-[0_18px_35px_rgba(57,42,24,0.13)] transition-transform duration-500 hover:-translate-y-1"
+      className="group relative mx-auto flex min-h-[260px] w-full max-w-[22rem] flex-col justify-between overflow-visible border border-black/[0.05] p-5 shadow-[0_18px_35px_rgba(57,42,24,0.13)] transition-transform duration-500 hover:-translate-y-1"
       style={{
         background: style.background,
         transform: `rotate(${style.rotation}deg)`,
@@ -195,28 +188,44 @@ function StickyReviewNote({
     >
       <span
         aria-hidden
-        className="absolute left-1/2 top-0 h-7 w-24 -translate-x-1/2 -translate-y-1/2 rotate-[-2deg] border border-white/30 bg-white/45 shadow-[0_4px_12px_rgba(78,56,31,0.08)] backdrop-blur-[1px]"
+        className="absolute top-0 h-7 -translate-x-1/2 -translate-y-1/2 border border-white/30 bg-white/45 shadow-[0_4px_12px_rgba(78,56,31,0.08)] backdrop-blur-[1px]"
+        style={{
+          left: `${style.tapeLeft}%`,
+          opacity: style.tapeOpacity,
+          transform: `translate(-50%, -50%) rotate(${style.tapeRotation}deg)`,
+          width: `${style.tapeWidth}px`,
+        }}
       />
 
-      {review.photo?.url ? (
+      {photo ? (
         <div className="mb-4 overflow-hidden border border-ink/10 bg-ivory/45">
           <img
-            alt={review.photo.altText ?? review.productTitle}
+            alt={photo.altText ?? review.productTitle}
             className="aspect-[4/3] w-full object-cover"
             decoding="async"
-            height={review.photo.height ?? undefined}
+            height={photo.height ?? undefined}
             loading="lazy"
             sizes="(min-width: 1280px) 22vw, (min-width: 768px) 33vw, 90vw"
-            src={shopifyImageUrl(review.photo.url, 520)}
-            srcSet={shopifySrcSet(review.photo.url, CARD_IMAGE_WIDTHS)}
-            width={review.photo.width ?? undefined}
+            src={shopifyImageUrl(photo.url, 520)}
+            srcSet={shopifySrcSet(photo.url, CARD_IMAGE_WIDTHS)}
+            width={photo.width ?? undefined}
           />
         </div>
       ) : null}
 
-      <p className="font-serif text-2xl leading-snug text-ink/82">
-        &ldquo;{review.note}&rdquo;
-      </p>
+      <div
+        className={
+          centerNote
+            ? 'flex flex-1 items-center py-8'
+            : hasPhoto
+              ? ''
+              : 'pt-5'
+        }
+      >
+        <p className="font-serif text-2xl leading-snug text-ink/82">
+          &ldquo;{review.note}&rdquo;
+        </p>
+      </div>
 
       <div className="mt-7 space-y-2">
         <div className="flex items-center justify-between gap-4 border-t border-ink/10 pt-4">
@@ -438,7 +447,7 @@ function WallPattern() {
   );
 }
 
-function getNoteStyle(seed: number, index: number) {
+function getNoteStyle(seed: number) {
   const backgrounds = [
     '#f8e8c9',
     '#efe2cf',
@@ -447,9 +456,22 @@ function getNoteStyle(seed: number, index: number) {
     '#f1e7d9',
     '#ead8be',
   ];
-  const background = backgrounds[Math.abs(seed + index) % backgrounds.length];
-  const rotation = (((seed + index * 7) % 9) - 4) * 0.75;
-  return {background, rotation};
+  const normalizedSeed = Math.abs(seed || 1);
+  const background = backgrounds[normalizedSeed % backgrounds.length];
+  const rotation = (((normalizedSeed * 7) % 11) - 5) * 0.55;
+  const tapeLeft = 38 + ((normalizedSeed * 13) % 25);
+  const tapeRotation = (((normalizedSeed * 17) % 9) - 4) * 0.8;
+  const tapeWidth = 78 + ((normalizedSeed * 19) % 42);
+  const tapeOpacity = 0.38 + (((normalizedSeed * 23) % 12) / 100);
+
+  return {
+    background,
+    rotation,
+    tapeLeft,
+    tapeOpacity,
+    tapeRotation,
+    tapeWidth,
+  };
 }
 
 function formatReviewDate(value: string) {

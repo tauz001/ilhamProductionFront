@@ -108,6 +108,10 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
 - Shopify Admin API `metaobjects.sortKey` expects a string value. Use
   `sortKey: "updated_at"` in the wall query; `sortKey: UPDATED_AT` returns a
   GraphQL validation error and makes the wall appear empty.
+- Sticky note visual identity must be stable per review. Permanent style values
+  such as note color, rotation, tape position, tape width, tape opacity, and tape
+  rotation should depend only on `style_seed`, not the review's grid index.
+  Review grid position/order may change when newer reviews are added.
 
 ## Next Exact Steps
 
