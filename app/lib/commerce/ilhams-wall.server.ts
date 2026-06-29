@@ -788,7 +788,7 @@ const ILHAMS_WALL_ELIGIBILITY_QUERY = `
 
 const ILHAMS_WALL_REVIEWS_QUERY = `
   query IlhamsWallReviews($after: String, $first: Int!, $type: String!) {
-    metaobjects(type: $type, first: $first, after: $after, sortKey: UPDATED_AT, reverse: true) {
+    metaobjects(type: $type, first: $first, after: $after, sortKey: "updated_at", reverse: true) {
       nodes {
         id
         handle

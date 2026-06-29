@@ -105,6 +105,9 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
   `app/lib/commerce/ilhams-wall.server.ts`; Hydrogen codegen validates that
   marker against the Storefront schema, while this query is sent to the Customer
   Account API at runtime.
+- Shopify Admin API `metaobjects.sortKey` expects a string value. Use
+  `sortKey: "updated_at"` in the wall query; `sortKey: UPDATED_AT` returns a
+  GraphQL validation error and makes the wall appear empty.
 
 ## Next Exact Steps
 
