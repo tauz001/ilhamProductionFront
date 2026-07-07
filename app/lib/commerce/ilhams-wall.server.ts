@@ -577,15 +577,58 @@ async function readInviteByHandle({
     warnLabel: 'read ilhams wall invite',
   });
 
-  const invite = response?.data?.metaobjects?.nodes?.[0];
   if (response?.errors?.length) {
     console.error('[ilhams-wall] Could not read wall invite:', {
       errors: response.errors,
     });
+  } else {
+    const invite = findMatchingInvite(response?.data?.metaobjects?.nodes, token);
+    if (invite) return invite;
+  }
+
+  const fallbackResponse = await adminGraphqlRequest<{
+    metaobjects?: {
+      nodes?: MetaobjectNode[] | null;
+    } | null;
+  }>({
+    env,
+    query: ILHAMS_WALL_RECENT_INVITES_QUERY,
+    variables: {
+      first: 50,
+      type: INVITE_METAOBJECT_TYPE,
+    },
+    warnLabel: 'read recent ilhams wall invites',
+  });
+
+  if (fallbackResponse?.errors?.length) {
+    console.error('[ilhams-wall] Could not read recent wall invites:', {
+      errors: fallbackResponse.errors,
+    });
     return null;
   }
 
-  return invite ? normalizeInviteMetaobject(invite, token) : null;
+  return findMatchingInvite(fallbackResponse?.data?.metaobjects?.nodes, token);
+}
+
+function findMatchingInvite(
+  nodes: MetaobjectNode[] | null | undefined,
+  requestedToken: string,
+) {
+  for (const node of nodes ?? []) {
+    const fields = new Map(
+      (node.fields ?? [])
+        .filter((field) => field.key)
+        .map((field) => [field.key as string, field]),
+    );
+    const handle = normalizeInviteToken(node.handle);
+    const fieldToken = normalizeInviteToken(fields.get('token')?.value);
+    if (handle !== requestedToken && fieldToken !== requestedToken) continue;
+
+    const invite = normalizeInviteMetaobject(node, requestedToken);
+    if (invite) return invite;
+  }
+
+  return null;
 }
 
 function normalizeInviteMetaobject(
@@ -1220,6 +1263,22 @@ const ILHAMS_WALL_ADMIN_ORDER_QUERY = `
 const ILHAMS_WALL_INVITE_BY_HANDLE_QUERY = `
   query IlhamsWallInviteByHandle($query: String!, $type: String!) {
     metaobjects(type: $type, first: 1, query: $query) {
+      nodes {
+        id
+        handle
+        updatedAt
+        fields {
+          key
+          value
+        }
+      }
+    }
+  }
+` as const;
+
+const ILHAMS_WALL_RECENT_INVITES_QUERY = `
+  query IlhamsWallRecentInvites($first: Int!, $type: String!) {
+    metaobjects(type: $type, first: $first, sortKey: "updated_at", reverse: true) {
       nodes {
         id
         handle

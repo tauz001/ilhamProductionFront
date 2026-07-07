@@ -158,9 +158,10 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
 - Manual reviews can accidentally reuse the same `style_seed`, so the wall route
   combines review `id` with `style_seed` for visual styling. This keeps existing
   notes stable while making each note look more distinct.
-- Invite links use a handle-filtered `metaobjects` Admin query, so the invite
-  token must be the `ilham_wall_invite` metaobject handle. The optional `token`
-  field is display context only; the code does not scan all invites by token.
+- Invite links try a handle-filtered `metaobjects` Admin query first, then fall
+  back to the 50 most recently updated `ilham_wall_invite` entries and match the
+  metaobject `handle` or `token` field in code. This keeps the common path fast
+  while avoiding a blank form if Shopify handle filtering behaves differently.
 
 ## Next Exact Steps
 
