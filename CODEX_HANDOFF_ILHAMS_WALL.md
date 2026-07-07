@@ -14,10 +14,15 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
 - Short note, one optional customer photo, consent, pending approval.
 - Customer name, product title/link, order reference, date, approval status, and
   note style seed are generated server-side.
+- Private invite-link submission flow for customers who bought through
+  WhatsApp, Instagram, offline, or another channel and may not have a listed
+  Shopify storefront order.
 
 ## Storage Direction
 
 - Shopify metaobject type: `ilham_wall_review`.
+- Shopify metaobject type: `ilham_wall_invite` for one-time private review
+  links.
 - Shopify Files for optional customer photo upload.
 - Pending reviews are created as metaobjects with `status=pending`; public page
   only reads `status=approved`.
@@ -26,7 +31,9 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
 
 - Created: `CODEX_HANDOFF_ILHAMS_WALL.md`.
 - Created: `app/lib/commerce/ilhams-wall.server.ts`.
+- Created: `app/lib/commerce/wall-photo.ts`.
 - Created: `app/routes/ilhams-wall.tsx`.
+- Created: `app/routes/ilhams-wall_.review.tsx`.
 - Edited: `app/components/layout/Footer.tsx`.
 - Edited: `app/lib/seo.ts`.
 - Edited: `app/routes/[sitemap.static.xml].tsx`.
@@ -40,7 +47,14 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
 - Server helper is implemented for approved metaobject reads, verified customer
   delivered-order eligibility, pending metaobject creation, and optional Shopify
   Files upload.
+- `/ilhams-wall/review?invite=...` route is implemented for one-time invite
+  links. It does not require login, uses the invite metaobject handle as the
+  token, optionally falls back to a logged-in customer's display name, creates a
+  pending review, then marks the invite used.
+- Browser-side photo compression is shared by the logged-in wall form and the
+  invite form.
 - Footer, site-navigation JSON-LD, and static sitemap include `/ilhams-wall`.
+- Invite-link implementation verification passed.
 
 ## Completed
 
@@ -53,6 +67,19 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
   customer submissions create `status=pending`.
 - Customer name is not collected in the form; it is generated from signed-in
   customer account first name and last initial.
+- Added no-login invite flow:
+  - Staff creates an `ilham_wall_invite` metaobject in Shopify Admin.
+  - The invite metaobject handle is the private token.
+  - Send customer:
+    `https://ilhamchikankari.com/ilhams-wall/review?invite=INVITE_HANDLE`
+  - Customer submits note/photo/consent without logging in.
+  - Review is saved as `status=pending`.
+  - Invite is marked `used=true` only after the review is saved.
+- Invite-link verification passed:
+  - `npm.cmd run lint`
+  - `npm.cmd run typecheck`
+  - `npm.cmd run build`
+  - `git diff --check`
 - Verification passed:
   - `npm.cmd run codegen`
   - `npm.cmd run lint`
@@ -93,6 +120,22 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
   - `line_item_id` (single-line text)
   - `style_seed` (integer or single-line text)
   - `photo` (file reference, optional)
+- Create metaobject definition `ilham_wall_invite` with these fields:
+  - `token` (single-line text, optional but useful; can match handle)
+  - `buyer_display_name` (single-line text)
+  - `product_title` (single-line text, required)
+  - `product_url` (URL or single-line text, optional)
+  - `product_handle` (single-line text, optional)
+  - `source` (single-line text, optional: WhatsApp, Instagram, offline, etc.)
+  - `order_id` (single-line text, optional)
+  - `order_name` (single-line text, optional)
+  - `line_item_id` (single-line text, optional)
+  - `expires_at` (date and time, optional)
+  - `used` (boolean, required; set to false for new invites)
+  - `status` (single-line text, optional; use `active` or leave blank)
+- For each buyer invite, set the metaobject handle to a private token such as
+  `tauz-noor-20260707`, then send
+  `/ilhams-wall/review?invite=tauz-noor-20260707`.
 - Make approved metaobjects readable by the Admin token. Public storefront access
   is not required because Hydrogen reads server-side.
 
@@ -115,10 +158,14 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
 - Manual reviews can accidentally reuse the same `style_seed`, so the wall route
   combines review `id` with `style_seed` for visual styling. This keeps existing
   notes stable while making each note look more distinct.
+- Invite links use a handle-filtered `metaobjects` Admin query, so the invite
+  token must be the `ilham_wall_invite` metaobject handle. The optional `token`
+  field is display context only; the code does not scan all invites by token.
 
 ## Next Exact Steps
 
-1. Commit and push.
+1. Commit and push only the wall invite files; do not stage `.env` or unrelated
+   `HANDOFF.md`.
 
 ## Continue If Codex Session Ends
 

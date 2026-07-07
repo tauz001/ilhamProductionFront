@@ -36,6 +36,29 @@ export type EligibleReviewState = {
   items: EligibleReviewItem[];
 };
 
+export type IlhamsWallInvite = {
+  customerDisplayName?: string | null;
+  expiresAt?: string | null;
+  id: string;
+  lineItemId: string;
+  orderId: string;
+  orderName: string;
+  productHandle?: string | null;
+  productTitle: string;
+  productUrl: string;
+  source?: string | null;
+  status?: string | null;
+  token: string;
+  used: boolean;
+};
+
+export type IlhamsWallInviteState = {
+  customerDisplayName?: string | null;
+  invite?: IlhamsWallInvite;
+  message: string;
+  status: 'expired' | 'missing' | 'ready' | 'unavailable' | 'used';
+};
+
 type WallEnv = {
   PRIVATE_SHOPIFY_ADMIN_API_TOKEN?: string;
   PUBLIC_STORE_DOMAIN?: string;
@@ -102,9 +125,11 @@ type AdminOrderLine = {
 };
 
 const METAOBJECT_TYPE = 'ilham_wall_review';
+const INVITE_METAOBJECT_TYPE = 'ilham_wall_invite';
 const WALL_REVIEW_LIMIT = 18;
 const MAX_NOTE_LENGTH = 120;
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const INVITE_TOKEN_PATTERN = /^[a-z0-9][a-z0-9_-]{2,79}$/;
 
 export async function readIlhamsWallReviews({
   after,
@@ -199,6 +224,83 @@ export async function loadEligibleReviewItems({
     customerDisplayName,
     isLoggedIn: true,
     items,
+  };
+}
+
+export async function loadIlhamsWallInvite({
+  customerAccount,
+  env,
+  token,
+}: {
+  customerAccount?: CustomerAccountLike;
+  env: WallEnv;
+  token?: unknown;
+}): Promise<IlhamsWallInviteState> {
+  const normalizedToken = normalizeInviteToken(token);
+  if (!normalizedToken) {
+    return {
+      message: 'This review invite link is missing or invalid.',
+      status: 'missing',
+    };
+  }
+
+  if (!hasAdminConfig(env)) {
+    return {
+      message:
+        'Review invites are not available just now. Please try again later.',
+      status: 'unavailable',
+    };
+  }
+
+  const [invite, signedInName] = await Promise.all([
+    readInviteByHandle({env, token: normalizedToken}),
+    loadCustomerDisplayName(customerAccount),
+  ]);
+
+  if (!invite) {
+    return {
+      customerDisplayName: signedInName,
+      message: 'This review invite could not be found.',
+      status: 'missing',
+    };
+  }
+
+  const customerDisplayName =
+    invite.customerDisplayName || signedInName || null;
+  const inviteWithName = {...invite, customerDisplayName};
+
+  if (invite.status && !['active', 'pending'].includes(invite.status)) {
+    return {
+      customerDisplayName,
+      invite: inviteWithName,
+      message: 'This review invite is not active.',
+      status: 'unavailable',
+    };
+  }
+
+  if (invite.used) {
+    return {
+      customerDisplayName,
+      invite: inviteWithName,
+      message: 'This review invite has already been used.',
+      status: 'used',
+    };
+  }
+
+  if (isExpired(invite.expiresAt)) {
+    return {
+      customerDisplayName,
+      invite: inviteWithName,
+      message: 'This review invite has expired.',
+      status: 'expired',
+    };
+  }
+
+  return {
+    customerDisplayName,
+    invite: inviteWithName,
+    message: 'Ready for a wall note.',
+    status: 'ready',
   };
 }
 
@@ -324,6 +426,96 @@ export async function submitIlhamsWallReview({
   };
 }
 
+export async function submitIlhamsWallInviteReview({
+  customerAccount,
+  env,
+  formData,
+}: {
+  customerAccount?: CustomerAccountLike;
+  env: WallEnv;
+  formData: FormData;
+}) {
+  const inviteState = await loadIlhamsWallInvite({
+    customerAccount,
+    env,
+    token: formData.get('invite'),
+  });
+
+  if (inviteState.status !== 'ready' || !inviteState.invite) {
+    return {
+      message: inviteState.message,
+      status:
+        inviteState.status === 'unavailable'
+          ? 503
+          : inviteState.status === 'expired' || inviteState.status === 'used'
+            ? 410
+            : 400,
+      submitted: false,
+    };
+  }
+
+  const note = sanitizeNote(formData.get('note'));
+  if (!note) {
+    return {
+      message: 'Please write a short note for the wall.',
+      status: 400,
+      submitted: false,
+    };
+  }
+
+  if (String(formData.get('consent') ?? '') !== 'yes') {
+    return {
+      message: 'Please allow ilham to show your note/photo before submitting.',
+      status: 400,
+      submitted: false,
+    };
+  }
+
+  const invite = inviteState.invite;
+  const photo = normalizePhoto(formData.get('photo'));
+  const photoFileId = photo
+    ? await uploadReviewPhoto({
+        alt: `Customer photo for ${invite.productTitle}`,
+        env,
+        file: photo,
+      })
+    : null;
+
+  const created = await createPendingReview({
+    env,
+    review: {
+      customerDisplayName:
+        inviteState.customerDisplayName || invite.customerDisplayName || 'ilham customer',
+      lineItemId: invite.lineItemId,
+      note,
+      orderId: invite.orderId,
+      orderName: invite.orderName,
+      photoFileId,
+      productHandle: invite.productHandle,
+      productTitle: invite.productTitle,
+      productUrl: invite.productUrl,
+      styleSeed: getStyleSeed(`invite:${invite.id}:${invite.token}`),
+    },
+  });
+
+  if (!created) {
+    return {
+      message: 'Could not save this wall note just now. Please try again later.',
+      status: 503,
+      submitted: false,
+    };
+  }
+
+  await markInviteUsed({env, inviteId: invite.id});
+
+  return {
+    message:
+      'Your note is waiting for atelier approval. Thank you for sharing it.',
+    status: 200,
+    submitted: true,
+  };
+}
+
 function normalizeReviewMetaobject(
   node: MetaobjectNode,
 ): IlhamsWallReview | null {
@@ -361,6 +553,84 @@ function normalizeReviewMetaobject(
       fields.get('product_url')?.value?.trim() ||
       getFallbackProductUrl(productTitle),
     styleSeed: normalizeStyleSeed(fields.get('style_seed')?.value),
+  };
+}
+
+async function readInviteByHandle({
+  env,
+  token,
+}: {
+  env: WallEnv;
+  token: string;
+}) {
+  const response = await adminGraphqlRequest<{
+    metaobjects?: {
+      nodes?: MetaobjectNode[] | null;
+    } | null;
+  }>({
+    env,
+    query: ILHAMS_WALL_INVITE_BY_HANDLE_QUERY,
+    variables: {
+      query: `handle:${token}`,
+      type: INVITE_METAOBJECT_TYPE,
+    },
+    warnLabel: 'read ilhams wall invite',
+  });
+
+  const invite = response?.data?.metaobjects?.nodes?.[0];
+  if (response?.errors?.length) {
+    console.error('[ilhams-wall] Could not read wall invite:', {
+      errors: response.errors,
+    });
+    return null;
+  }
+
+  return invite ? normalizeInviteMetaobject(invite, token) : null;
+}
+
+function normalizeInviteMetaobject(
+  node: MetaobjectNode,
+  requestedToken: string,
+): IlhamsWallInvite | null {
+  const fields = new Map(
+    (node.fields ?? [])
+      .filter((field) => field.key)
+      .map((field) => [field.key as string, field]),
+  );
+
+  const token =
+    normalizeInviteToken(fields.get('token')?.value) ||
+    normalizeInviteToken(node.handle) ||
+    requestedToken;
+  const productTitle = fields.get('product_title')?.value?.trim();
+  if (!node.id || !productTitle) return null;
+
+  const productHandle = fields.get('product_handle')?.value?.trim() || null;
+  const productUrl = normalizeInviteProductUrl({
+    productHandle,
+    productTitle,
+    productUrl: fields.get('product_url')?.value,
+  });
+  const orderName = fields.get('order_name')?.value?.trim() || 'Invite';
+
+  return {
+    customerDisplayName:
+      fields.get('buyer_display_name')?.value?.trim() ||
+      fields.get('customer_display_name')?.value?.trim() ||
+      null,
+    expiresAt: fields.get('expires_at')?.value ?? null,
+    id: node.id,
+    lineItemId:
+      fields.get('line_item_id')?.value?.trim() || `invite:${token}`,
+    orderId: fields.get('order_id')?.value?.trim() || `invite:${token}`,
+    orderName,
+    productHandle,
+    productTitle,
+    productUrl,
+    source: fields.get('source')?.value?.trim() || null,
+    status: fields.get('status')?.value?.trim().toLowerCase() || null,
+    token,
+    used: parseBoolean(fields.get('used')?.value),
   };
 }
 
@@ -527,6 +797,39 @@ async function createPendingReview({
   return Boolean(response?.data?.metaobjectCreate?.metaobject?.id);
 }
 
+async function markInviteUsed({
+  env,
+  inviteId,
+}: {
+  env: WallEnv;
+  inviteId: string;
+}) {
+  const response = await adminGraphqlRequest<{
+    metaobjectUpdate?: {
+      metaobject?: {id?: string | null} | null;
+      userErrors?: Array<{field?: string[] | null; message?: string | null}> | null;
+    } | null;
+  }>({
+    env,
+    query: ILHAMS_WALL_UPDATE_INVITE_MUTATION,
+    variables: {
+      id: inviteId,
+      metaobject: {
+        fields: [{key: 'used', value: 'true'}],
+      },
+    },
+    warnLabel: 'mark ilhams wall invite used',
+  });
+
+  const userErrors = response?.data?.metaobjectUpdate?.userErrors ?? [];
+  if (userErrors.length || response?.errors?.length) {
+    console.error('[ilhams-wall] Could not mark invite used:', {
+      errors: response?.errors,
+      userErrors,
+    });
+  }
+}
+
 async function uploadReviewPhoto({
   alt,
   env,
@@ -685,6 +988,34 @@ function parseReviewTarget(value: FormDataEntryValue | null) {
   }
 }
 
+async function loadCustomerDisplayName(customerAccount?: CustomerAccountLike) {
+  if (!customerAccount) return null;
+
+  const isLoggedIn = await customerAccount.isLoggedIn().catch(() => false);
+  if (!isLoggedIn) return null;
+
+  const result = await customerAccount
+    .query(
+      `
+        query IlhamsWallCustomerName {
+          customer {
+            firstName
+            lastName
+          }
+        }
+      `,
+    )
+    .catch((error: Error) => {
+      console.error('[ilhams-wall] Customer name lookup failed:', error);
+      return null;
+    });
+
+  return formatCustomerDisplayName(
+    result?.data?.customer?.firstName,
+    result?.data?.customer?.lastName,
+  );
+}
+
 function normalizePhoto(value: FormDataEntryValue | null) {
   if (!(value instanceof File) || value.size <= 0) return null;
   if (!/^image\/(jpeg|png|webp)$/i.test(value.type)) {
@@ -694,6 +1025,54 @@ function normalizePhoto(value: FormDataEntryValue | null) {
     throw new Error('Please keep the photo under 5MB.');
   }
   return value;
+}
+
+function normalizeInviteToken(value: unknown) {
+  const token = String(value ?? '')
+    .trim()
+    .toLowerCase();
+  return INVITE_TOKEN_PATTERN.test(token) ? token : null;
+}
+
+function normalizeInviteProductUrl({
+  productHandle,
+  productTitle,
+  productUrl,
+}: {
+  productHandle?: string | null;
+  productTitle: string;
+  productUrl?: string | null;
+}) {
+  const url = productUrl?.trim();
+  if (url?.startsWith('/')) return url;
+
+  if (url) {
+    try {
+      const parsed = new URL(url);
+      if (parsed.hostname === 'ilhamchikankari.com') {
+        return `${parsed.pathname}${parsed.search}`;
+      }
+    } catch {
+      // Ignore non-URL admin input and fall back below.
+    }
+  }
+
+  if (productHandle) return `/products/${productHandle}`;
+  return getFallbackProductUrl(productTitle);
+}
+
+function parseBoolean(value?: string | null) {
+  return ['1', 'true', 'yes', 'on'].includes(
+    String(value ?? '')
+      .trim()
+      .toLowerCase(),
+  );
+}
+
+function isExpired(value?: string | null) {
+  if (!value) return false;
+  const expiresAt = new Date(value);
+  return !Number.isNaN(expiresAt.getTime()) && expiresAt.getTime() < Date.now();
 }
 
 function sanitizeNote(value: unknown) {
@@ -838,12 +1217,42 @@ const ILHAMS_WALL_ADMIN_ORDER_QUERY = `
   }
 ` as const;
 
+const ILHAMS_WALL_INVITE_BY_HANDLE_QUERY = `
+  query IlhamsWallInviteByHandle($query: String!, $type: String!) {
+    metaobjects(type: $type, first: 1, query: $query) {
+      nodes {
+        id
+        handle
+        updatedAt
+        fields {
+          key
+          value
+        }
+      }
+    }
+  }
+` as const;
+
 const ILHAMS_WALL_CREATE_REVIEW_MUTATION = `
   mutation CreateIlhamsWallReview($metaobject: MetaobjectCreateInput!) {
     metaobjectCreate(metaobject: $metaobject) {
       metaobject {
         id
         handle
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+` as const;
+
+const ILHAMS_WALL_UPDATE_INVITE_MUTATION = `
+  mutation UpdateIlhamsWallInvite($id: ID!, $metaobject: MetaobjectUpdateInput!) {
+    metaobjectUpdate(id: $id, metaobject: $metaobject) {
+      metaobject {
+        id
       }
       userErrors {
         field
