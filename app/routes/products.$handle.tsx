@@ -184,31 +184,12 @@ export default function Product() {
   const artisanImage =
     getMetafieldImage(product, 'artisan_image') ?? galleryImages[3] ?? null;
   const occasions = parseListField(getMetafieldValue(product, 'occasions'));
-  const reviewSummary = getMetafieldValue(product, 'reviews');
-  const selectedColor =
-    getOptionValue(selectedVariant, 'Color') ||
-    getOptionValue(selectedVariant, 'Colour');
   const selectedFabric = getOptionValue(selectedVariant, 'Fabric');
-  const availableColors = [
-    ...getVariantOptionValues(variants, 'Color'),
-    ...getVariantOptionValues(variants, 'Colour'),
-  ];
-  const availableSizes = getVariantOptionValues(variants, 'Size');
-  const productDetailSections = buildProductDetailSections({
-    artisan,
-    availableColors,
-    availableSizes,
-    craftHours,
+  const productDescription = buildProductDescription({
     description: product.description,
     fabric,
-    fabricTransparencyNote,
-    occasions,
-    origin,
     product,
-    reviewSummary,
-    selectedColor,
     selectedFabric,
-    shippingReturns,
     washCare,
   });
 
@@ -498,7 +479,8 @@ export default function Product() {
         </aside>
       </section>
 
-      {productDetailSections.length > 0 && (
+      {(productDescription.specs.length > 0 ||
+        productDescription.notes.length > 0) && (
         <section className="mx-auto mt-24 max-w-[1500px] border-t border-border px-4 pt-16 sm:px-6 lg:px-12">
           <div className="grid gap-12 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
             <div>
@@ -506,17 +488,34 @@ export default function Product() {
               <h2 className="mt-5 break-words font-display text-4xl md:text-6xl">
                 Everything to know before the drape.
               </h2>
+              {productDescription.specs.length > 0 && (
+                <div className="mt-10 border border-border bg-cream/35">
+                  {productDescription.specs.map((spec) => (
+                    <div
+                      key={spec.label}
+                      className="grid grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)] border-b border-border last:border-b-0"
+                    >
+                      <p className="border-r border-border px-4 py-4 small-caps text-[10px] text-ink/45 sm:px-5">
+                        {spec.label}
+                      </p>
+                      <p className="px-4 py-4 text-sm leading-relaxed text-ink/72 sm:px-5">
+                        {spec.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="divide-y divide-border">
-              {productDetailSections.map((section) => (
+              {productDescription.notes.map((section) => (
                 <article
                   key={section.title}
                   className="grid gap-5 py-8 md:grid-cols-[160px_minmax(0,1fr)] first:pt-0"
                 >
                   <h3 className="small-caps text-ink/50">{section.title}</h3>
-                  <p className="text-sm leading-relaxed text-ink/70">
+                  <div className="text-sm leading-relaxed text-ink/70">
                     {section.body}
-                  </p>
+                  </div>
                 </article>
               ))}
             </div>
@@ -809,219 +808,68 @@ function isColorOptionName(name: string) {
   return normalizedName === 'color' || normalizedName === 'colour';
 }
 
-function getVariantOptionValues(variants: any[], optionName: string) {
-  const values: string[] = [];
-  const seen = new Set<string>();
-  const normalizedOptionName = optionName.toLowerCase();
-
-  variants.forEach((variant) => {
-    variant?.selectedOptions?.forEach(
-      (option: {name?: string | null; value?: string | null}) => {
-        if (
-          !option.name ||
-          !option.value ||
-          option.name.toLowerCase() !== normalizedOptionName ||
-          isDefaultTitleOption(option)
-        ) {
-          return;
-        }
-
-        const normalizedValue = option.value.trim().toLowerCase();
-        if (seen.has(normalizedValue)) return;
-
-        seen.add(normalizedValue);
-        values.push(option.value.trim());
-      },
-    );
-  });
-
-  return values;
-}
-
-function buildProductDetailSections({
-  artisan,
-  availableColors,
-  availableSizes,
-  craftHours,
+function buildProductDescription({
   description,
   fabric,
-  fabricTransparencyNote,
-  occasions,
-  origin,
   product,
-  reviewSummary,
-  selectedColor,
   selectedFabric,
-  shippingReturns,
   washCare,
 }: {
-  artisan?: string | null;
-  availableColors?: string[];
-  availableSizes?: string[];
-  craftHours?: string | null;
   description?: string | null;
   fabric?: string | null;
-  fabricTransparencyNote?: string | null;
-  occasions?: string[];
-  origin?: string | null;
   product?: any;
-  reviewSummary?: string | null;
-  selectedColor?: string | null;
   selectedFabric?: string | null;
-  shippingReturns?: string | null;
   washCare?: string | null;
 }) {
-  const colorSummary =
-    selectedColor ||
-    getDisplayMetafieldValue(product, 'color') ||
-    availableColors?.join(' / ');
-  const fabricSummary = selectedFabric || fabric;
+  const fabricSummary = selectedFabric || getDisplayMetafieldValue(product, 'fabric') || fabric;
   const fitSummary =
-    getDisplayMetafieldValue(product, 'fit_note') ||
-    getDisplayMetafieldValue(product, 'fit');
-  const audience = getDisplayMetafieldValue(product, 'audience');
+    getDisplayMetafieldValue(product, 'fit') ||
+    getDisplayMetafieldValue(product, 'fit_note');
   const careSummary = washCare || getDisplayMetafieldValue(product, 'care');
-  const craftParts = [
-    fabricSummary,
-    craftHours ? `${craftHours}+ hours of hand embroidery` : '',
-    artisan ? `finished by ${artisan}` : '',
-    origin,
-  ].filter(Boolean);
-  const extraSections = getExtraProductDescriptionSections(product, [
-    'artisan',
-    'artisan_image',
-    'audience',
-    'care',
-    'color',
-    'color_hex',
-    'craft_hours',
-    'fabric',
-    'fabric_detail_image',
-    'fit',
-    'fit_note',
-    'gifting_note',
-    'occasions',
-    'origin',
-    'reviews',
-    'shipping_returns',
-    'size_chart',
-    'subtitle',
-    'wash_care',
-  ]);
 
-  return dedupeProductDescriptionSections([
-    {
-      title: 'About this piece',
-      body: description,
-    },
-    {
-      title: 'Color',
-      body: colorSummary,
-    },
-    {
-      title: 'Available colors',
-      body:
-        availableColors && availableColors.length > 1
-          ? availableColors.join(' / ')
-          : '',
-    },
-    {
-      title: 'Available sizes',
-      body: availableSizes?.join(' / '),
-    },
-    {
-      title: 'Fabric',
-      body: fabricSummary,
-    },
-    {
-      title: 'Occasion',
-      body: occasions?.join(' / '),
-    },
-    {
-      title: 'Fit',
-      body: [fitSummary, audience ? `Made for ${audience}` : '']
-        .filter(Boolean)
-        .join('. '),
-    },
-    {
-      title: 'Shade note',
-      body: 'Each ilham piece is photographed under controlled studio light. Hand-dyed fabric, embroidery depth, and your screen settings can make the shade appear slightly warmer or cooler in person.',
-    },
-    {
-      title: 'Fabric transparency',
-      body: fabricTransparencyNote,
-    },
-    {
-      title: 'Craft',
-      body: craftParts.join('. '),
-    },
-    {
-      title: 'Care',
-      body: careSummary,
-    },
-    ...extraSections,
-    {
-      title: 'Gifting',
-      body: getDisplayMetafieldValue(product, 'gifting_note'),
-    },
-    {
-      title: 'Shipping',
-      body: shippingReturns,
-    },
-    {
-      title: 'Reviews',
-      body:
-        reviewSummary ||
-        'Customer reviews for this piece will appear here once shared.',
-    },
-  ]);
-}
-
-function dedupeProductDescriptionSections(
-  sections: Array<{title: string; body?: string | null}>,
-) {
-  const seen = new Set<string>();
-
-  return sections.filter((section) => {
-    const body = section.body?.trim();
-    if (!body) return false;
-
-    const key = `${section.title.toLowerCase()}:${body.toLowerCase()}`;
-    if (seen.has(key)) return false;
-
-    seen.add(key);
-    section.body = body;
-    return true;
-  });
-}
-
-function getExtraProductDescriptionSections(
-  product: any,
-  excludedKeys: string[],
-) {
-  const excluded = new Set(excludedKeys);
-  const metafields = Array.isArray(product?.metafields)
-    ? product.metafields
-    : product?.metafields?.nodes;
-
-  return (metafields ?? [])
-    .filter((field: any) => field?.key && !excluded.has(field.key))
-    .map((field: any) => ({
-      title: formatProductDescriptionLabel(field.key),
-      body: formatMetafieldValue(field.value),
-    }))
-    .filter((section: {body?: string | null}) => section.body);
+  return {
+    specs: [
+      {
+        label: 'Embroidery',
+        value:
+          getDisplayMetafieldValue(product, 'embroidery') ||
+          getDisplayMetafieldValue(product, 'work'),
+      },
+      {label: 'Length', value: getDisplayMetafieldValue(product, 'length')},
+      {label: 'Fabric', value: fabricSummary},
+      {label: 'Fit', value: fitSummary},
+      {label: 'Neckline', value: getDisplayMetafieldValue(product, 'neckline')},
+    ].filter((spec) => spec.value),
+    notes: [
+      {
+        title: 'Description',
+        body: description,
+      },
+      {
+        title: 'Shade note',
+        body: 'Each ilham piece is photographed under controlled studio light. Hand-dyed fabric, embroidery depth, and your screen settings can make the shade appear slightly warmer or cooler in person.',
+      },
+      {
+        title: 'Wash care',
+        body: careSummary,
+      },
+      {
+        title: 'Reviews',
+        body: (
+          <Link
+            className="story-link text-gold transition-colors hover:text-ink"
+            to="/ilhams-wall"
+          >
+            Click to see reviews
+          </Link>
+        ),
+      },
+    ].filter((section) => section.body),
+  };
 }
 
 function getDisplayMetafieldValue(product: any, key: string) {
   return formatMetafieldValue(getMetafieldValue(product, key));
-}
-
-function formatProductDescriptionLabel(key: string) {
-  return key
-    .replace(/^custom_/, '')
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function formatMetafieldValue(value?: string | null) {

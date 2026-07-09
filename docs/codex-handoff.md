@@ -800,6 +800,10 @@
   available colors/sizes, fabric, fit/audience, occasion, shade note,
   transparency, care, craft, gifting, shipping, reviews, and any additional
   explicitly fetched non-image product metafields.
+- PDP product-description follow-up refined: the section now uses a left-side
+  specs table only for available `embroidery`, `length`, `fabric`, `fit`, and
+  `neckline` values, while the right side is limited to description, shade note,
+  wash care, and a review-wall link.
 
 ## Next Step
 
