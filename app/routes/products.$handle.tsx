@@ -185,14 +185,29 @@ export default function Product() {
     getMetafieldImage(product, 'artisan_image') ?? galleryImages[3] ?? null;
   const occasions = parseListField(getMetafieldValue(product, 'occasions'));
   const reviewSummary = getMetafieldValue(product, 'reviews');
+  const selectedColor =
+    getOptionValue(selectedVariant, 'Color') ||
+    getOptionValue(selectedVariant, 'Colour');
+  const selectedFabric = getOptionValue(selectedVariant, 'Fabric');
+  const availableColors = [
+    ...getVariantOptionValues(variants, 'Color'),
+    ...getVariantOptionValues(variants, 'Colour'),
+  ];
+  const availableSizes = getVariantOptionValues(variants, 'Size');
   const productDetailSections = buildProductDetailSections({
     artisan,
+    availableColors,
+    availableSizes,
     craftHours,
     description: product.description,
     fabric,
     fabricTransparencyNote,
+    occasions,
     origin,
+    product,
     reviewSummary,
+    selectedColor,
+    selectedFabric,
     shippingReturns,
     washCare,
   });
@@ -487,9 +502,9 @@ export default function Product() {
         <section className="mx-auto mt-24 max-w-[1500px] border-t border-border px-4 pt-16 sm:px-6 lg:px-12">
           <div className="grid gap-12 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
             <div>
-              <p className="small-caps text-ink/50">Product notes</p>
+              <p className="small-caps text-ink/50">Product description</p>
               <h2 className="mt-5 break-words font-display text-4xl md:text-6xl">
-                Details after the drape.
+                Everything to know before the drape.
               </h2>
             </div>
             <div className="divide-y divide-border">
@@ -794,38 +809,139 @@ function isColorOptionName(name: string) {
   return normalizedName === 'color' || normalizedName === 'colour';
 }
 
+function getVariantOptionValues(variants: any[], optionName: string) {
+  const values: string[] = [];
+  const seen = new Set<string>();
+  const normalizedOptionName = optionName.toLowerCase();
+
+  variants.forEach((variant) => {
+    variant?.selectedOptions?.forEach(
+      (option: {name?: string | null; value?: string | null}) => {
+        if (
+          !option.name ||
+          !option.value ||
+          option.name.toLowerCase() !== normalizedOptionName ||
+          isDefaultTitleOption(option)
+        ) {
+          return;
+        }
+
+        const normalizedValue = option.value.trim().toLowerCase();
+        if (seen.has(normalizedValue)) return;
+
+        seen.add(normalizedValue);
+        values.push(option.value.trim());
+      },
+    );
+  });
+
+  return values;
+}
+
 function buildProductDetailSections({
   artisan,
+  availableColors,
+  availableSizes,
   craftHours,
   description,
   fabric,
   fabricTransparencyNote,
+  occasions,
   origin,
+  product,
   reviewSummary,
+  selectedColor,
+  selectedFabric,
   shippingReturns,
   washCare,
 }: {
   artisan?: string | null;
+  availableColors?: string[];
+  availableSizes?: string[];
   craftHours?: string | null;
   description?: string | null;
   fabric?: string | null;
   fabricTransparencyNote?: string | null;
+  occasions?: string[];
   origin?: string | null;
+  product?: any;
   reviewSummary?: string | null;
+  selectedColor?: string | null;
+  selectedFabric?: string | null;
   shippingReturns?: string | null;
   washCare?: string | null;
 }) {
+  const colorSummary =
+    selectedColor ||
+    getDisplayMetafieldValue(product, 'color') ||
+    availableColors?.join(' / ');
+  const fabricSummary = selectedFabric || fabric;
+  const fitSummary =
+    getDisplayMetafieldValue(product, 'fit_note') ||
+    getDisplayMetafieldValue(product, 'fit');
+  const audience = getDisplayMetafieldValue(product, 'audience');
+  const careSummary = washCare || getDisplayMetafieldValue(product, 'care');
   const craftParts = [
-    fabric,
+    fabricSummary,
     craftHours ? `${craftHours}+ hours of hand embroidery` : '',
     artisan ? `finished by ${artisan}` : '',
     origin,
   ].filter(Boolean);
+  const extraSections = getExtraProductDescriptionSections(product, [
+    'artisan',
+    'artisan_image',
+    'audience',
+    'care',
+    'color',
+    'color_hex',
+    'craft_hours',
+    'fabric',
+    'fabric_detail_image',
+    'fit',
+    'fit_note',
+    'gifting_note',
+    'occasions',
+    'origin',
+    'reviews',
+    'shipping_returns',
+    'size_chart',
+    'subtitle',
+    'wash_care',
+  ]);
 
-  return [
+  return dedupeProductDescriptionSections([
     {
-      title: 'Description',
+      title: 'About this piece',
       body: description,
+    },
+    {
+      title: 'Color',
+      body: colorSummary,
+    },
+    {
+      title: 'Available colors',
+      body:
+        availableColors && availableColors.length > 1
+          ? availableColors.join(' / ')
+          : '',
+    },
+    {
+      title: 'Available sizes',
+      body: availableSizes?.join(' / '),
+    },
+    {
+      title: 'Fabric',
+      body: fabricSummary,
+    },
+    {
+      title: 'Occasion',
+      body: occasions?.join(' / '),
+    },
+    {
+      title: 'Fit',
+      body: [fitSummary, audience ? `Made for ${audience}` : '']
+        .filter(Boolean)
+        .join('. '),
     },
     {
       title: 'Shade note',
@@ -840,10 +956,17 @@ function buildProductDetailSections({
       body: craftParts.join('. '),
     },
     {
-      title: 'Wash care',
-      body:
-        washCare ||
-        'Dry clean recommended. Store folded in a breathable cover and avoid direct sunlight on the embroidery.',
+      title: 'Care',
+      body: careSummary,
+    },
+    ...extraSections,
+    {
+      title: 'Gifting',
+      body: getDisplayMetafieldValue(product, 'gifting_note'),
+    },
+    {
+      title: 'Shipping',
+      body: shippingReturns,
     },
     {
       title: 'Reviews',
@@ -851,11 +974,84 @@ function buildProductDetailSections({
         reviewSummary ||
         'Customer reviews for this piece will appear here once shared.',
     },
-    {
-      title: 'Shipping',
-      body: shippingReturns,
-    },
-  ].filter((section) => section.body);
+  ]);
+}
+
+function dedupeProductDescriptionSections(
+  sections: Array<{title: string; body?: string | null}>,
+) {
+  const seen = new Set<string>();
+
+  return sections.filter((section) => {
+    const body = section.body?.trim();
+    if (!body) return false;
+
+    const key = `${section.title.toLowerCase()}:${body.toLowerCase()}`;
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+    section.body = body;
+    return true;
+  });
+}
+
+function getExtraProductDescriptionSections(
+  product: any,
+  excludedKeys: string[],
+) {
+  const excluded = new Set(excludedKeys);
+  const metafields = Array.isArray(product?.metafields)
+    ? product.metafields
+    : product?.metafields?.nodes;
+
+  return (metafields ?? [])
+    .filter((field: any) => field?.key && !excluded.has(field.key))
+    .map((field: any) => ({
+      title: formatProductDescriptionLabel(field.key),
+      body: formatMetafieldValue(field.value),
+    }))
+    .filter((section: {body?: string | null}) => section.body);
+}
+
+function getDisplayMetafieldValue(product: any, key: string) {
+  return formatMetafieldValue(getMetafieldValue(product, key));
+}
+
+function formatProductDescriptionLabel(key: string) {
+  return key
+    .replace(/^custom_/, '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatMetafieldValue(value?: string | null) {
+  if (!value?.trim() || /^gid:\/\//i.test(value.trim())) return '';
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+
+    if (Array.isArray(parsed)) {
+      return parsed
+        .map((item) => {
+          if (typeof item !== 'string' && typeof item !== 'number') return '';
+          return String(item).trim();
+        })
+        .filter((item) => item && !/^gid:\/\//i.test(item))
+        .join(' / ');
+    }
+
+    if (typeof parsed === 'string') {
+      return /^gid:\/\//i.test(parsed.trim()) ? '' : parsed.trim();
+    }
+
+    if (parsed && typeof parsed === 'object') {
+      return '';
+    }
+  } catch {
+    // Plain text metafields are expected for most product details.
+  }
+
+  return value.trim();
 }
 
 function logProductRequirements(product: any) {
@@ -1012,12 +1208,16 @@ const PRODUCT_QUERY = `#graphql
       }
       metafields(identifiers: [
         {namespace: "custom", key: "subtitle"},
+        {namespace: "custom", key: "color"},
+        {namespace: "custom", key: "color_hex"},
         {namespace: "custom", key: "fabric"},
         {namespace: "custom", key: "care"},
         {namespace: "custom", key: "craft_hours"},
         {namespace: "custom", key: "artisan"},
         {namespace: "custom", key: "origin"},
         {namespace: "custom", key: "occasions"},
+        {namespace: "custom", key: "occasion"},
+        {namespace: "custom", key: "dress_occasion"},
         {namespace: "custom", key: "wash_care"},
         {namespace: "custom", key: "reviews"},
         {namespace: "custom", key: "shipping_returns"},
@@ -1025,7 +1225,16 @@ const PRODUCT_QUERY = `#graphql
         {namespace: "custom", key: "fabric_detail_image"},
         {namespace: "custom", key: "artisan_image"},
         {namespace: "custom", key: "audience"},
+        {namespace: "custom", key: "fit"},
         {namespace: "custom", key: "fit_note"},
+        {namespace: "custom", key: "lining"},
+        {namespace: "custom", key: "length"},
+        {namespace: "custom", key: "neckline"},
+        {namespace: "custom", key: "sleeve"},
+        {namespace: "custom", key: "silhouette"},
+        {namespace: "custom", key: "embroidery"},
+        {namespace: "custom", key: "work"},
+        {namespace: "custom", key: "closure"},
         {namespace: "custom", key: "size_chart"}
       ]) {
         key

@@ -794,6 +794,12 @@
   bundles passed.
 - Variant image handling protected-file audit showed no diff to order-detail/
   Admin, feedback API, WhatsApp, checkout route, sitemap/robots, or `.env`.
+- PDP product-description follow-up started from `codex/premium-discount-experience`:
+  the existing product notes section is being reshaped into a clearer
+  "Product description" area that surfaces product description, selected color,
+  available colors/sizes, fabric, fit/audience, occasion, shade note,
+  transparency, care, craft, gifting, shipping, reviews, and any additional
+  explicitly fetched non-image product metafields.
 
 ## Next Step
 
