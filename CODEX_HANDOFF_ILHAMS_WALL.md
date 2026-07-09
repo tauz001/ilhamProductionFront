@@ -80,6 +80,11 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
   - `npm.cmd run typecheck`
   - `npm.cmd run build`
   - `git diff --check`
+- Fixed invite review save failure caused by Shopify URL metaobject fields:
+  `product_url` must be stored as an absolute `https://...` URL, not a relative
+  `/search` or `/products` path. A create/delete Admin API smoke test confirmed
+  review creation works with the absolute URL.
+- Added compact selected-photo previews to both review submission forms.
 - Verification passed:
   - `npm.cmd run codegen`
   - `npm.cmd run lint`
@@ -162,6 +167,8 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
   back to the 50 most recently updated `ilham_wall_invite` entries and match the
   metaobject `handle` or `token` field in code. This keeps the common path fast
   while avoiding a blank form if Shopify handle filtering behaves differently.
+- `ilham_wall_review.product_url` is a Shopify URL field, so writes must use an
+  absolute URL. The UI can still link users to the same storefront page.
 
 ## Next Exact Steps
 

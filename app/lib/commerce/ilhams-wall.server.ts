@@ -61,6 +61,7 @@ export type IlhamsWallInviteState = {
 
 type WallEnv = {
   PRIVATE_SHOPIFY_ADMIN_API_TOKEN?: string;
+  PUBLIC_PRIMARY_DOMAIN?: string;
   PUBLIC_STORE_DOMAIN?: string;
 };
 
@@ -799,7 +800,7 @@ async function createPendingReview({
     {key: 'customer_display_name', value: review.customerDisplayName},
     {key: 'reviewed_at', value: new Date().toISOString()},
     {key: 'product_title', value: review.productTitle},
-    {key: 'product_url', value: review.productUrl},
+    {key: 'product_url', value: getMetaobjectUrl(env, review.productUrl)},
     {key: 'product_handle', value: review.productHandle ?? ''},
     {key: 'order_id', value: review.orderId},
     {key: 'order_name', value: review.orderName},
@@ -1151,6 +1152,19 @@ function formatCustomerDisplayName(
 
 function getFallbackProductUrl(title: string) {
   return `/search?q=${encodeURIComponent(title)}`;
+}
+
+function getMetaobjectUrl(env: WallEnv, value: string) {
+  const trimmed = value.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  const domain =
+    normalizeShopDomain(env.PUBLIC_PRIMARY_DOMAIN) ||
+    normalizeShopDomain(env.PUBLIC_STORE_DOMAIN) ||
+    'ilhamchikankari.com';
+  const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+
+  return `https://${domain}${path}`;
 }
 
 function getSafeFileName(file: File) {

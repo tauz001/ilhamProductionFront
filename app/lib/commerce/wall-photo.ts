@@ -1,15 +1,24 @@
+export type WallPhotoPreview = {
+  name: string;
+  size: number;
+  url: string;
+};
+
 export async function prepareWallPhoto(
   input: HTMLInputElement,
   setStatus: (status: string | null) => void,
+  setPreview?: (preview: WallPhotoPreview | null) => void,
 ) {
   const file = input.files?.[0];
   if (!file) {
     setStatus(null);
+    setPreview?.(null);
     return;
   }
 
   if (!file.type.startsWith('image/')) {
     setStatus('Please choose an image file.');
+    setPreview?.(null);
     return;
   }
 
@@ -18,9 +27,10 @@ export async function prepareWallPhoto(
     if (
       !compressed ||
       compressed.size >= file.size ||
-      typeof DataTransfer === 'undefined'
+        typeof DataTransfer === 'undefined'
     ) {
       setStatus(`${file.name} ready.`);
+      setPreview?.(createPreview(file));
       return;
     }
 
@@ -28,9 +38,19 @@ export async function prepareWallPhoto(
     transfer.items.add(compressed);
     input.files = transfer.files;
     setStatus('Photo compressed and ready.');
+    setPreview?.(createPreview(compressed));
   } catch {
     setStatus(`${file.name} ready.`);
+    setPreview?.(createPreview(file));
   }
+}
+
+function createPreview(file: File): WallPhotoPreview {
+  return {
+    name: file.name,
+    size: file.size,
+    url: URL.createObjectURL(file),
+  };
 }
 
 async function compressImageToWebp(file: File) {

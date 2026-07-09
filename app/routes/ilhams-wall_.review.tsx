@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {
   data,
   Form,
@@ -21,7 +21,10 @@ import {
   loadIlhamsWallInvite,
   submitIlhamsWallInviteReview,
 } from '~/lib/commerce/ilhams-wall.server';
-import {prepareWallPhoto} from '~/lib/commerce/wall-photo';
+import {
+  prepareWallPhoto,
+  type WallPhotoPreview,
+} from '~/lib/commerce/wall-photo';
 import {breadcrumbJsonLd, seoMeta} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => {
@@ -212,8 +215,17 @@ function InviteReviewForm({
 }) {
   const navigation = useNavigation();
   const [note, setNote] = useState('');
+  const [photoPreview, setPhotoPreview] = useState<WallPhotoPreview | null>(
+    null,
+  );
   const [photoStatus, setPhotoStatus] = useState<string | null>(null);
   const submitting = navigation.state === 'submitting';
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview?.url) URL.revokeObjectURL(photoPreview.url);
+    };
+  }, [photoPreview?.url]);
 
   if (actionData?.submitted) {
     return (
@@ -297,10 +309,15 @@ function InviteReviewForm({
           id="photo"
           name="photo"
           onChange={(event) => {
-            void prepareWallPhoto(event.currentTarget, setPhotoStatus);
+            void prepareWallPhoto(
+              event.currentTarget,
+              setPhotoStatus,
+              setPhotoPreview,
+            );
           }}
           type="file"
         />
+        {photoPreview ? <PhotoPreview preview={photoPreview} /> : null}
         {photoStatus ? (
           <p className="mt-2 text-xs italic text-ink/45">{photoStatus}</p>
         ) : null}
@@ -333,6 +350,29 @@ function InviteReviewForm({
       ) : null}
     </Form>
   );
+}
+
+function PhotoPreview({preview}: {preview: WallPhotoPreview}) {
+  return (
+    <div className="mt-3 flex items-center gap-3 border border-ink/10 bg-ivory/70 p-2.5 shadow-[0_8px_20px_rgba(57,42,24,0.06)]">
+      <img
+        alt=""
+        className="h-16 w-14 flex-none object-cover"
+        src={preview.url}
+      />
+      <div className="min-w-0">
+        <p className="truncate text-xs text-ink/65">{preview.name}</p>
+        <p className="mt-1 small-caps text-[9px] text-gold">
+          {formatFileSize(preview.size)} ready
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function formatFileSize(size: number) {
+  if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function WallPattern() {
