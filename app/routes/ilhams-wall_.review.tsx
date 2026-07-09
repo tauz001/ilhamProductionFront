@@ -5,6 +5,7 @@ import {
   Link,
   useActionData,
   useLoaderData,
+  useNavigate,
   useNavigation,
 } from 'react-router';
 import type {Route} from './+types/ilhams-wall_.review';
@@ -12,7 +13,7 @@ import {
   Camera,
   CheckCircle,
   Image as ImageIcon,
-  PenLine,
+  Send,
   ShieldCheck,
 } from 'lucide-react';
 import {ChikanMotif} from '~/components/editorial/ChikanMotif';
@@ -86,12 +87,29 @@ export async function action({context, request}: Route.ActionArgs) {
 export default function IlhamsWallInviteReview() {
   const {state, token} = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+  const navigate = useNavigate();
   const inviteToken = state.invite?.token ?? token ?? '';
   const invite = state.status === 'ready' ? state.invite : null;
+  const submitted = Boolean(actionData?.submitted);
+  const alreadySent = state.status === 'used';
+
+  useEffect(() => {
+    if (!submitted && !alreadySent) return;
+
+    const timeout = window.setTimeout(
+      () => {
+        void navigate('/', {replace: true});
+      },
+      submitted ? 2800 : 1800,
+    );
+
+    return () => window.clearTimeout(timeout);
+  }, [alreadySent, navigate, submitted]);
 
   return (
     <div className="relative overflow-hidden bg-[#f7f0e4] pt-32 text-ink md:pt-40">
       <WallPattern />
+      <FlightAnimationStyles />
       <section className="relative mx-auto max-w-[1200px] px-4 pb-16 text-center sm:px-6 lg:px-12">
         <p className="small-caps text-gold">Private review invite</p>
         <h1 className="mx-auto mt-5 max-w-4xl text-balance font-display text-5xl leading-none md:text-8xl">
@@ -106,7 +124,11 @@ export default function IlhamsWallInviteReview() {
 
       <section className="relative mx-auto grid max-w-[1180px] gap-8 px-4 pb-24 sm:px-6 md:grid-cols-[0.9fr_1.1fr] lg:px-12">
         <InviteContextCard state={state} />
-        {invite ? (
+        {submitted ? (
+          <InviteSubmittedJourney message={actionData?.message} />
+        ) : alreadySent ? (
+          <InviteAlreadySent />
+        ) : invite ? (
           <InviteReviewForm
             actionData={actionData}
             customerDisplayName={state.customerDisplayName}
@@ -198,6 +220,55 @@ function InviteUnavailable({message}: {message: string}) {
       >
         Contact ilham
       </Link>
+    </div>
+  );
+}
+
+function InviteAlreadySent() {
+  return (
+    <div className="relative overflow-hidden border border-gold/25 bg-ink p-7 text-ivory shadow-[0_20px_55px_rgba(57,42,24,0.16)]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(190,143,74,0.28),transparent_58%)]" />
+      <div className="relative">
+        <Send
+          className="h-6 w-6 text-gold"
+          strokeWidth={1.35}
+          style={{animation: 'wallPlaneDrift 1600ms ease-in-out infinite'}}
+        />
+        <h2 className="mt-5 font-serif text-4xl">Your note has reached us.</h2>
+        <p className="mt-3 text-sm leading-relaxed text-ivory/68">
+          This private link has already been used. We&apos;re taking you back to
+          the atelier.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function InviteSubmittedJourney({message}: {message?: string}) {
+  return (
+    <div className="relative min-h-[26rem] overflow-hidden border border-gold/25 bg-ink p-7 text-center text-ivory shadow-[0_24px_65px_rgba(57,42,24,0.18)] sm:p-10">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(190,143,74,0.25),transparent_55%)]" />
+      <div className="absolute left-1/2 top-16 h-px w-40 -translate-x-1/2 bg-gradient-to-r from-transparent via-gold/45 to-transparent" />
+      <div className="relative mx-auto flex h-28 w-28 items-center justify-center">
+        <span className="absolute h-24 w-24 rounded-full border border-gold/20" />
+        <span className="absolute h-16 w-16 rounded-full bg-gold/10 blur-sm" />
+        <Send
+          className="relative h-9 w-9 text-gold"
+          strokeWidth={1.35}
+          style={{animation: 'wallPlaneLaunchSuccess 1800ms ease-out both'}}
+        />
+      </div>
+      <p className="relative mt-3 small-caps text-gold">Sent for approval</p>
+      <h2 className="relative mx-auto mt-4 max-w-md font-serif text-4xl leading-tight sm:text-5xl">
+        Your note is on its way.
+      </h2>
+      <p className="relative mx-auto mt-5 max-w-md text-sm leading-relaxed text-ivory/68">
+        {message ||
+          'Your note is waiting for atelier approval. Thank you for sharing it.'}
+      </p>
+      <p className="relative mt-8 small-caps text-[10px] text-ivory/45">
+        Returning home
+      </p>
     </div>
   );
 }
@@ -337,12 +408,37 @@ function InviteReviewForm({
       </label>
 
       <button
-        className="mt-7 flex h-12 w-full items-center justify-center gap-2 bg-ink px-6 small-caps text-ivory transition-colors hover:bg-gold disabled:bg-ink/40"
+        className={`relative mt-7 flex h-12 w-full items-center justify-center gap-2 overflow-hidden px-6 small-caps text-ivory transition-colors disabled:cursor-wait ${
+          submitting ? 'bg-gold text-ink' : 'bg-ink hover:bg-gold'
+        }`}
         disabled={submitting}
         type="submit"
       >
-        <PenLine className="h-3.5 w-3.5" strokeWidth={1.4} />
-        {submitting ? 'Saving note' : 'Send for approval'}
+        <span
+          aria-hidden
+          className={`absolute inset-0 ${
+            submitting
+              ? 'bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.24),transparent)]'
+              : ''
+          }`}
+          style={
+            submitting
+              ? {animation: 'wallButtonSheen 1100ms ease-in-out infinite'}
+              : undefined
+          }
+        />
+        <Send
+          className="relative h-3.5 w-3.5"
+          strokeWidth={1.45}
+          style={
+            submitting
+              ? {animation: 'wallPlaneLaunchButton 1200ms ease-out both'}
+              : undefined
+          }
+        />
+        <span className="relative">
+          {submitting ? 'Sending to atelier' : 'Send for approval'}
+        </span>
       </button>
 
       {actionData?.message ? (
@@ -373,6 +469,37 @@ function PhotoPreview({preview}: {preview: WallPhotoPreview}) {
 function formatFileSize(size: number) {
   if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} KB`;
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function FlightAnimationStyles() {
+  return (
+    <style>
+      {`
+        @keyframes wallPlaneLaunchButton {
+          0% { opacity: 1; transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
+          38% { opacity: 1; transform: translate3d(8px, -6px, 0) scale(1.35) rotate(8deg); }
+          100% { opacity: 0; transform: translate3d(76px, -44px, 0) scale(2.7) rotate(18deg); }
+        }
+
+        @keyframes wallButtonSheen {
+          0% { transform: translateX(-120%); }
+          100% { transform: translateX(120%); }
+        }
+
+        @keyframes wallPlaneLaunchSuccess {
+          0% { opacity: 0; transform: translate3d(-22px, 26px, 0) scale(0.65) rotate(-16deg); }
+          18% { opacity: 1; }
+          72% { opacity: 1; transform: translate3d(18px, -16px, 0) scale(1.35) rotate(10deg); }
+          100% { opacity: 0; transform: translate3d(78px, -64px, 0) scale(2.15) rotate(18deg); }
+        }
+
+        @keyframes wallPlaneDrift {
+          0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+          50% { transform: translate3d(10px, -8px, 0) rotate(8deg); }
+        }
+      `}
+    </style>
+  );
 }
 
 function WallPattern() {

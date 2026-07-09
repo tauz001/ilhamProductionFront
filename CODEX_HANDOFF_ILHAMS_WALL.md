@@ -85,6 +85,12 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
   `/search` or `/products` path. A create/delete Admin API smoke test confirmed
   review creation works with the absolute URL.
 - Added compact selected-photo previews to both review submission forms.
+- Improved invite post-submit UX:
+  - Successful submissions render a premium send/flight transition before
+    automatically returning the customer to the homepage.
+  - Already-used invite links show a gentle "note has reached us" state and then
+    return home, instead of showing a harsh used-link error.
+  - The send button animates with a small paper-plane motion while submitting.
 - Verification passed:
   - `npm.cmd run codegen`
   - `npm.cmd run lint`
