@@ -804,6 +804,10 @@
   specs table only for available `embroidery`, `length`, `fabric`, `fit`, and
   `neckline` values, while the right side is limited to description, shade note,
   wash care, and a review-wall link.
+- Anchor/sale pricing follow-up started: shared compare-at pricing now presents
+  clearer sale copy (`Limited atelier price`, exact save amount, and percent
+  off), while bag page, bag lines, and cart drawer surface total/line savings
+  against original piece prices.
 
 ## Next Step
 

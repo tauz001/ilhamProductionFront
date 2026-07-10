@@ -10,6 +10,7 @@ import {
   hasCartLineIssue,
   type RootCart,
 } from '~/lib/commerce/cart-lines';
+import {getCartCompareAtSavings} from '~/lib/commerce/pricing';
 import {RootCartGate} from '~/components/commerce/RootCartGate';
 import {easeSilk, motionDuration} from '~/lib/motion/variants';
 import {BagLineItem} from '~/components/commerce/BagLineItem';
@@ -95,6 +96,8 @@ function CartDrawerContent({
   const quantityTotal = getCartLineQuantityTotal(lines);
   const subtotalMoney = cart?.cost?.subtotalAmount;
   const subtotal = subtotalMoney ? parseFloat(String(subtotalMoney.amount)) : 0;
+  const compareAtSavings = getCartCompareAtSavings(lines);
+  const hasCompareAtSavings = compareAtSavings.amount > 0;
   const checkoutUrl = cart?.checkoutUrl;
   const canCheckout =
     Boolean(checkoutUrl) &&
@@ -151,6 +154,18 @@ function CartDrawerContent({
         <p className="mt-2 text-xs text-ink/45">
           Shipping, taxes, and delivery timelines are confirmed at checkout.
         </p>
+        {hasCompareAtSavings && (
+          <p className="mt-2 text-xs text-gold">
+            You save{' '}
+            {formatMoney(
+              compareAtSavings.amount,
+              compareAtSavings.currencyCode ||
+                subtotalMoney?.currencyCode ||
+                'INR',
+            )}{' '}
+            against original piece prices.
+          </p>
+        )}
         <div className="mt-6 grid grid-cols-2 gap-3">
           <Link
             to="/bag"

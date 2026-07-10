@@ -159,8 +159,8 @@ export function BagLineItem({line, layout, index = 0, onNavigate}: Props) {
           size="line"
         />
         {lineSavings && (
-          <p className="mt-1 text-xs text-gold">
-            Saved {formatMoney(lineSavings.amount, lineSavings.currencyCode)}
+          <p className="mt-2 text-[11px] small-caps text-gold">
+            Line saving {formatMoney(lineSavings.amount, lineSavings.currencyCode)}
           </p>
         )}
       </div>

@@ -125,7 +125,7 @@ export function BagPage({
                   </div>
                   {hasCompareAtSavings && (
                     <div className="flex justify-between text-gold">
-                      <dt>Piece savings</dt>
+                      <dt>Atelier savings</dt>
                       <dd>
                         -
                         {formatMoney(
@@ -151,6 +151,16 @@ export function BagPage({
                     {formatMoney(total, currencyCode)}
                   </span>
                 </div>
+                {hasCompareAtSavings && (
+                  <p className="mt-2 text-right text-xs text-gold">
+                    You save{' '}
+                    {formatMoney(
+                      compareAtSavings.amount,
+                      compareAtSavings.currencyCode || currencyCode,
+                    )}{' '}
+                    against original piece prices before any coupon.
+                  </p>
+                )}
 
                 <DeliveryEstimator
                   amount={subtotal}
@@ -207,12 +217,12 @@ export function BagPage({
                         className="mt-0.5 h-3.5 w-3.5"
                         strokeWidth={1.4}
                       />{' '}
-                      You save{' '}
+                      Anchor pricing already saves you{' '}
                       {formatMoney(
                         compareAtSavings.amount,
                         compareAtSavings.currencyCode || currencyCode,
                       )}{' '}
-                      against the original piece price.
+                      before any additional offer.
                     </li>
                   )}
                   <li className="flex items-start gap-2">
