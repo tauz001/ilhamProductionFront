@@ -30,18 +30,18 @@ export function ProductStyleAddOns({addOns}: Props) {
   return (
     <section
       aria-label="Style add-ons"
-      className="mt-4 border border-border bg-cream/35 p-4 shadow-[0_18px_45px_rgba(28,22,17,0.05)]"
+      className="mt-3 border border-border bg-cream/35 p-3 shadow-[0_18px_45px_rgba(28,22,17,0.05)]"
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <p className="small-caps text-ink/45">Style it with</p>
-          <p className="mt-1 font-serif text-lg leading-tight text-ink">
-            Complete the look, only if you need it.
+          <p className="mt-0.5 font-serif text-base leading-tight text-ink">
+            Add only what completes the look.
           </p>
         </div>
         <button
           aria-label="Style add-on details"
-          className="group relative mt-1 grid h-8 w-8 shrink-0 place-items-center border border-border text-ink/45"
+          className="group relative grid h-8 w-8 shrink-0 place-items-center border border-border text-ink/45"
           type="button"
         >
           <Info className="h-3.5 w-3.5" strokeWidth={1.3} />
@@ -52,7 +52,7 @@ export function ProductStyleAddOns({addOns}: Props) {
         </button>
       </div>
 
-      <div className="mt-4 grid gap-3">
+      <div className="mt-3 grid gap-2">
         {validAddOns.map((addOn) => (
           <StyleAddOnCard
             addOn={addOn}
@@ -78,7 +78,7 @@ function StyleAddOnCard({addOn}: {addOn: StyleAddOn}) {
     !requiresVariantChoice(product, variant);
 
   return (
-    <article className="grid grid-cols-[76px_minmax(0,1fr)] gap-4 border border-border bg-ivory/75 p-3 transition-colors hover:border-gold/45">
+    <article className="grid grid-cols-[58px_minmax(0,1fr)] gap-3 border border-border bg-ivory/75 p-2.5 transition-colors hover:border-gold/45 sm:grid-cols-[66px_minmax(0,1fr)]">
       <Link
         className="relative aspect-[3/4] overflow-hidden bg-cream"
         prefetch="intent"
@@ -102,13 +102,13 @@ function StyleAddOnCard({addOn}: {addOn: StyleAddOn}) {
               {addOn.kind === 'plazo' ? 'Plazo add-on' : 'Dupatta add-on'}
             </p>
             <Link prefetch="intent" to={`/products/${product.handle}`}>
-              <h3 className="mt-1 line-clamp-2 font-serif text-lg leading-tight text-ink transition-colors hover:text-gold">
+              <h3 className="mt-0.5 line-clamp-1 font-serif text-base leading-tight text-ink transition-colors hover:text-gold">
                 {product.title}
               </h3>
             </Link>
           </div>
           {addOn.badge ? (
-            <span className="shrink-0 border border-gold/30 bg-gold/10 px-2 py-1 text-[9px] small-caps text-gold">
+            <span className="shrink-0 border border-gold/30 bg-gold/10 px-2 py-1 text-[8px] small-caps text-gold">
               {addOn.badge}
             </span>
           ) : null}
@@ -124,10 +124,10 @@ function StyleAddOnCard({addOn}: {addOn: StyleAddOn}) {
           className="mt-2 text-sm text-ink/75"
           compareAtPrice={variant?.compareAtPrice}
           price={variant?.price ?? product.priceRange?.minVariantPrice}
-          size="line"
+          size="card"
         />
 
-        <div className="mt-3">
+        <div className="mt-2">
           {canAddDirectly ? (
             <AddToCartButton
               className="inline-flex"
@@ -140,14 +140,14 @@ function StyleAddOnCard({addOn}: {addOn: StyleAddOn}) {
               ]}
               onClick={() => openDrawer('cart')}
             >
-              <span className="inline-flex h-9 items-center gap-2 border border-ink bg-ink px-4 text-[10px] small-caps text-ivory transition-colors hover:border-gold hover:bg-gold">
+              <span className="inline-flex h-8 items-center gap-2 border border-ink bg-ink px-3 text-[9px] small-caps text-ivory transition-colors hover:border-gold hover:bg-gold">
                 <ShoppingBag className="h-3 w-3" strokeWidth={1.4} />
                 Add piece
               </span>
             </AddToCartButton>
           ) : (
             <Link
-              className="inline-flex h-9 items-center gap-2 border border-border px-4 text-[10px] small-caps text-ink/70 transition-colors hover:border-ink hover:text-ink"
+              className="inline-flex h-8 items-center gap-2 border border-border px-3 text-[9px] small-caps text-ink/70 transition-colors hover:border-ink hover:text-ink"
               prefetch="intent"
               to={`/products/${product.handle}`}
             >

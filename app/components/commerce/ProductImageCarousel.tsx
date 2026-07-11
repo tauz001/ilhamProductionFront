@@ -140,7 +140,7 @@ export function ProductImageCarousel({
 
   if (!activeImage?.url) {
     return (
-      <div className="h-[72vh] min-h-[420px] max-h-[620px] bg-cream md:h-[calc(100vh-19rem)] md:min-h-[480px] md:max-h-[760px] lg:min-h-[560px]" />
+      <div className="h-[52svh] min-h-[300px] max-h-[520px] bg-cream md:h-[calc(100vh-17rem)] md:min-h-[440px] md:max-h-[700px] lg:min-h-[500px]" />
     );
   }
 
@@ -148,7 +148,7 @@ export function ProductImageCarousel({
     <>
       <div className="min-w-0">
         <div
-          className="group relative h-[72vh] min-h-[420px] max-h-[620px] overflow-hidden bg-cream md:h-[calc(100vh-19rem)] md:min-h-[480px] md:max-h-[760px] lg:min-h-[560px]"
+          className="group relative h-[52svh] min-h-[300px] max-h-[520px] overflow-hidden bg-cream md:h-[calc(100vh-17rem)] md:min-h-[440px] md:max-h-[700px] lg:min-h-[500px]"
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
@@ -207,7 +207,7 @@ export function ProductImageCarousel({
 
         {hasMultipleImages && (
           <div className="mt-4 min-w-0">
-            <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="hidden gap-3 overflow-x-auto pb-1 [scrollbar-width:none] sm:flex [&::-webkit-scrollbar]:hidden">
               {slides.map((image, index) => (
                 <button
                   key={image.id ?? image.url}

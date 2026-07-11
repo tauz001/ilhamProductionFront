@@ -819,6 +819,14 @@
   `npm.cmd run typecheck`, `git diff --check`, and
   `npm.cmd run build` all passed after codegen refreshed
   `storefrontapi.generated.d.ts`.
+- PDP above-the-fold purchase follow-up started: product media height was reduced
+  on mobile, thumbnail rail is hidden on mobile in favor of dots, the desktop
+  buy box spacing/title/options/actions were tightened, size help moved below
+  the main purchase action, add-on cards were compacted, and a mobile fixed
+  purchase dock now keeps Add to bag plus add-on chips visible immediately.
+- PDP above-the-fold purchase verification: `npm.cmd run lint`,
+  `npm.cmd run typecheck`, `git diff --check`, and
+  `npm.cmd run build` all passed.
 
 ## Next Step
 

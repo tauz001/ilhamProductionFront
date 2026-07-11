@@ -32,6 +32,7 @@ import {
   logMissingShopifyField,
   parseListField,
 } from '~/lib/commerce/shopify-fields';
+import {isProductSoldOut} from '~/lib/commerce/product-availability';
 import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
 import {
   buildVariantOptionGroups,
@@ -296,8 +297,8 @@ export default function Product() {
   ].filter((section) => section.body);
 
   return (
-    <div className="overflow-x-hidden pt-24 md:pt-28">
-      <section className="mx-auto grid max-w-[1500px] gap-8 px-4 sm:px-6 md:grid-cols-12 md:items-start lg:px-12">
+    <div className="overflow-x-hidden pb-32 pt-24 md:pb-0 md:pt-28">
+      <section className="mx-auto grid max-w-[1500px] gap-6 px-4 sm:px-6 md:grid-cols-12 md:items-start lg:px-12">
         <div ref={productGalleryRef} className="min-w-0 md:col-span-7">
           <ProductImageCarousel
             activeImageKey={activeCarouselImageKey}
@@ -306,18 +307,18 @@ export default function Product() {
           />
         </div>
 
-        <aside className="min-w-0 md:col-span-5 md:sticky md:top-24 md:self-start md:pl-8">
+        <aside className="min-w-0 md:col-span-5 md:sticky md:top-20 md:self-start md:pl-6 lg:pl-8">
           <p className="small-caps text-ink/50">{categoryLabel}</p>
-          <h1 className="mt-2 break-words font-display text-4xl leading-none sm:text-5xl md:text-[4rem]">
+          <h1 className="mt-1.5 break-words font-display text-3xl leading-none sm:text-4xl md:text-5xl xl:text-[3.35rem]">
             {product.title}
           </h1>
           {subtitle && (
-            <p className="mt-1 font-serif italic text-xl text-ink/60">
+            <p className="mt-1 font-serif italic text-lg text-ink/60">
               {subtitle}
             </p>
           )}
           <PriceWithSavings
-            className="mt-4"
+            className="mt-3"
             compareAtPrice={selectedVariant?.compareAtPrice}
             price={price}
             size="pdp"
@@ -325,20 +326,14 @@ export default function Product() {
           <p className="mt-1 text-xs text-ink/45">
             Inclusive of all taxes. Checkout and shipping calculated by Shopify
           </p>
-          <div className="mt-5 h-px bg-border" />
-
-          {occasions.length > 0 && (
-            <p className="mt-5 text-xs italic text-ink/50">
-              {occasions.join(' / ')}
-            </p>
-          )}
+          <div className="mt-4 h-px bg-border" />
 
           {optionGroups.length > 0 && (
-            <div className="mt-6 space-y-4">
+            <div className="mt-4 space-y-3">
               {optionGroups.map((option) => (
                 <div key={option.name}>
                   <p className="small-caps text-ink/50">{option.name}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-wrap gap-2">
                     {option.values.map((value) => (
                       <button
                         key={`${option.name}-${value.value}`}
@@ -351,7 +346,7 @@ export default function Product() {
                           }
                         }}
                         disabled={!value.available || value.variantIndex < 0}
-                        className={`h-11 min-w-11 px-4 border text-sm transition-colors ${
+                        className={`h-9 min-w-9 border px-3 text-xs transition-colors ${
                           value.selected
                             ? 'border-ink bg-ink text-ivory'
                             : value.available
@@ -368,25 +363,20 @@ export default function Product() {
             </div>
           )}
 
-          <SizeAndFitGuide
-            product={product}
-            selectedSize={getOptionValue(selectedVariant, 'Size')}
-          />
-
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex h-12 w-full items-center justify-center border border-border sm:w-auto">
+          <div className="mt-4 grid grid-cols-[92px_minmax(0,1fr)_44px] gap-2">
+            <div className="flex h-11 w-full items-center justify-center border border-border">
               <button
                 type="button"
                 onClick={() => setQty(Math.max(1, qty - 1))}
-                className="px-4 sm:px-3"
+                className="px-3"
               >
                 <Minus className="h-3 w-3" />
               </button>
-              <span className="px-5 text-sm sm:px-4">{qty}</span>
+              <span className="px-2 text-sm">{qty}</span>
               <button
                 type="button"
                 onClick={() => setQty((current) => current + 1)}
-                className="px-4 sm:px-3"
+                className="px-3"
               >
                 <Plus className="h-3 w-3" />
               </button>
@@ -405,9 +395,9 @@ export default function Product() {
                   : []
               }
               onClick={() => openDrawer('cart')}
-              className="w-full min-w-0 sm:min-w-[220px] sm:flex-1"
+              className="min-w-0"
             >
-              <span className="flex h-12 w-full items-center justify-center bg-ink px-4 small-caps text-ivory transition-colors hover:bg-gold sm:px-8">
+              <span className="flex h-11 w-full items-center justify-center bg-ink px-4 small-caps text-ivory transition-colors hover:bg-gold sm:px-8">
                 {selectedVariantPurchasable ? 'Add to bag' : 'Sold out'}
               </span>
             </AddToCartButton>
@@ -415,7 +405,7 @@ export default function Product() {
               type="button"
               onClick={() => toggleW(product.handle)}
               aria-label="Wishlist"
-              className="flex h-12 w-full shrink-0 items-center justify-center border border-border hover:border-ink sm:w-12"
+              className="flex h-11 w-full shrink-0 items-center justify-center border border-border hover:border-ink"
             >
               <Heart
                 className="h-4 w-4"
@@ -426,6 +416,17 @@ export default function Product() {
           </div>
 
           <ProductStyleAddOns addOns={styleAddOns} />
+
+          <SizeAndFitGuide
+            product={product}
+            selectedSize={getOptionValue(selectedVariant, 'Size')}
+          />
+
+          {occasions.length > 0 && (
+            <p className="mt-4 text-xs italic text-ink/50">
+              {occasions.join(' / ')}
+            </p>
+          )}
 
           <ProductDeferredBoundary
             key={`${product.handle}-discount`}
@@ -605,6 +606,15 @@ export default function Product() {
           {name: product.title, url: `/products/${product.handle}`},
         ])}
       />
+      <MobilePurchaseDock
+        addOns={styleAddOns}
+        compareAtPrice={selectedVariant?.compareAtPrice}
+        openCart={() => openDrawer('cart')}
+        price={price}
+        purchasable={selectedVariantPurchasable}
+        quantity={qty}
+        selectedVariant={selectedVariant}
+      />
     </div>
   );
 }
@@ -682,6 +692,78 @@ function ProductRecommendationsSkeleton() {
         ))}
       </div>
     </section>
+  );
+}
+
+function MobilePurchaseDock({
+  addOns,
+  compareAtPrice,
+  openCart,
+  price,
+  purchasable,
+  quantity,
+  selectedVariant,
+}: {
+  addOns: Array<{badge?: string; kind: 'plazo' | 'dupatta'; product: any}>;
+  compareAtPrice?: any;
+  openCart: () => void;
+  price?: any;
+  purchasable: boolean;
+  quantity: number;
+  selectedVariant?: any;
+}) {
+  const visibleAddOns = getVisibleStyleAddOns(addOns).slice(0, 2);
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-[70] border-t border-border bg-ivory/96 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 shadow-[0_-18px_45px_rgba(28,22,17,0.12)] backdrop-blur md:hidden">
+      {visibleAddOns.length > 0 ? (
+        <div className="mb-2 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {visibleAddOns.map((addOn) => (
+            <Link
+              className="shrink-0 border border-border bg-cream/70 px-3 py-2 text-[10px] small-caps text-ink/65"
+              key={`${addOn.kind}-${addOn.product.handle}`}
+              prefetch="intent"
+              to={`/products/${addOn.product.handle}`}
+            >
+              Style with{' '}
+              <span className="text-gold">
+                {addOn.kind === 'plazo' ? 'plazo' : 'dupatta'}
+              </span>
+              {addOn.badge ? ' - model wearing' : ''}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(150px,0.9fr)] items-center gap-3">
+        <PriceWithSavings
+          className="min-w-0 text-sm text-ink"
+          compareAtPrice={compareAtPrice}
+          price={price}
+          size="card"
+        />
+        <AddToCartButton
+          className="block w-full"
+          disabled={!purchasable}
+          lines={
+            selectedVariant && purchasable
+              ? [
+                  {
+                    merchandiseId: selectedVariant.id,
+                    quantity,
+                    selectedVariant,
+                  },
+                ]
+              : []
+          }
+          onClick={openCart}
+        >
+          <span className="flex h-11 w-full items-center justify-center bg-ink px-4 text-[11px] small-caps text-ivory transition-colors hover:bg-gold">
+            {purchasable ? 'Add to bag' : 'Sold out'}
+          </span>
+        </AddToCartButton>
+      </div>
+    </div>
   );
 }
 
@@ -919,6 +1001,14 @@ function buildProductStyleAddOns(product: any): Array<{
     seen.add(addOn.product.handle);
     return true;
   });
+}
+
+function getVisibleStyleAddOns(
+  addOns: Array<{badge?: string; kind: 'plazo' | 'dupatta'; product: any}>,
+) {
+  return addOns.filter(
+    (addOn) => addOn.product?.handle && !isProductSoldOut(addOn.product),
+  );
 }
 
 function getMetafieldProductReference(product: any, key: string) {
