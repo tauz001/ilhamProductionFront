@@ -1268,6 +1268,9 @@ export type HomepageQuery = {
                 Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
               >;
               price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
             }
           >;
         };
@@ -1492,6 +1495,9 @@ export type QuickViewProductQuery = {
               >
             >;
             price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            compareAtPrice?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
             product: Pick<
               StorefrontAPI.Product,
               'id' | 'handle' | 'title' | 'vendor' | 'productType'
@@ -1664,6 +1670,9 @@ export type IlhamCollectionProductVariantFragment = Pick<
     Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
   >;
   price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+  compareAtPrice?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+  >;
   product: Pick<
     StorefrontAPI.Product,
     'id' | 'handle' | 'title' | 'vendor' | 'productType'
@@ -1701,6 +1710,9 @@ export type IlhamCollectionProductFragment = Pick<
         Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
       >;
       price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+      compareAtPrice?: StorefrontAPI.Maybe<
+        Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+      >;
       product: Pick<
         StorefrontAPI.Product,
         'id' | 'handle' | 'title' | 'vendor' | 'productType'
@@ -1792,6 +1804,9 @@ export type CollectionQuery = {
                   >
                 >;
                 price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                compareAtPrice?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                >;
                 product: Pick<
                   StorefrontAPI.Product,
                   'id' | 'handle' | 'title' | 'vendor' | 'productType'
@@ -1879,6 +1894,9 @@ export type NewArrivalsQuery = {
               >
             >;
             price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            compareAtPrice?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
             product: Pick<
               StorefrontAPI.Product,
               'id' | 'handle' | 'title' | 'vendor' | 'productType'
@@ -1964,6 +1982,9 @@ export type BestSellersQuery = {
               >
             >;
             price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+            compareAtPrice?: StorefrontAPI.Maybe<
+              Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+            >;
             product: Pick<
               StorefrontAPI.Product,
               'id' | 'handle' | 'title' | 'vendor' | 'productType'
@@ -2158,6 +2179,9 @@ export type GiftingCollectionsQuery = {
                 'id' | 'title' | 'availableForSale'
               > & {
                 price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+                compareAtPrice?: StorefrontAPI.Maybe<
+                  Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                >;
                 image?: StorefrontAPI.Maybe<
                   Pick<
                     StorefrontAPI.Image,
@@ -2207,6 +2231,9 @@ export type GiftingCollectionsQuery = {
               'id' | 'title' | 'availableForSale'
             > & {
               price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
               image?: StorefrontAPI.Maybe<
                 Pick<
                   StorefrontAPI.Image,
@@ -2258,6 +2285,9 @@ export type GiftPickerProductFragment = Pick<
         'id' | 'title' | 'availableForSale'
       > & {
         price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+        compareAtPrice?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+        >;
         image?: StorefrontAPI.Maybe<
           Pick<
             StorefrontAPI.Image,
@@ -2382,6 +2412,62 @@ export type IlhamProductVariantFragment = Pick<
   selectedOptions: Array<Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>>;
 };
 
+export type IlhamProductStyleAddonFragment = Pick<
+  StorefrontAPI.Product,
+  | 'id'
+  | 'title'
+  | 'handle'
+  | 'vendor'
+  | 'productType'
+  | 'tags'
+  | 'availableForSale'
+> & {
+  featuredImage?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
+  >;
+  images: {
+    nodes: Array<
+      Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
+    >;
+  };
+  variantsCount?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Count, 'count'>>;
+  variants: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.ProductVariant,
+        'id' | 'title' | 'availableForSale' | 'currentlyNotInStock' | 'sku'
+      > & {
+        compareAtPrice?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+        >;
+        image?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+        product: Pick<
+          StorefrontAPI.Product,
+          'id' | 'handle' | 'title' | 'vendor' | 'productType'
+        >;
+        selectedOptions: Array<
+          Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+        >;
+      }
+    >;
+  };
+  priceRange: {
+    minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+    maxVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+  };
+  metafields: Array<
+    StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.Metafield, 'key' | 'namespace' | 'value'>
+    >
+  >;
+};
+
 export type IlhamProductCardFragment = Pick<
   StorefrontAPI.Product,
   | 'id'
@@ -2504,14 +2590,95 @@ export type ProductQuery = {
             StorefrontAPI.Metafield,
             'key' | 'namespace' | 'value' | 'type'
           > & {
-            reference?: StorefrontAPI.Maybe<{
-              image?: StorefrontAPI.Maybe<
-                Pick<
-                  StorefrontAPI.Image,
-                  'id' | 'url' | 'altText' | 'width' | 'height'
-                >
-              >;
-            }>;
+            reference?: StorefrontAPI.Maybe<
+              | {
+                  image?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                }
+              | (Pick<
+                  StorefrontAPI.Product,
+                  | 'id'
+                  | 'title'
+                  | 'handle'
+                  | 'vendor'
+                  | 'productType'
+                  | 'tags'
+                  | 'availableForSale'
+                > & {
+                  featuredImage?: StorefrontAPI.Maybe<
+                    Pick<
+                      StorefrontAPI.Image,
+                      'id' | 'url' | 'altText' | 'width' | 'height'
+                    >
+                  >;
+                  images: {
+                    nodes: Array<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'id' | 'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                  };
+                  variantsCount?: StorefrontAPI.Maybe<
+                    Pick<StorefrontAPI.Count, 'count'>
+                  >;
+                  variants: {
+                    nodes: Array<
+                      Pick<
+                        StorefrontAPI.ProductVariant,
+                        | 'id'
+                        | 'title'
+                        | 'availableForSale'
+                        | 'currentlyNotInStock'
+                        | 'sku'
+                      > & {
+                        compareAtPrice?: StorefrontAPI.Maybe<
+                          Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                        >;
+                        image?: StorefrontAPI.Maybe<
+                          Pick<
+                            StorefrontAPI.Image,
+                            'id' | 'url' | 'altText' | 'width' | 'height'
+                          >
+                        >;
+                        price: Pick<
+                          StorefrontAPI.MoneyV2,
+                          'amount' | 'currencyCode'
+                        >;
+                        product: Pick<
+                          StorefrontAPI.Product,
+                          'id' | 'handle' | 'title' | 'vendor' | 'productType'
+                        >;
+                        selectedOptions: Array<
+                          Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                        >;
+                      }
+                    >;
+                  };
+                  priceRange: {
+                    minVariantPrice: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    maxVariantPrice: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                  };
+                  metafields: Array<
+                    StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Metafield,
+                        'key' | 'namespace' | 'value'
+                      >
+                    >
+                  >;
+                })
+            >;
           }
         >
       >;
@@ -2931,7 +3098,7 @@ interface GeneratedQueryTypes {
     return: StoreRobotsQuery;
     variables: StoreRobotsQueryVariables;
   };
-  '\n    #graphql\n    query Homepage {\n      shop {\n        metafields(identifiers: [\n          {namespace: "custom", key: "homepage_hero_1"},\n          {namespace: "custom", key: "custom_homepage_hero_1"},\n          {namespace: "custom", key: "homepage_hero_1_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_1_mobile"},\n          {namespace: "custom", key: "homepage_hero_2"},\n          {namespace: "custom", key: "custom_homepage_hero_2"},\n          {namespace: "custom", key: "homepage_hero_2_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_2_mobile"},\n          {namespace: "custom", key: "homepage_hero_3"},\n          {namespace: "custom", key: "custom_homepage_hero_3"},\n          {namespace: "custom", key: "homepage_hero_3_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_3_mobile"},\n          {namespace: "custom", key: "homepage_hero_4"},\n          {namespace: "custom", key: "custom_homepage_hero_4"},\n          {namespace: "custom", key: "homepage_hero_4_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_4_mobile"},\n          {namespace: "custom", key: "homepage_women_banner"},\n          {namespace: "custom", key: "custom_homepage_women_banner"},\n          {namespace: "custom", key: "homepage_men_banner"},\n          {namespace: "custom", key: "custom_homepage_men_banner"},\n          {namespace: "custom", key: "homepage_wedding_banner"},\n          {namespace: "custom", key: "custom_homepage_wedding_banner"},\n          {namespace: "custom", key: "homepage_wdding_banner"},\n          {namespace: "custom", key: "custom_homepage_wdding_banner"}\n        ]) {\n          key\n          namespace\n          value\n          type\n          reference {\n            ... on MediaImage {\n              image {\n                id\n                url\n                altText\n                width\n                height\n              }\n            }\n          }\n        }\n      }\n\n      products(first: 12, sortKey: CREATED_AT, reverse: true) {\n        nodes {\n          id\n          title\n          handle\n          vendor\n          productType\n          tags\n          availableForSale\n\n          featuredImage {\n            id\n            url\n            altText\n            width\n            height\n          }\n\n          images(first: 4) {\n            nodes {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n\n          variants(first: 10) {\n            nodes {\n              id\n              title\n              availableForSale\n\n              image {\n                id\n                url\n                altText\n                width\n                height\n              }\n\n              product {\n                id\n                handle\n                title\n                vendor\n                productType\n              }\n\n              selectedOptions {\n                name\n                value\n              }\n\n              price {\n                amount\n                currencyCode\n              }\n            }\n          }\n\n          priceRange {\n            minVariantPrice {\n              amount\n              currencyCode\n            }\n          }\n\n          metafields(identifiers: [{namespace: "custom", key: "subtitle"}]) {\n            key\n            namespace\n            value\n          }\n        }\n      }\n\n      collections(first: 10) {\n        nodes {\n          id\n          title\n          handle\n\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n        }\n      }\n    }\n  ': {
+  '\n    #graphql\n    query Homepage {\n      shop {\n        metafields(identifiers: [\n          {namespace: "custom", key: "homepage_hero_1"},\n          {namespace: "custom", key: "custom_homepage_hero_1"},\n          {namespace: "custom", key: "homepage_hero_1_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_1_mobile"},\n          {namespace: "custom", key: "homepage_hero_2"},\n          {namespace: "custom", key: "custom_homepage_hero_2"},\n          {namespace: "custom", key: "homepage_hero_2_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_2_mobile"},\n          {namespace: "custom", key: "homepage_hero_3"},\n          {namespace: "custom", key: "custom_homepage_hero_3"},\n          {namespace: "custom", key: "homepage_hero_3_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_3_mobile"},\n          {namespace: "custom", key: "homepage_hero_4"},\n          {namespace: "custom", key: "custom_homepage_hero_4"},\n          {namespace: "custom", key: "homepage_hero_4_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_4_mobile"},\n          {namespace: "custom", key: "homepage_women_banner"},\n          {namespace: "custom", key: "custom_homepage_women_banner"},\n          {namespace: "custom", key: "homepage_men_banner"},\n          {namespace: "custom", key: "custom_homepage_men_banner"},\n          {namespace: "custom", key: "homepage_wedding_banner"},\n          {namespace: "custom", key: "custom_homepage_wedding_banner"},\n          {namespace: "custom", key: "homepage_wdding_banner"},\n          {namespace: "custom", key: "custom_homepage_wdding_banner"}\n        ]) {\n          key\n          namespace\n          value\n          type\n          reference {\n            ... on MediaImage {\n              image {\n                id\n                url\n                altText\n                width\n                height\n              }\n            }\n          }\n        }\n      }\n\n      products(first: 12, sortKey: CREATED_AT, reverse: true) {\n        nodes {\n          id\n          title\n          handle\n          vendor\n          productType\n          tags\n          availableForSale\n\n          featuredImage {\n            id\n            url\n            altText\n            width\n            height\n          }\n\n          images(first: 4) {\n            nodes {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n\n          variants(first: 10) {\n            nodes {\n              id\n              title\n              availableForSale\n\n              image {\n                id\n                url\n                altText\n                width\n                height\n              }\n\n              product {\n                id\n                handle\n                title\n                vendor\n                productType\n              }\n\n              selectedOptions {\n                name\n                value\n              }\n\n              price {\n                amount\n                currencyCode\n              }\n              compareAtPrice {\n                amount\n                currencyCode\n              }\n            }\n          }\n\n          priceRange {\n            minVariantPrice {\n              amount\n              currencyCode\n            }\n          }\n\n          metafields(identifiers: [{namespace: "custom", key: "subtitle"}]) {\n            key\n            namespace\n            value\n          }\n        }\n      }\n\n      collections(first: 10) {\n        nodes {\n          id\n          title\n          handle\n\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n        }\n      }\n    }\n  ': {
     return: HomepageQuery;
     variables: HomepageQueryVariables;
   };
@@ -2947,7 +3114,7 @@ interface GeneratedQueryTypes {
     return: LayoutCommerceQuery;
     variables: LayoutCommerceQueryVariables;
   };
-  '#graphql\n  query QuickViewProduct(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      handle\n      vendor\n      productType\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 1) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          id\n          title\n          availableForSale\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n          price {\n            amount\n            currencyCode\n          }\n          product {\n            id\n            handle\n            title\n            vendor\n            productType\n          }\n          selectedOptions {\n            name\n            value\n          }\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"}\n        {namespace: "custom", key: "fabric"}\n      ]) {\n        key\n        namespace\n        value\n      }\n    }\n  }\n': {
+  '#graphql\n  query QuickViewProduct(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      handle\n      vendor\n      productType\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 1) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          id\n          title\n          availableForSale\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n          price {\n            amount\n            currencyCode\n          }\n          compareAtPrice {\n            amount\n            currencyCode\n          }\n          product {\n            id\n            handle\n            title\n            vendor\n            productType\n          }\n          selectedOptions {\n            name\n            value\n          }\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"}\n        {namespace: "custom", key: "fabric"}\n      ]) {\n        key\n        namespace\n        value\n      }\n    }\n  }\n': {
     return: QuickViewProductQuery;
     variables: QuickViewProductQueryVariables;
   };
@@ -2991,7 +3158,7 @@ interface GeneratedQueryTypes {
     return: ContactPageQuery;
     variables: ContactPageQueryVariables;
   };
-  '#graphql\n  query GiftingCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    shop {\n      metafields(identifiers: [\n        {namespace: "custom", key: "gifting_hero"},\n        {namespace: "custom", key: "custom_gifting_hero"},\n        {namespace: "custom", key: "gift_hero"},\n        {namespace: "custom", key: "custom_gift_hero"},\n        {namespace: "custom", key: "gifting_hero_mobile"},\n        {namespace: "custom", key: "custom_gifting_hero_mobile"},\n        {namespace: "custom", key: "gift_hero_mobile"},\n        {namespace: "custom", key: "custom_gift_hero_mobile"},\n        {namespace: "custom", key: "gifting_gift_box"},\n        {namespace: "custom", key: "custom_gifting_gift_box"},\n        {namespace: "custom", key: "for_him_gifting"},\n        {namespace: "custom", key: "custom_for_him_gifting"},\n        {namespace: "custom", key: "for_her_gifting"},\n        {namespace: "custom", key: "custom_for_her_gifting"},\n        {namespace: "custom", key: "wedding_gifting"},\n        {namespace: "custom", key: "custom_wedding_gifting"},\n        {namespace: "custom", key: "corporate_gifting"},\n        {namespace: "custom", key: "custom_corporate_gifting"},\n        {namespace: "custom", key: "gifting_service_variant_id"},\n        {namespace: "custom", key: "custom_gifting_service_variant_id"}\n      ]) {\n        key\n        namespace\n        value\n        type\n        reference {\n          ... on MediaImage {\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n        }\n      }\n    }\n    giftingCollection: collection(handle: "luxury-gifting") {\n      products(first: 24) {\n        nodes {\n          ...GiftPickerProduct\n        }\n      }\n    }\n    products(first: 24) {\n      nodes {\n        ...GiftPickerProduct\n      }\n    }\n    collections(first: 30) {\n      nodes {\n        id\n        title\n        handle\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n    }\n  }\n\n  fragment GiftPickerProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 3) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    variants(first: 20) {\n      nodes {\n        id\n        title\n        availableForSale\n        price {\n          amount\n          currencyCode\n        }\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n  }\n': {
+  '#graphql\n  query GiftingCollections($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    shop {\n      metafields(identifiers: [\n        {namespace: "custom", key: "gifting_hero"},\n        {namespace: "custom", key: "custom_gifting_hero"},\n        {namespace: "custom", key: "gift_hero"},\n        {namespace: "custom", key: "custom_gift_hero"},\n        {namespace: "custom", key: "gifting_hero_mobile"},\n        {namespace: "custom", key: "custom_gifting_hero_mobile"},\n        {namespace: "custom", key: "gift_hero_mobile"},\n        {namespace: "custom", key: "custom_gift_hero_mobile"},\n        {namespace: "custom", key: "gifting_gift_box"},\n        {namespace: "custom", key: "custom_gifting_gift_box"},\n        {namespace: "custom", key: "for_him_gifting"},\n        {namespace: "custom", key: "custom_for_him_gifting"},\n        {namespace: "custom", key: "for_her_gifting"},\n        {namespace: "custom", key: "custom_for_her_gifting"},\n        {namespace: "custom", key: "wedding_gifting"},\n        {namespace: "custom", key: "custom_wedding_gifting"},\n        {namespace: "custom", key: "corporate_gifting"},\n        {namespace: "custom", key: "custom_corporate_gifting"},\n        {namespace: "custom", key: "gifting_service_variant_id"},\n        {namespace: "custom", key: "custom_gifting_service_variant_id"}\n      ]) {\n        key\n        namespace\n        value\n        type\n        reference {\n          ... on MediaImage {\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n        }\n      }\n    }\n    giftingCollection: collection(handle: "luxury-gifting") {\n      products(first: 24) {\n        nodes {\n          ...GiftPickerProduct\n        }\n      }\n    }\n    products(first: 24) {\n      nodes {\n        ...GiftPickerProduct\n      }\n    }\n    collections(first: 30) {\n      nodes {\n        id\n        title\n        handle\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n    }\n  }\n\n  fragment GiftPickerProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 3) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    variants(first: 20) {\n      nodes {\n        id\n        title\n        availableForSale\n        price {\n          amount\n          currencyCode\n        }\n        compareAtPrice {\n          amount\n          currencyCode\n        }\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        selectedOptions {\n          name\n          value\n        }\n      }\n    }\n  }\n': {
     return: GiftingCollectionsQuery;
     variables: GiftingCollectionsQueryVariables;
   };
@@ -3011,7 +3178,7 @@ interface GeneratedQueryTypes {
     return: PoliciesQuery;
     variables: PoliciesQueryVariables;
   };
-  '#graphql\n  query Product(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      vendor\n      handle\n      productType\n      descriptionHtml\n      description\n      tags\n      seo {\n        description\n        title\n      }\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 12) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          ...IlhamProductVariant\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n        maxVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"},\n        {namespace: "custom", key: "color"},\n        {namespace: "custom", key: "color_hex"},\n        {namespace: "custom", key: "fabric"},\n        {namespace: "custom", key: "care"},\n        {namespace: "custom", key: "craft_hours"},\n        {namespace: "custom", key: "artisan"},\n        {namespace: "custom", key: "origin"},\n        {namespace: "custom", key: "occasions"},\n        {namespace: "custom", key: "occasion"},\n        {namespace: "custom", key: "dress_occasion"},\n        {namespace: "custom", key: "wash_care"},\n        {namespace: "custom", key: "reviews"},\n        {namespace: "custom", key: "shipping_returns"},\n        {namespace: "custom", key: "gifting_note"},\n        {namespace: "custom", key: "fabric_detail_image"},\n        {namespace: "custom", key: "artisan_image"},\n        {namespace: "custom", key: "audience"},\n        {namespace: "custom", key: "fit"},\n        {namespace: "custom", key: "fit_note"},\n        {namespace: "custom", key: "lining"},\n        {namespace: "custom", key: "length"},\n        {namespace: "custom", key: "neckline"},\n        {namespace: "custom", key: "sleeve"},\n        {namespace: "custom", key: "silhouette"},\n        {namespace: "custom", key: "embroidery"},\n        {namespace: "custom", key: "work"},\n        {namespace: "custom", key: "closure"},\n        {namespace: "custom", key: "size_chart"}\n      ]) {\n        key\n        namespace\n        value\n        type\n        reference {\n          ... on MediaImage {\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n        }\n      }\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n': {
+  '#graphql\n  query Product(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      vendor\n      handle\n      productType\n      descriptionHtml\n      description\n      tags\n      seo {\n        description\n        title\n      }\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 12) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          ...IlhamProductVariant\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n        maxVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"},\n        {namespace: "custom", key: "color"},\n        {namespace: "custom", key: "color_hex"},\n        {namespace: "custom", key: "fabric"},\n        {namespace: "custom", key: "care"},\n        {namespace: "custom", key: "craft_hours"},\n        {namespace: "custom", key: "artisan"},\n        {namespace: "custom", key: "origin"},\n        {namespace: "custom", key: "occasions"},\n        {namespace: "custom", key: "occasion"},\n        {namespace: "custom", key: "dress_occasion"},\n        {namespace: "custom", key: "wash_care"},\n        {namespace: "custom", key: "reviews"},\n        {namespace: "custom", key: "shipping_returns"},\n        {namespace: "custom", key: "gifting_note"},\n        {namespace: "custom", key: "fabric_detail_image"},\n        {namespace: "custom", key: "artisan_image"},\n        {namespace: "custom", key: "audience"},\n        {namespace: "custom", key: "fit"},\n        {namespace: "custom", key: "fit_note"},\n        {namespace: "custom", key: "lining"},\n        {namespace: "custom", key: "length"},\n        {namespace: "custom", key: "neckline"},\n        {namespace: "custom", key: "sleeve"},\n        {namespace: "custom", key: "silhouette"},\n        {namespace: "custom", key: "embroidery"},\n        {namespace: "custom", key: "work"},\n        {namespace: "custom", key: "closure"},\n        {namespace: "custom", key: "size_chart"},\n        {namespace: "custom", key: "style_with_plazo"},\n        {namespace: "custom", key: "style_with_dupatta"},\n        {namespace: "custom", key: "model_wearing_plazo"},\n        {namespace: "custom", key: "disable_style_addons"}\n      ]) {\n        key\n        namespace\n        value\n        type\n        reference {\n          ... on MediaImage {\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n          ... on Product {\n            ...IlhamProductStyleAddon\n          }\n        }\n      }\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n  #graphql\n  fragment IlhamProductStyleAddon on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    availableForSale\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 2) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    variantsCount {\n      count\n    }\n    variants(first: 20) {\n      nodes {\n        ...IlhamProductVariant\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [{namespace: "custom", key: "subtitle"}]) {\n      key\n      namespace\n      value\n    }\n  }\n\n': {
     return: ProductQuery;
     variables: ProductQueryVariables;
   };

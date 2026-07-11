@@ -808,6 +808,17 @@
   clearer sale copy (`Limited atelier price`, exact save amount, and percent
   off), while bag page, bag lines, and cart drawer surface total/line savings
   against original piece prices.
+- PDP style add-ons follow-up started: product pages now read optional
+  product-reference metafields for `custom.style_with_plazo` and
+  `custom.style_with_dupatta`, hide the section for sets/full outfits via
+  `custom.disable_style_addons` plus title/type/tag safeguards, and render a
+  compact "Style it with" add-on area below Add to bag. Product cards now expose
+  compare-at sale pricing more visibly with a bottom-right image `% off` badge,
+  and homepage/collection/quick-view/gifting queries fetch compare-at prices.
+- PDP style add-ons/sale badge verification: `npm.cmd run lint`,
+  `npm.cmd run typecheck`, `git diff --check`, and
+  `npm.cmd run build` all passed after codegen refreshed
+  `storefrontapi.generated.d.ts`.
 
 ## Next Step
 

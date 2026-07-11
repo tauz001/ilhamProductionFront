@@ -1035,6 +1035,10 @@ const PRODUCT_VARIANT_FRAGMENT = `#graphql
       amount
       currencyCode
     }
+    compareAtPrice {
+      amount
+      currencyCode
+    }
     product {
       id
       handle

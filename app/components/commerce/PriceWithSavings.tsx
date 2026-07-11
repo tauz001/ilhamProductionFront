@@ -25,7 +25,8 @@ export function PriceWithSavings({
     );
   }
 
-  const compact = size === 'card' || size === 'line';
+  const showSavingsCopy = size !== 'card';
+  const compact = size === 'line';
   const saveAmount = formatMoney(sale.saveAmount, sale.currencyCode);
   const saleCopy = compact
     ? `Save ${saveAmount} - ${sale.savePercent}% off`
@@ -43,18 +44,20 @@ export function PriceWithSavings({
           {formatMoney(sale.compareAtAmount, sale.currencyCode)}
         </span>
       </div>
-      <div
-        className={`mt-1 flex flex-wrap items-center gap-2 ${
-          compact ? 'text-[10px]' : 'text-[11px]'
-        } small-caps text-gold`}
-      >
-        {!compact && (
-          <span className="border border-gold/30 bg-gold/10 px-2 py-1 text-[9px] text-gold">
-            Limited atelier price
-          </span>
-        )}
-        <span>{saleCopy}</span>
-      </div>
+      {showSavingsCopy && (
+        <div
+          className={`mt-1 flex flex-wrap items-center gap-2 ${
+            compact ? 'text-[10px]' : 'text-[11px]'
+          } small-caps text-gold`}
+        >
+          {!compact && (
+            <span className="border border-gold/30 bg-gold/10 px-2 py-1 text-[9px] text-gold">
+              Limited atelier price
+            </span>
+          )}
+          <span>{saleCopy}</span>
+        </div>
+      )}
     </div>
   );
 }

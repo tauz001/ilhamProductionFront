@@ -18,6 +18,7 @@ import {PriceWithSavings} from '~/components/commerce/PriceWithSavings';
 import {ProductAssurancePanel} from '~/components/commerce/ProductAssurancePanel';
 import {ProductCard} from '~/components/commerce/ProductCard';
 import {ProductImageCarousel} from '~/components/commerce/ProductImageCarousel';
+import {ProductStyleAddOns} from '~/components/commerce/ProductStyleAddOns';
 import {SizeAndFitGuide} from '~/components/commerce/SizeAndFitGuide';
 import {JsonLd} from '~/components/seo/JsonLd';
 import {FadeUp} from '~/components/editorial/MaskedReveal';
@@ -192,6 +193,7 @@ export default function Product() {
     selectedFabric,
     washCare,
   });
+  const styleAddOns = buildProductStyleAddOns(product);
 
   useEffect(() => {
     const nextIndex = getVariantIndexFromSearchParams(variants, searchParams);
@@ -422,6 +424,8 @@ export default function Product() {
               />
             </button>
           </div>
+
+          <ProductStyleAddOns addOns={styleAddOns} />
 
           <ProductDeferredBoundary
             key={`${product.handle}-discount`}
@@ -872,6 +876,87 @@ function getDisplayMetafieldValue(product: any, key: string) {
   return formatMetafieldValue(getMetafieldValue(product, key));
 }
 
+function buildProductStyleAddOns(product: any): Array<{
+  badge?: string;
+  kind: 'plazo' | 'dupatta';
+  product: any;
+}> {
+  if (styleAddOnsShouldBeHidden(product)) return [];
+
+  const plazo = getMetafieldProductReference(product, 'style_with_plazo');
+  const dupatta = getMetafieldProductReference(product, 'style_with_dupatta');
+  const modelWearingPlazo = parseBooleanMetafield(
+    getMetafieldValue(product, 'model_wearing_plazo'),
+  );
+  const addOns: Array<{
+    badge?: string;
+    kind: 'plazo' | 'dupatta';
+    product: any;
+  }> = [];
+  const seen = new Set<string>();
+
+  if (plazo) {
+    addOns.push({
+      badge: modelWearingPlazo ? 'Model is wearing this plazo' : undefined,
+      kind: 'plazo',
+      product: plazo,
+    });
+  }
+
+  if (dupatta) {
+    addOns.push({
+      kind: 'dupatta',
+      product: dupatta,
+    });
+  }
+
+  return addOns.filter((addOn) => {
+    if (!addOn?.product?.handle || addOn.product.handle === product.handle) {
+      return false;
+    }
+    if (seen.has(addOn.product.handle)) return false;
+
+    seen.add(addOn.product.handle);
+    return true;
+  });
+}
+
+function getMetafieldProductReference(product: any, key: string) {
+  const metafields = Array.isArray(product?.metafields)
+    ? product.metafields
+    : product?.metafields?.nodes;
+  const metafield = metafields?.find(
+    (field: any) => field?.key === key && field.namespace === 'custom',
+  );
+  const reference = metafield?.reference;
+
+  return reference?.handle && reference?.title ? reference : null;
+}
+
+function styleAddOnsShouldBeHidden(product: any) {
+  if (parseBooleanMetafield(getMetafieldValue(product, 'disable_style_addons'))) {
+    return true;
+  }
+
+  const text = [
+    product?.title,
+    product?.handle,
+    product?.productType,
+    ...(product?.tags ?? []),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  return /\b(2\s*piece|3\s*piece|two\s*piece|three\s*piece|set|suit|co-?ord|outfit|sharara|gharara)\b/.test(
+    text,
+  );
+}
+
+function parseBooleanMetafield(value?: string | null) {
+  return /^(true|1|yes)$/i.test(value?.trim() ?? '');
+}
+
 function formatMetafieldValue(value?: string | null) {
   if (!value?.trim() || /^gid:\/\//i.test(value.trim())) return '';
 
@@ -950,6 +1035,57 @@ const PRODUCT_VARIANT_FRAGMENT = `#graphql
     }
     selectedOptions {
       name
+      value
+    }
+  }
+` as const;
+
+const PRODUCT_STYLE_ADDON_FRAGMENT = `#graphql
+  fragment IlhamProductStyleAddon on Product {
+    id
+    title
+    handle
+    vendor
+    productType
+    tags
+    availableForSale
+    featuredImage {
+      id
+      url
+      altText
+      width
+      height
+    }
+    images(first: 2) {
+      nodes {
+        id
+        url
+        altText
+        width
+        height
+      }
+    }
+    variantsCount {
+      count
+    }
+    variants(first: 20) {
+      nodes {
+        ...IlhamProductVariant
+      }
+    }
+    priceRange {
+      minVariantPrice {
+        amount
+        currencyCode
+      }
+      maxVariantPrice {
+        amount
+        currencyCode
+      }
+    }
+    metafields(identifiers: [{namespace: "custom", key: "subtitle"}]) {
+      key
+      namespace
       value
     }
   }
@@ -1083,7 +1219,11 @@ const PRODUCT_QUERY = `#graphql
         {namespace: "custom", key: "embroidery"},
         {namespace: "custom", key: "work"},
         {namespace: "custom", key: "closure"},
-        {namespace: "custom", key: "size_chart"}
+        {namespace: "custom", key: "size_chart"},
+        {namespace: "custom", key: "style_with_plazo"},
+        {namespace: "custom", key: "style_with_dupatta"},
+        {namespace: "custom", key: "model_wearing_plazo"},
+        {namespace: "custom", key: "disable_style_addons"}
       ]) {
         key
         namespace
@@ -1099,11 +1239,15 @@ const PRODUCT_QUERY = `#graphql
               height
             }
           }
+          ... on Product {
+            ...IlhamProductStyleAddon
+          }
         }
       }
     }
   }
   ${PRODUCT_VARIANT_FRAGMENT}
+  ${PRODUCT_STYLE_ADDON_FRAGMENT}
 ` as const;
 
 const PRODUCT_RECOMMENDATIONS_QUERY = `#graphql

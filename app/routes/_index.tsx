@@ -141,6 +141,10 @@ export async function loader({context}: Route.LoaderArgs) {
                 amount
                 currencyCode
               }
+              compareAtPrice {
+                amount
+                currencyCode
+              }
             }
           }
 

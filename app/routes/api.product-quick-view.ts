@@ -70,6 +70,10 @@ const QUICK_VIEW_PRODUCT_QUERY = `#graphql
             amount
             currencyCode
           }
+          compareAtPrice {
+            amount
+            currencyCode
+          }
           product {
             id
             handle

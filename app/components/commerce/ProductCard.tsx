@@ -12,6 +12,7 @@ import {
 } from '~/lib/commerce/shopify-fields';
 import {isVariantPurchasable} from '~/lib/commerce/variant-availability';
 import {isProductSoldOut} from '~/lib/commerce/product-availability';
+import {getSalePricing} from '~/lib/commerce/pricing';
 import {
   CARD_IMAGE_WIDTHS,
   shopifyImageUrl,
@@ -106,6 +107,7 @@ export function ProductCard({
     tagIncludes(product.tags, 'new');
   const price = variant?.price ?? product.priceRange?.minVariantPrice;
   const compareAtPrice = variant?.compareAtPrice;
+  const sale = getSalePricing(price, compareAtPrice);
 
   const prepareQuickView = () => {
     if (canAddToBag || soldOut) return;
@@ -235,6 +237,12 @@ export function ProductCard({
               New
             </span>
           )}
+
+          {sale?.onSale && !soldOut ? (
+            <span className="absolute bottom-4 right-4 z-30 border border-gold/35 bg-ivory/92 px-3 py-1.5 text-[10px] small-caps text-gold shadow-[0_12px_28px_rgba(28,22,17,0.16)] transition-[bottom,background-color,color] duration-500 group-hover:bottom-[4.75rem] group-hover:bg-ink group-hover:text-ivory group-focus-within:bottom-[4.75rem] group-focus-within:bg-ink group-focus-within:text-ivory">
+              {sale.savePercent}% off
+            </span>
+          ) : null}
     
           <div className="absolute inset-x-0 bottom-0 z-20 px-4 pb-4 translate-y-full opacity-0 transition-all duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
             {soldOut ? (

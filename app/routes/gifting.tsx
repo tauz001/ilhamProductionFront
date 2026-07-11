@@ -3,6 +3,7 @@ import {useLoaderData} from 'react-router';
 import {useMemo, useState} from 'react';
 import {Check, Search, ShoppingBag, X} from 'lucide-react';
 import {AddToCartButton} from '~/components/AddToCartButton';
+import {PriceWithSavings} from '~/components/commerce/PriceWithSavings';
 import {ParallaxImage} from '~/components/editorial/ParallaxImage';
 import {FadeUp, MaskedReveal} from '~/components/editorial/MaskedReveal';
 import {ChikanMotif} from '~/components/editorial/ChikanMotif';
@@ -550,6 +551,7 @@ function ProductPickerModal({
             const variant = getFirstPurchasableVariant(product);
             const image = getProductImage(product, variant);
             const price = variant?.price ?? product.priceRange?.minVariantPrice;
+            const compareAtPrice = variant?.compareAtPrice;
             const disabled = !variant;
 
             return (
@@ -580,11 +582,12 @@ function ProductPickerModal({
                   <p className="mt-1 font-serif text-2xl leading-tight">
                     {product.title}
                   </p>
-                  {price ? (
-                    <p className="mt-2 text-sm text-ink/60">
-                      {formatMoney(price.amount, price.currencyCode)}
-                    </p>
-                  ) : null}
+                  <PriceWithSavings
+                    className="mt-2 text-sm text-ink/60"
+                    compareAtPrice={compareAtPrice}
+                    price={price}
+                    size="card"
+                  />
                   <p className="mt-4 small-caps text-ink/50">
                     {disabled ? 'Sold out' : 'Select piece'}
                   </p>
@@ -746,6 +749,10 @@ const GIFTING_COLLECTIONS_QUERY = `#graphql
         title
         availableForSale
         price {
+          amount
+          currencyCode
+        }
+        compareAtPrice {
           amount
           currencyCode
         }
