@@ -17,6 +17,10 @@ import {DiscountTicket} from '~/components/commerce/DiscountTicket';
 import {PriceWithSavings} from '~/components/commerce/PriceWithSavings';
 import {ProductAssurancePanel} from '~/components/commerce/ProductAssurancePanel';
 import {ProductCard} from '~/components/commerce/ProductCard';
+import {
+  ProductColourLinks,
+  type ProductColourLink,
+} from '~/components/commerce/ProductColourLinks';
 import {ProductImageCarousel} from '~/components/commerce/ProductImageCarousel';
 import {ProductStyleAddOns} from '~/components/commerce/ProductStyleAddOns';
 import {SizeAndFitGuide} from '~/components/commerce/SizeAndFitGuide';
@@ -146,7 +150,11 @@ export default function Product() {
   const saved = wishlist.includes(product.handle);
   const selectedVariant = variants[variantIdx] ?? variants[firstAvailableIndex];
   const selectedVariantPurchasable = isVariantPurchasable(selectedVariant);
-  const optionGroups = buildVariantOptionGroups(variants, selectedVariant);
+  const connectedColourOptions = buildConnectedColourOptions(product);
+  const hasConnectedColours = connectedColourOptions.length > 1;
+  const optionGroups = buildVariantOptionGroups(variants, selectedVariant).filter(
+    (option) => !(hasConnectedColours && isColorOptionName(option.name)),
+  );
   const price = selectedVariant?.price ?? product.priceRange?.minVariantPrice;
   const categoryLabel = product.productType || product.vendor;
   const images = product.images?.nodes ?? [];
@@ -327,6 +335,8 @@ export default function Product() {
             Inclusive of all taxes. Checkout and shipping calculated by Shopify
           </p>
           <div className="mt-4 h-px bg-border" />
+
+          <ProductColourLinks options={connectedColourOptions} />
 
           {optionGroups.length > 0 && (
             <div className="mt-4 space-y-3">
@@ -894,6 +904,87 @@ function isColorOptionName(name: string) {
   return normalizedName === 'color' || normalizedName === 'colour';
 }
 
+function buildConnectedColourOptions(product: any): ProductColourLink[] {
+  const referencedProducts = [
+    ...getMetafieldProductReferences(product, 'connected_colour_products'),
+    ...getMetafieldProductReferences(product, 'connected_color_products'),
+  ];
+
+  if (!referencedProducts.length) return [];
+
+  const linkedProducts = referencedProducts.some(
+    (linkedProduct) => linkedProduct?.handle === product.handle,
+  )
+    ? referencedProducts.map((linkedProduct) =>
+        linkedProduct?.handle === product.handle ? product : linkedProduct,
+      )
+    : [product, ...referencedProducts];
+  const seen = new Set<string>();
+
+  return linkedProducts
+    .map((linkedProduct): ProductColourLink | null => {
+      if (!linkedProduct?.handle || !linkedProduct?.title) return null;
+      if (seen.has(linkedProduct.handle)) return null;
+
+      seen.add(linkedProduct.handle);
+
+      return {
+        current: linkedProduct.handle === product.handle,
+        handle: linkedProduct.handle,
+        hex: getColourHex(linkedProduct),
+        label: getColourLabel(linkedProduct),
+        soldOut: isProductSoldOut(linkedProduct),
+        title: linkedProduct.title,
+      };
+    })
+    .filter((option): option is ProductColourLink => Boolean(option));
+}
+
+function getMetafieldProductReferences(product: any, key: string): any[] {
+  const metafield = getCustomMetafield(product, key);
+  const references = (metafield?.references?.nodes ?? []) as any[];
+  const singleReference = metafield?.reference as any;
+  const products: any[] = Array.isArray(references) ? [...references] : [];
+
+  if (singleReference?.handle && singleReference?.title) {
+    products.push(singleReference);
+  }
+
+  return products.filter((reference) => reference?.handle && reference?.title);
+}
+
+function getColourLabel(product: any) {
+  return (
+    getDisplayMetafieldValue(product, 'display_colour') ||
+    getDisplayMetafieldValue(product, 'display_color') ||
+    getDisplayMetafieldValue(product, 'colour') ||
+    getDisplayMetafieldValue(product, 'color') ||
+    inferColourFromTitle(product?.title) ||
+    'Colour'
+  );
+}
+
+function getColourHex(product: any) {
+  const value =
+    getDisplayMetafieldValue(product, 'colour_hex') ||
+    getDisplayMetafieldValue(product, 'color_hex');
+
+  return /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(value)
+    ? value
+    : null;
+}
+
+function inferColourFromTitle(title?: string | null) {
+  const parts = title
+    ?.split(/\s[-–—]\s/g)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (!parts?.length) return '';
+
+  return parts.length > 1 ? parts[parts.length - 1] : parts[0];
+}
+
 function buildProductDescription({
   description,
   fabric,
@@ -955,7 +1046,9 @@ function buildProductDescription({
 }
 
 function getDisplayMetafieldValue(product: any, key: string) {
-  return formatMetafieldValue(getMetafieldValue(product, key));
+  return formatMetafieldValue(
+    getCustomMetafield(product, key)?.value ?? getMetafieldValue(product, key),
+  );
 }
 
 function buildProductStyleAddOns(product: any): Array<{
@@ -1012,15 +1105,24 @@ function getVisibleStyleAddOns(
 }
 
 function getMetafieldProductReference(product: any, key: string) {
-  const metafields = Array.isArray(product?.metafields)
-    ? product.metafields
-    : product?.metafields?.nodes;
-  const metafield = metafields?.find(
-    (field: any) => field?.key === key && field.namespace === 'custom',
-  );
+  const metafield = getCustomMetafield(product, key);
   const reference = metafield?.reference;
 
   return reference?.handle && reference?.title ? reference : null;
+}
+
+function getCustomMetafield(product: any, key: string) {
+  const mainMetafields = Array.isArray(product?.metafields)
+    ? product.metafields
+    : product?.metafields?.nodes;
+  const colourMetafields = Array.isArray(product?.colourMetafields)
+    ? product.colourMetafields
+    : product?.colourMetafields?.nodes;
+  const metafields = [...(mainMetafields ?? []), ...(colourMetafields ?? [])];
+
+  return metafields?.find(
+    (field: any) => field?.key === key && field.namespace === 'custom',
+  ) ?? null;
 }
 
 function styleAddOnsShouldBeHidden(product: any) {
@@ -1181,6 +1283,28 @@ const PRODUCT_STYLE_ADDON_FRAGMENT = `#graphql
   }
 ` as const;
 
+const PRODUCT_COLOUR_LINK_FRAGMENT = `#graphql
+  fragment IlhamProductColourLink on Product {
+    id
+    title
+    handle
+    availableForSale
+    colourMetafields: metafields(identifiers: [
+      {namespace: "custom", key: "display_colour"},
+      {namespace: "custom", key: "display_color"},
+      {namespace: "custom", key: "colour"},
+      {namespace: "custom", key: "color"},
+      {namespace: "custom", key: "colour_hex"},
+      {namespace: "custom", key: "color_hex"}
+    ]) {
+      key
+      namespace
+      value
+      type
+    }
+  }
+` as const;
+
 const PRODUCT_CARD_FRAGMENT = `#graphql
   fragment IlhamProductCard on Product {
     id
@@ -1282,8 +1406,14 @@ const PRODUCT_QUERY = `#graphql
       }
       metafields(identifiers: [
         {namespace: "custom", key: "subtitle"},
+        {namespace: "custom", key: "display_colour"},
+        {namespace: "custom", key: "display_color"},
+        {namespace: "custom", key: "colour"},
         {namespace: "custom", key: "color"},
+        {namespace: "custom", key: "colour_hex"},
         {namespace: "custom", key: "color_hex"},
+        {namespace: "custom", key: "connected_colour_products"},
+        {namespace: "custom", key: "connected_color_products"},
         {namespace: "custom", key: "fabric"},
         {namespace: "custom", key: "care"},
         {namespace: "custom", key: "craft_hours"},
@@ -1331,6 +1461,14 @@ const PRODUCT_QUERY = `#graphql
           }
           ... on Product {
             ...IlhamProductStyleAddon
+            ...IlhamProductColourLink
+          }
+        }
+        references(first: 16) {
+          nodes {
+            ... on Product {
+              ...IlhamProductColourLink
+            }
           }
         }
       }
@@ -1338,6 +1476,7 @@ const PRODUCT_QUERY = `#graphql
   }
   ${PRODUCT_VARIANT_FRAGMENT}
   ${PRODUCT_STYLE_ADDON_FRAGMENT}
+  ${PRODUCT_COLOUR_LINK_FRAGMENT}
 ` as const;
 
 const PRODUCT_RECOMMENDATIONS_QUERY = `#graphql

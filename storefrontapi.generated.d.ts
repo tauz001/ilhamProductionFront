@@ -2468,6 +2468,17 @@ export type IlhamProductStyleAddonFragment = Pick<
   >;
 };
 
+export type IlhamProductColourLinkFragment = Pick<
+  StorefrontAPI.Product,
+  'id' | 'title' | 'handle' | 'availableForSale'
+> & {
+  colourMetafields: Array<
+    StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.Metafield, 'key' | 'namespace' | 'value' | 'type'>
+    >
+  >;
+};
+
 export type IlhamProductCardFragment = Pick<
   StorefrontAPI.Product,
   | 'id'
@@ -2677,8 +2688,33 @@ export type ProductQuery = {
                       >
                     >
                   >;
+                  colourMetafields: Array<
+                    StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Metafield,
+                        'key' | 'namespace' | 'value' | 'type'
+                      >
+                    >
+                  >;
                 })
             >;
+            references?: StorefrontAPI.Maybe<{
+              nodes: Array<
+                Pick<
+                  StorefrontAPI.Product,
+                  'id' | 'title' | 'handle' | 'availableForSale'
+                > & {
+                  colourMetafields: Array<
+                    StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Metafield,
+                        'key' | 'namespace' | 'value' | 'type'
+                      >
+                    >
+                  >;
+                }
+              >;
+            }>;
           }
         >
       >;
@@ -3178,7 +3214,7 @@ interface GeneratedQueryTypes {
     return: PoliciesQuery;
     variables: PoliciesQueryVariables;
   };
-  '#graphql\n  query Product(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      vendor\n      handle\n      productType\n      descriptionHtml\n      description\n      tags\n      seo {\n        description\n        title\n      }\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 12) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          ...IlhamProductVariant\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n        maxVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"},\n        {namespace: "custom", key: "color"},\n        {namespace: "custom", key: "color_hex"},\n        {namespace: "custom", key: "fabric"},\n        {namespace: "custom", key: "care"},\n        {namespace: "custom", key: "craft_hours"},\n        {namespace: "custom", key: "artisan"},\n        {namespace: "custom", key: "origin"},\n        {namespace: "custom", key: "occasions"},\n        {namespace: "custom", key: "occasion"},\n        {namespace: "custom", key: "dress_occasion"},\n        {namespace: "custom", key: "wash_care"},\n        {namespace: "custom", key: "reviews"},\n        {namespace: "custom", key: "shipping_returns"},\n        {namespace: "custom", key: "gifting_note"},\n        {namespace: "custom", key: "fabric_detail_image"},\n        {namespace: "custom", key: "artisan_image"},\n        {namespace: "custom", key: "audience"},\n        {namespace: "custom", key: "fit"},\n        {namespace: "custom", key: "fit_note"},\n        {namespace: "custom", key: "lining"},\n        {namespace: "custom", key: "length"},\n        {namespace: "custom", key: "neckline"},\n        {namespace: "custom", key: "sleeve"},\n        {namespace: "custom", key: "silhouette"},\n        {namespace: "custom", key: "embroidery"},\n        {namespace: "custom", key: "work"},\n        {namespace: "custom", key: "closure"},\n        {namespace: "custom", key: "size_chart"},\n        {namespace: "custom", key: "style_with_plazo"},\n        {namespace: "custom", key: "style_with_dupatta"},\n        {namespace: "custom", key: "model_wearing_plazo"},\n        {namespace: "custom", key: "disable_style_addons"}\n      ]) {\n        key\n        namespace\n        value\n        type\n        reference {\n          ... on MediaImage {\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n          ... on Product {\n            ...IlhamProductStyleAddon\n          }\n        }\n      }\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n  #graphql\n  fragment IlhamProductStyleAddon on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    availableForSale\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 2) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    variantsCount {\n      count\n    }\n    variants(first: 20) {\n      nodes {\n        ...IlhamProductVariant\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [{namespace: "custom", key: "subtitle"}]) {\n      key\n      namespace\n      value\n    }\n  }\n\n': {
+  '#graphql\n  query Product(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      id\n      title\n      vendor\n      handle\n      productType\n      descriptionHtml\n      description\n      tags\n      seo {\n        description\n        title\n      }\n      featuredImage {\n        id\n        url\n        altText\n        width\n        height\n      }\n      images(first: 12) {\n        nodes {\n          id\n          url\n          altText\n          width\n          height\n        }\n      }\n      variants(first: 50) {\n        nodes {\n          ...IlhamProductVariant\n        }\n      }\n      priceRange {\n        minVariantPrice {\n          amount\n          currencyCode\n        }\n        maxVariantPrice {\n          amount\n          currencyCode\n        }\n      }\n      metafields(identifiers: [\n        {namespace: "custom", key: "subtitle"},\n        {namespace: "custom", key: "display_colour"},\n        {namespace: "custom", key: "display_color"},\n        {namespace: "custom", key: "colour"},\n        {namespace: "custom", key: "color"},\n        {namespace: "custom", key: "colour_hex"},\n        {namespace: "custom", key: "color_hex"},\n        {namespace: "custom", key: "connected_colour_products"},\n        {namespace: "custom", key: "connected_color_products"},\n        {namespace: "custom", key: "fabric"},\n        {namespace: "custom", key: "care"},\n        {namespace: "custom", key: "craft_hours"},\n        {namespace: "custom", key: "artisan"},\n        {namespace: "custom", key: "origin"},\n        {namespace: "custom", key: "occasions"},\n        {namespace: "custom", key: "occasion"},\n        {namespace: "custom", key: "dress_occasion"},\n        {namespace: "custom", key: "wash_care"},\n        {namespace: "custom", key: "reviews"},\n        {namespace: "custom", key: "shipping_returns"},\n        {namespace: "custom", key: "gifting_note"},\n        {namespace: "custom", key: "fabric_detail_image"},\n        {namespace: "custom", key: "artisan_image"},\n        {namespace: "custom", key: "audience"},\n        {namespace: "custom", key: "fit"},\n        {namespace: "custom", key: "fit_note"},\n        {namespace: "custom", key: "lining"},\n        {namespace: "custom", key: "length"},\n        {namespace: "custom", key: "neckline"},\n        {namespace: "custom", key: "sleeve"},\n        {namespace: "custom", key: "silhouette"},\n        {namespace: "custom", key: "embroidery"},\n        {namespace: "custom", key: "work"},\n        {namespace: "custom", key: "closure"},\n        {namespace: "custom", key: "size_chart"},\n        {namespace: "custom", key: "style_with_plazo"},\n        {namespace: "custom", key: "style_with_dupatta"},\n        {namespace: "custom", key: "model_wearing_plazo"},\n        {namespace: "custom", key: "disable_style_addons"}\n      ]) {\n        key\n        namespace\n        value\n        type\n        reference {\n          ... on MediaImage {\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n          ... on Product {\n            ...IlhamProductStyleAddon\n            ...IlhamProductColourLink\n          }\n        }\n        references(first: 16) {\n          nodes {\n            ... on Product {\n              ...IlhamProductColourLink\n            }\n          }\n        }\n      }\n    }\n  }\n  #graphql\n  fragment IlhamProductVariant on ProductVariant {\n    id\n    title\n    availableForSale\n    currentlyNotInStock\n    sku\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    image {\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      id\n      handle\n      title\n      vendor\n      productType\n    }\n    selectedOptions {\n      name\n      value\n    }\n  }\n\n  #graphql\n  fragment IlhamProductStyleAddon on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    availableForSale\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 2) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    variantsCount {\n      count\n    }\n    variants(first: 20) {\n      nodes {\n        ...IlhamProductVariant\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n      maxVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [{namespace: "custom", key: "subtitle"}]) {\n      key\n      namespace\n      value\n    }\n  }\n\n  #graphql\n  fragment IlhamProductColourLink on Product {\n    id\n    title\n    handle\n    availableForSale\n    colourMetafields: metafields(identifiers: [\n      {namespace: "custom", key: "display_colour"},\n      {namespace: "custom", key: "display_color"},\n      {namespace: "custom", key: "colour"},\n      {namespace: "custom", key: "color"},\n      {namespace: "custom", key: "colour_hex"},\n      {namespace: "custom", key: "color_hex"}\n    ]) {\n      key\n      namespace\n      value\n      type\n    }\n  }\n\n': {
     return: ProductQuery;
     variables: ProductQueryVariables;
   };

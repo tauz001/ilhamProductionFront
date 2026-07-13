@@ -827,12 +827,34 @@
 - PDP above-the-fold purchase verification: `npm.cmd run lint`,
   `npm.cmd run typecheck`, `git diff --check`, and
   `npm.cmd run build` all passed.
+- Product-as-colour-listing follow-up started: PDP now reads
+  `custom.connected_colour_products` or `custom.connected_color_products`
+  product-reference metafields and renders linked colours as separate product
+  URLs while keeping size selection on the current product. When connected
+  colour products exist, the legacy variant `Color`/`Colour` option is hidden
+  so customers do not see duplicate colour controls.
+- Product-as-colour-listing implementation details: added
+  `app/components/commerce/ProductColourLinks.tsx`, updated the product route
+  GraphQL to fetch linked colour products plus `display_colour`/`display_color`,
+  `colour`/`color`, and `colour_hex`/`color_hex`, and refreshed
+  `storefrontapi.generated.d.ts` through Hydrogen codegen.
+- Product-as-colour-listing verification: `npm.cmd run lint`,
+  `npm.cmd run typecheck`, and `npm.cmd run build` all passed. The first build
+  exposed a GraphQL metafield argument conflict, fixed by aliasing linked-colour
+  metafields as `colourMetafields`.
 
 ## Next Step
 
-Deploy `codex/premium-discount-experience` to Oxygen Preview. In Shopify Admin,
-grant the private Admin token `read_discounts`, then set `DISCOUNT_TICKET_TAG`
-to the intended public active code discount's tag, code, or title, and verify
-the ticket/sale/refund UI on a real PDP and bag.
+Deploy `codex/premium-discount-experience` to Oxygen Preview/Production and set
+up one real colour family in Shopify Admin: create one product per colour,
+create/enable the product-list reference metafield
+`custom.connected_colour_products`, add all sibling colour products to each
+listing, and fill optional `custom.display_colour` plus `custom.colour_hex`.
+Then verify PDP colour links navigate between separate URLs, size variants stay
+on the selected colour product, and cart/checkout show the selected product and
+size correctly.
+Also, in Shopify Admin, grant the private Admin token `read_discounts`, then set
+`DISCOUNT_TICKET_TAG` to the intended public active code discount's tag, code,
+or title, and verify the ticket/sale/refund UI on a real PDP and bag.
 Continue to avoid using another customer's order data while order tracking token
 setup remains pending.
