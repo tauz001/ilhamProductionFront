@@ -1,4 +1,5 @@
 import {getMetafieldValue} from './shopify-fields';
+import {getColourListingImages} from './colour-media';
 
 type SelectedOption = {
   name: string;
@@ -80,7 +81,13 @@ function expandColourVariantProduct(product: any) {
 
       const selectedOptions = [{name: colourOption.name, value: colour}];
       const listingUrl = buildVariantListingUrl(product.handle, selectedOptions);
-      const image = variant.image ?? product.featuredImage ?? null;
+      const listingImages = getColourListingImages(
+        product.images?.nodes ?? [],
+        colour,
+        variant.image,
+      );
+      const image =
+        listingImages[0] ?? variant.image ?? product.featuredImage ?? null;
 
       return {
         ...product,
@@ -88,7 +95,7 @@ function expandColourVariantProduct(product: any) {
         featuredImage: image,
         images: {
           ...(product.images ?? {}),
-          nodes: image ? [image] : [],
+          nodes: listingImages.length ? listingImages : image ? [image] : [],
         },
         selectedOrFirstAvailableVariant: variant,
         priceRange: variant.price

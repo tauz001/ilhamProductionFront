@@ -58,6 +58,10 @@ import {
   getProductListingKey,
   getSplitColourProductTitle,
 } from '~/lib/commerce/colour-listings';
+import {
+  getColourMediaImages,
+  getVariantColour,
+} from '~/lib/commerce/colour-media';
 
 type RecommendedProduct = {
   handle: string;
@@ -192,13 +196,23 @@ export default function Product() {
   const selectedVariantImage = selectedVariant?.image?.url
     ? selectedVariant.image
     : null;
-  const carouselImages = getUniqueImages([
-    selectedVariantImage,
-    ...galleryImages,
-    fabricDetailImage,
-  ]);
+  const selectedColour = getVariantColour(selectedVariant);
+  const selectedColourImages = getColourMediaImages(
+    galleryImages,
+    selectedColour,
+  );
+  const hasColourMediaGroup = selectedColourImages.length > 0;
+  const carouselImages = hasColourMediaGroup
+    ? getUniqueImages(selectedColourImages)
+    : getUniqueImages([
+        selectedVariantImage,
+        ...galleryImages,
+        fabricDetailImage,
+      ]);
   const activeCarouselImageKey = getImageKey(
-    selectedVariantImage ?? product.featuredImage ?? galleryImages[0],
+    (hasColourMediaGroup ? selectedColourImages[0] : selectedVariantImage) ??
+      product.featuredImage ??
+      galleryImages[0],
   );
   const artisanImage =
     getMetafieldImage(product, 'artisan_image') ?? galleryImages[3] ?? null;
@@ -1408,7 +1422,7 @@ const PRODUCT_QUERY = `#graphql
         width
         height
       }
-      images(first: 12) {
+      images(first: 50) {
         nodes {
           id
           url

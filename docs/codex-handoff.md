@@ -879,16 +879,34 @@
   confirming the storefront image-selection path works. No code change is
   required for this symptom; assign the correct image to every size/fabric
   variant of each colour in Shopify Admin.
+- Colour-gallery grouping follow-up started: added the shared
+  `app/lib/commerce/colour-media.ts` parser for the Shopify image-alt convention
+  `Colour | View` (for example `White | Front`). On PDP, once the selected
+  colour has at least one matching labelled image, the carousel shows only that
+  colour's labelled media and orders `Front` first; a colour with no matching
+  labels retains the existing gallery as a compatibility fallback. Virtual
+  split-colour cards reuse matching labelled media when it is already present
+  in their lightweight card query, otherwise they retain the assigned Shopify
+  variant image. PDP now requests metadata for up to 50 product images so
+  multi-colour galleries can be grouped; browser image loading remains limited
+  to the visible carousel through the existing responsive/lazy image behavior.
+- Colour-gallery verification passed: `npm.cmd run codegen`, full-tree
+  `npm.cmd run lint`, `npm.cmd run typecheck`, `git diff --check`, and the
+  production client/Oxygen SSR `npm.cmd run build` all passed. A local SSR
+  request for `nazakat-hand-embroidered-long-spaghetti` with White selected and
+  the currently labelled `White | Front` media rendered that image as the main
+  image with no other-colour thumbnails or carousel controls, confirming the
+  opt-in filtering path. The temporary local Hydrogen server was stopped.
 
 ## Next Step
 
-Fix the Shopify variant-image assignments on
-`nazakat-hand-embroidered-long-spaghetti`: upload the White, Pink, Mint Green,
-and Blue images to the product, then assign the matching image to every variant
-combination belonging to that colour. Confirm homepage, collection,
-all-products, search, and recommendation cards use distinct colour images; each
-card must open the PDP with that colour selected, and changing size must retain
-the colour image.
+Deploy the verified colour-gallery checkpoint, then label all media on
+`nazakat-hand-embroidered-long-spaghetti` consistently: `White |
+Front`, `White | Back`, and so on for Pink, Mint Green, and Blue. Assign each
+colour's Front image to every matching size/fabric variant for cart and checkout
+thumbnails. Confirm PDP colour changes replace the complete carousel group,
+size changes retain that group, and virtual listing cards retain their correct
+primary colour image.
 
 Also retain the already-supported true separate-product test: create one
 product per colour, connect siblings through the product-list reference
