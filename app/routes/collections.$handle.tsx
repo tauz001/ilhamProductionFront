@@ -35,6 +35,11 @@ import {
 } from '~/lib/commerce/collection-filters';
 import {productMatchesText} from '~/lib/commerce/product-facets';
 import {
+  expandColourVariantListings,
+  getProductListingColour,
+  getProductListingKey,
+} from '~/lib/commerce/colour-listings';
+import {
   compareProductsByAvailability,
   isProductSoldOut,
 } from '~/lib/commerce/product-availability';
@@ -144,6 +149,10 @@ export default function Collection() {
   );
   const [baseItems, setBaseItems] = useState<any[]>(initialItems);
   const [pageInfo, setPageInfo] = useState(collection.products?.pageInfo);
+  const listingItems = useMemo(
+    () => expandColourVariantListings(baseItems),
+    [baseItems],
+  );
 
   useEffect(() => {
     setBaseItems(initialItems);
@@ -192,7 +201,7 @@ export default function Collection() {
     const sizes = new Set<string>();
     const colors = new Map<string, string | undefined>();
 
-    baseItems.forEach((product: any) => {
+    listingItems.forEach((product: any) => {
       parseListField(getMetafieldValue(product, 'occasions')).forEach((occasion) =>
         occasions.add(occasion),
       );
@@ -212,7 +221,7 @@ export default function Collection() {
       sizes: [...sizes],
       colors: [...colors.entries()].map(([name, hex]) => ({name, hex})),
     };
-  }, [baseItems]);
+  }, [listingItems]);
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -235,7 +244,7 @@ export default function Collection() {
   };
 
   const filtered = useMemo(() => {
-    return baseItems.filter((product: any) => {
+    return listingItems.filter((product: any) => {
       if (collectionQuery && !productMatchesText(product, collectionQuery)) {
         return false;
       }
@@ -287,7 +296,7 @@ export default function Collection() {
 
       return true;
     });
-  }, [baseItems, collectionQuery, filters]);
+  }, [listingItems, collectionQuery, filters]);
 
   const sorted = useMemo(
     () =>
@@ -482,7 +491,7 @@ export default function Collection() {
         ) : (
           <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-5 sm:gap-y-12 md:grid-cols-3 md:gap-x-6 md:gap-y-14 lg:grid-cols-4">
             {sorted.map((product: any, index: number) => (
-              <FadeUp key={product.handle}>
+              <FadeUp key={getProductListingKey(product)}>
                 <ProductCard product={product} priority={index < 4} />
               </FadeUp>
             ))}
@@ -881,9 +890,10 @@ function getRequiredCollectionMetafield(collection: any, key: string) {
 }
 
 function getProductColor(product: any) {
+  const listingColor = getProductListingColour(product);
   const metafieldColor = getMetafieldValue(product, 'color');
   const optionColor = getProductOptionValues(product, 'color')[0];
-  const name = metafieldColor ?? optionColor ?? '';
+  const name = listingColor || metafieldColor || optionColor || '';
   const hex = getMetafieldValue(product, 'color_hex') ?? undefined;
 
   if (!name) {
@@ -1082,6 +1092,9 @@ const COLLECTION_PRODUCT_FRAGMENT = `#graphql
       name
       optionValues {
         name
+        firstSelectableVariant {
+          ...IlhamCollectionProductVariant
+        }
       }
     }
     variantsCount {
@@ -1105,7 +1118,11 @@ const COLLECTION_PRODUCT_FRAGMENT = `#graphql
       {namespace: "custom", key: "fabric"},
       {namespace: "custom", key: "color"},
       {namespace: "custom", key: "color_hex"},
-      {namespace: "custom", key: "occasions"}
+      {namespace: "custom", key: "occasions"},
+      {namespace: "custom", key: "split_colour_listings"},
+      {namespace: "custom", key: "base_title"},
+      {namespace: "custom", key: "connected_colour_products"},
+      {namespace: "custom", key: "connected_color_products"}
     ]) {
       key
       namespace

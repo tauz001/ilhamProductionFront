@@ -1,6 +1,11 @@
 import {Link} from 'react-router';
 import {Image, Money, Pagination} from '@shopify/hydrogen';
 import {urlWithTrackingParams, type RegularSearchReturn} from '~/lib/search';
+import {
+  expandColourVariantListings,
+  getProductListingKey,
+  getProductListingSelectedOptions,
+} from '~/lib/commerce/colour-listings';
 
 type SearchItems = RegularSearchReturn['result']['items'];
 type PartialSearchResult<ItemType extends keyof SearchItems> = Pick<
@@ -102,9 +107,14 @@ function SearchResultsProducts({
       <h2 className="small-caps text-ink/45">Pieces</h2>
       <Pagination connection={products}>
         {({nodes, isLoading, NextLink, PreviousLink}) => {
-          const itemsMarkup = nodes.map((product) => {
+          const listings = expandColourVariantListings(nodes);
+          const itemsMarkup = listings.map((product) => {
+            const selectedOptions = getProductListingSelectedOptions(product);
             const productUrl = urlWithTrackingParams({
               baseUrl: `/products/${product.handle}`,
+              params: Object.fromEntries(
+                selectedOptions.map((option) => [option.name, option.value]),
+              ),
               trackingParams: product.trackingParameters,
               term,
             });
@@ -114,7 +124,7 @@ function SearchResultsProducts({
 
             return (
               <Link
-                key={product.id}
+                key={getProductListingKey(product)}
                 prefetch="intent"
                 to={productUrl}
                 className="grid grid-cols-[72px_1fr] items-center gap-4 border-b border-border py-4 transition-colors hover:text-gold sm:grid-cols-[90px_1fr]"

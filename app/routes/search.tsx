@@ -109,6 +109,45 @@ const SEARCH_PRODUCT_FRAGMENT = `#graphql
     title
     trackingParameters
     vendor
+    options {
+      name
+      optionValues {
+        name
+        firstSelectableVariant {
+          id
+          title
+          availableForSale
+          image {
+            url
+            altText
+            width
+            height
+          }
+          price {
+            amount
+            currencyCode
+          }
+          compareAtPrice {
+            amount
+            currencyCode
+          }
+          selectedOptions {
+            name
+            value
+          }
+        }
+      }
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "split_colour_listings"},
+      {namespace: "custom", key: "base_title"},
+      {namespace: "custom", key: "connected_colour_products"},
+      {namespace: "custom", key: "connected_color_products"}
+    ]) {
+      key
+      namespace
+      value
+    }
     selectedOrFirstAvailableVariant(
       selectedOptions: []
       ignoreUnknownOptions: true

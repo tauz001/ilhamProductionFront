@@ -1,18 +1,20 @@
 import {Link} from 'react-router';
 import {Image, Money} from '@shopify/hydrogen';
-import type {CollectionItemFragment} from 'storefrontapi.generated';
-import {useVariantUrl} from '~/lib/variants';
 import {isProductSoldOut} from '~/lib/commerce/product-availability';
+import {getProductListingUrl} from '~/lib/commerce/colour-listings';
 
 export function ProductItem({
   product,
   loading,
 }: {
-  product: CollectionItemFragment;
+  product: any;
   loading?: 'eager' | 'lazy';
 }) {
-  const variantUrl = useVariantUrl(product.handle);
+  const variantUrl = getProductListingUrl(product);
   const image = product.featuredImage;
+  const price =
+    product.selectedOrFirstAvailableVariant?.price ??
+    product.priceRange.minVariantPrice;
   const soldOut = isProductSoldOut(product);
   return (
     <Link
@@ -47,7 +49,7 @@ export function ProductItem({
         {product.title}
       </h2>
       <span className="mt-1 block text-sm text-ink/55">
-        <Money data={product.priceRange.minVariantPrice} />
+        <Money data={price} />
       </span>
     </Link>
   );

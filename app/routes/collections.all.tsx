@@ -8,6 +8,7 @@ import type {CollectionItemFragment} from 'storefrontapi.generated';
 import {seoMeta} from '~/lib/seo';
 import {EditorialHeader} from '~/components/editorial/EditorialHeader';
 import {compareProductsByAvailability} from '~/lib/commerce/product-availability';
+import {expandColourVariantListings} from '~/lib/commerce/colour-listings';
 
 export const meta: Route.MetaFunction = () => {
   return seoMeta({
@@ -61,7 +62,9 @@ export default function Collection() {
   const merchandisedProducts = useMemo(
     () => ({
       ...products,
-      nodes: [...(products?.nodes ?? [])].sort(compareProductsByAvailability),
+      nodes: expandColourVariantListings(
+        [...(products?.nodes ?? [])].sort(compareProductsByAvailability),
+      ),
     }),
     [products],
   );
@@ -108,6 +111,34 @@ const COLLECTION_ITEM_FRAGMENT = `#graphql
       width
       height
     }
+    options {
+      name
+      optionValues {
+        name
+        firstSelectableVariant {
+          id
+          title
+          availableForSale
+          image {
+            id
+            altText
+            url
+            width
+            height
+          }
+          price {
+            ...MoneyCollectionItem
+          }
+          compareAtPrice {
+            ...MoneyCollectionItem
+          }
+          selectedOptions {
+            name
+            value
+          }
+        }
+      }
+    }
     priceRange {
       minVariantPrice {
         ...MoneyCollectionItem
@@ -115,6 +146,16 @@ const COLLECTION_ITEM_FRAGMENT = `#graphql
       maxVariantPrice {
         ...MoneyCollectionItem
       }
+    }
+    metafields(identifiers: [
+      {namespace: "custom", key: "split_colour_listings"},
+      {namespace: "custom", key: "base_title"},
+      {namespace: "custom", key: "connected_colour_products"},
+      {namespace: "custom", key: "connected_color_products"}
+    ]) {
+      key
+      namespace
+      value
     }
   }
 ` as const;

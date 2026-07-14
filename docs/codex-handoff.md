@@ -842,17 +842,53 @@
   `npm.cmd run typecheck`, and `npm.cmd run build` all passed. The first build
   exposed a GraphQL metafield argument conflict, fixed by aliasing linked-colour
   metafields as `colourMetafields`.
+- Hybrid colour-listing follow-up started: the existing separate-product model
+  remains unchanged, and products explicitly enabled with
+  `custom.split_colour_listings = true` now expand only their Color/Colour
+  option values into storefront listing cards. Each virtual card uses the
+  option value's `firstSelectableVariant` image, price, compare-at price, and
+  selected colour URL while preserving the real Shopify product and variant.
+- Hybrid colour listings are applied to homepage product rails, collection
+  grids and filters, `/collections/all`, regular search results, and PDP
+  recommendations. Their CTA opens the colour-selected PDP to choose size;
+  virtual cards never add an arbitrary size directly and never alter cart or
+  checkout data.
+- Hybrid precedence is deterministic: a non-empty
+  `custom.connected_colour_products` or `custom.connected_color_products`
+  disables virtual splitting for that product, so true separate colour
+  products cannot be duplicated. Optional `custom.base_title` controls the
+  shared title before the automatic ` - Colour` suffix. No environment
+  variables or Admin API scopes are required.
+- Hybrid colour-listing verification passed: `npm.cmd run codegen`,
+  `npm.cmd run lint`, `npm.cmd run typecheck`, `git diff --check`, and
+  `npm.cmd run build`. The optimized `ProductOptionValue.firstSelectableVariant`
+  queries passed Shopify Storefront schema generation, and the new shared
+  client chunk is approximately 1.00KB gzip.
+- Interactive local smoke testing was attempted after the production build,
+  but the installed in-app browser plugin is missing its required
+  `scripts/browser-client.mjs`; no visual pass is claimed. The temporary local
+  Hydrogen server was stopped. Real split-card acceptance still requires the
+  Shopify boolean metafield to be created and enabled on a test product.
 
 ## Next Step
 
-Deploy `codex/premium-discount-experience` to Oxygen Preview/Production and set
-up one real colour family in Shopify Admin: create one product per colour,
-create/enable the product-list reference metafield
-`custom.connected_colour_products`, add all sibling colour products to each
-listing, and fill optional `custom.display_colour` plus `custom.colour_hex`.
-Then verify PDP colour links navigate between separate URLs, size variants stay
-on the selected colour product, and cart/checkout show the selected product and
-size correctly.
+Commit and push the verified hybrid checkpoint. In Shopify Admin, create the product
+boolean metafield `custom.split_colour_listings` with Storefront API access and
+test one existing product that has Color/Colour plus Size variants by setting it
+to true. Confirm homepage, collection, all-products, search, and recommendation
+cards split by colour; each card must open the PDP with that colour selected,
+then size selection, cart, and checkout must retain the real Shopify variant.
+
+Also retain the already-supported true separate-product test: create one
+product per colour, connect siblings through the product-list reference
+`custom.connected_colour_products`, and fill optional
+`custom.display_colour` plus `custom.colour_hex`. Connected products must show
+PDP colour links and must not be expanded as virtual variant cards.
+
+After both models pass, deploy `codex/premium-discount-experience` to Oxygen
+Preview/Production. No new environment variable or Admin API token is required
+for either colour model.
+
 Also, in Shopify Admin, grant the private Admin token `read_discounts`, then set
 `DISCOUNT_TICKET_TAG` to the intended public active code discount's tag, code,
 or title, and verify the ticket/sale/refund UI on a real PDP and bag.

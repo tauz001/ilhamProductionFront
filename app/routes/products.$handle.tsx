@@ -53,6 +53,11 @@ import {
   shopifySrcSet,
 } from '~/lib/commerce/image';
 import {breadcrumbJsonLd, productJsonLd, seoMeta} from '~/lib/seo';
+import {
+  expandColourVariantListings,
+  getProductListingKey,
+  getSplitColourProductTitle,
+} from '~/lib/commerce/colour-listings';
 
 type RecommendedProduct = {
   handle: string;
@@ -149,6 +154,10 @@ export default function Product() {
   const openDrawer = useStore((s) => s.openDrawer);
   const saved = wishlist.includes(product.handle);
   const selectedVariant = variants[variantIdx] ?? variants[firstAvailableIndex];
+  const displayProductTitle = getSplitColourProductTitle(
+    product,
+    selectedVariant,
+  );
   const selectedVariantPurchasable = isVariantPurchasable(selectedVariant);
   const connectedColourOptions = buildConnectedColourOptions(product);
   const hasConnectedColours = connectedColourOptions.length > 1;
@@ -318,7 +327,7 @@ export default function Product() {
         <aside className="min-w-0 md:col-span-5 md:sticky md:top-20 md:self-start md:pl-6 lg:pl-8">
           <p className="small-caps text-ink/50">{categoryLabel}</p>
           <h1 className="mt-1.5 break-words font-display text-3xl leading-none sm:text-4xl md:text-5xl xl:text-[3.35rem]">
-            {product.title}
+            {displayProductTitle}
           </h1>
           {subtitle && (
             <p className="mt-1 font-serif italic text-lg text-ink/60">
@@ -651,14 +660,15 @@ class ProductDeferredBoundary extends Component<
 
 function ProductRecommendations({recommendations}: {recommendations: any[]}) {
   if (!recommendations.length) return null;
+  const listings = expandColourVariantListings(recommendations).slice(0, 4);
 
   return (
     <section className="mx-auto max-w-[1500px] px-4 py-32 sm:px-6 lg:px-12">
       <h3 className="font-display text-4xl md:text-5xl">You may also love</h3>
       <div className="mt-12 grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 sm:gap-y-14 md:grid-cols-4">
-        {recommendations.slice(0, 4).map((recommended: any) => (
+        {listings.map((recommended: any) => (
           <ProductDeferredBoundary
-            key={recommended.id ?? recommended.handle}
+            key={getProductListingKey(recommended)}
             label={`recommended product ${recommended.handle}`}
           >
             <FadeUp>
@@ -1330,6 +1340,18 @@ const PRODUCT_CARD_FRAGMENT = `#graphql
         height
       }
     }
+    options {
+      name
+      optionValues {
+        name
+        firstSelectableVariant {
+          ...IlhamProductVariant
+        }
+      }
+    }
+    variantsCount {
+      count
+    }
     variants(first: 20) {
       nodes {
         ...IlhamProductVariant
@@ -1345,7 +1367,13 @@ const PRODUCT_CARD_FRAGMENT = `#graphql
         currencyCode
       }
     }
-    metafields(identifiers: [{namespace: "custom", key: "subtitle"}]) {
+    metafields(identifiers: [
+      {namespace: "custom", key: "subtitle"},
+      {namespace: "custom", key: "split_colour_listings"},
+      {namespace: "custom", key: "base_title"},
+      {namespace: "custom", key: "connected_colour_products"},
+      {namespace: "custom", key: "connected_color_products"}
+    ]) {
       key
       namespace
       value
@@ -1414,6 +1442,8 @@ const PRODUCT_QUERY = `#graphql
         {namespace: "custom", key: "color_hex"},
         {namespace: "custom", key: "connected_colour_products"},
         {namespace: "custom", key: "connected_color_products"},
+        {namespace: "custom", key: "split_colour_listings"},
+        {namespace: "custom", key: "base_title"},
         {namespace: "custom", key: "fabric"},
         {namespace: "custom", key: "care"},
         {namespace: "custom", key: "craft_hours"},

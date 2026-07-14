@@ -1,6 +1,10 @@
 import {useRef, type ReactNode} from 'react';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {ProductCard} from './ProductCard';
+import {
+  expandColourVariantListings,
+  getProductListingKey,
+} from '~/lib/commerce/colour-listings';
 
 type Props = {
   products: any[];
@@ -9,6 +13,7 @@ type Props = {
 
 export function ProductRail({products, labelledBy}: Props) {
   const railRef = useRef<HTMLDivElement | null>(null);
+  const listings = expandColourVariantListings(products);
 
   const scroll = (direction: 'left' | 'right') => {
     const rail = railRef.current;
@@ -20,7 +25,7 @@ export function ProductRail({products, labelledBy}: Props) {
     });
   };
 
-  if (!products.length) return null;
+  if (!listings.length) return null;
 
   return (
     <div className="relative">
@@ -30,9 +35,9 @@ export function ProductRail({products, labelledBy}: Props) {
         aria-labelledby={labelledBy}
         className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 sm:gap-6 md:gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {products.map((product) => (
+        {listings.map((product) => (
           <div
-            key={product.handle}
+            key={getProductListingKey(product)}
             role="listitem"
             className="w-[72vw] max-w-[320px] shrink-0 snap-start sm:w-[42vw] md:w-[30vw] lg:w-[24vw]"
           >
@@ -41,7 +46,7 @@ export function ProductRail({products, labelledBy}: Props) {
         ))}
       </div>
 
-      {products.length > 2 ? (
+      {listings.length > 2 ? (
         <div className="mt-5 flex justify-end gap-2">
           <RailButton label="Scroll products left" onClick={() => scroll('left')}>
             <ChevronLeft className="h-4 w-4" strokeWidth={1.2} />

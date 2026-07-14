@@ -19,6 +19,10 @@ import {
   shopifySrcSet,
 } from '~/lib/commerce/image';
 import {prefetchQuickViewProduct} from '~/lib/commerce/quick-view';
+import {
+  getProductListingUrl,
+  isVirtualColourListing,
+} from '~/lib/commerce/colour-listings';
 
 let quickViewModulePromise: ReturnType<typeof importQuickViewModule> | null = null;
 let quickViewPreloadScheduled = false;
@@ -72,6 +76,8 @@ export function ProductCard({
   const toggle = useStore((s) => s.toggleWishlist);
   const saved = wishlist.includes(product.handle);
   const openDrawer = useStore((s) => s.openDrawer);
+  const productUrl = getProductListingUrl(product);
+  const virtualColourListing = isVirtualColourListing(product);
 
   const hoverImages = getHoverImages(product);
   const displayImages = hoverImages.slice(0, 2);
@@ -97,7 +103,8 @@ export function ProductCard({
     variant,
   );
   const canAddToBag = Boolean(
-    variantId &&
+    !virtualColourListing &&
+      variantId &&
       isVariantPurchasable(variant) &&
       !requiresVariantSelection &&
       !soldOut,
@@ -110,7 +117,7 @@ export function ProductCard({
   const sale = getSalePricing(price, compareAtPrice);
 
   const prepareQuickView = () => {
-    if (canAddToBag || soldOut) return;
+    if (virtualColourListing || canAddToBag || soldOut) return;
     void preloadQuickViewModule();
     prefetchQuickViewProduct(product.handle);
   };
@@ -138,8 +145,10 @@ export function ProductCard({
   }
 
   useEffect(() => {
-    if (!canAddToBag && !soldOut) scheduleQuickViewModulePreload();
-  }, [canAddToBag, soldOut]);
+    if (!virtualColourListing && !canAddToBag && !soldOut) {
+      scheduleQuickViewModulePreload();
+    }
+  }, [canAddToBag, soldOut, virtualColourListing]);
 
   const activateCardIntent = () => {
     prepareQuickView();
@@ -176,7 +185,7 @@ export function ProductCard({
           }`}
         >
           <Link
-            to={`/products/${product.handle}`}
+            to={productUrl}
             prefetch="intent"
             aria-label={`View ${product.title}${soldOut ? ' (sold out)' : ''}`}
             className="absolute inset-0 z-10"
@@ -247,11 +256,19 @@ export function ProductCard({
           <div className="absolute inset-x-0 bottom-0 z-20 px-4 pb-4 translate-y-full opacity-0 transition-all duration-[700ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
             {soldOut ? (
               <Link
-                to={`/products/${product.handle}`}
+                to={productUrl}
                 prefetch="intent"
                 className="flex h-14 w-full items-center justify-center border border-ivory/20 bg-ivory/95 text-ink shadow-[0_16px_36px_rgba(0,0,0,0.18)] small-caps transition-colors hover:border-gold hover:text-gold"
               >
                 View details
+              </Link>
+            ) : virtualColourListing ? (
+              <Link
+                to={productUrl}
+                prefetch="intent"
+                className="flex h-14 w-full items-center justify-center border border-ivory/15 bg-ink/95 text-ivory shadow-[0_16px_36px_rgba(0,0,0,0.22)] small-caps transition-colors hover:border-gold hover:bg-gold sm:backdrop-blur-sm"
+              >
+                Choose size
               </Link>
             ) : canAddToBag ? (
               <AddToCartButton
@@ -293,7 +310,7 @@ export function ProductCard({
     
         <div className="mt-4 flex min-w-0 flex-col gap-1.5 sm:mt-5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
           <div className="min-w-0">
-            <Link to={`/products/${product.handle}`} prefetch="intent">
+            <Link to={productUrl} prefetch="intent">
               <p className="line-clamp-2 overflow-hidden font-serif text-base leading-[1.08] text-ink transition-colors [-webkit-box-orient:vertical] [-webkit-line-clamp:2] [display:-webkit-box] hover:text-gold sm:text-xl sm:leading-tight">
                 {product.title}
               </p>
@@ -312,7 +329,7 @@ export function ProductCard({
           />
         </div>
         <AnimatePresence initial={false}>
-          {quickViewOpen ? (
+          {quickViewOpen && !virtualColourListing ? (
             <Suspense key="quick-view" fallback={<QuickViewLoadingShell />}>
               <QuickViewModal
                 initialProduct={product}

@@ -110,6 +110,41 @@ export async function loader({context}: Route.LoaderArgs) {
             }
           }
 
+          options {
+            name
+            optionValues {
+              name
+              firstSelectableVariant {
+                id
+                title
+                availableForSale
+                image {
+                  id
+                  url
+                  altText
+                  width
+                  height
+                }
+                selectedOptions {
+                  name
+                  value
+                }
+                price {
+                  amount
+                  currencyCode
+                }
+                compareAtPrice {
+                  amount
+                  currencyCode
+                }
+              }
+            }
+          }
+
+          variantsCount {
+            count
+          }
+
           variants(first: 10) {
             nodes {
               id
@@ -155,7 +190,13 @@ export async function loader({context}: Route.LoaderArgs) {
             }
           }
 
-          metafields(identifiers: [{namespace: "custom", key: "subtitle"}]) {
+          metafields(identifiers: [
+            {namespace: "custom", key: "subtitle"},
+            {namespace: "custom", key: "split_colour_listings"},
+            {namespace: "custom", key: "base_title"},
+            {namespace: "custom", key: "connected_colour_products"},
+            {namespace: "custom", key: "connected_color_products"}
+          ]) {
             key
             namespace
             value
