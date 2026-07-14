@@ -1,4 +1,5 @@
 import {Link} from 'react-router';
+import {ProductColourSwatch} from './ProductColourSwatch';
 
 export type ProductColourLink = {
   current?: boolean;
@@ -40,10 +41,10 @@ export function ProductColourLinks({
         {options.map((option) => {
           const content = (
             <>
-              <span
-                className="h-4 w-4 shrink-0 rounded-full border border-ink/15 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.45)]"
-                style={{background: getSwatchBackground(option.hex)}}
-                aria-hidden="true"
+              <ProductColourSwatch
+                hex={option.hex}
+                label={option.label}
+                selected={option.current}
               />
               <span className="truncate">{option.label}</span>
               {option.soldOut && (
@@ -91,14 +92,4 @@ export function ProductColourLinks({
       </div>
     </section>
   );
-}
-
-function getSwatchBackground(hex?: string | null) {
-  const value = hex?.trim();
-
-  if (value && /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(value)) {
-    return value;
-  }
-
-  return 'linear-gradient(135deg, rgba(177,127,68,0.54), rgba(251,247,238,0.96))';
 }

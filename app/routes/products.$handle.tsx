@@ -22,6 +22,7 @@ import {
   type ProductColourLink,
 } from '~/components/commerce/ProductColourLinks';
 import {ProductImageCarousel} from '~/components/commerce/ProductImageCarousel';
+import {ProductColourSwatch} from '~/components/commerce/ProductColourSwatch';
 import {ProductStyleAddOns} from '~/components/commerce/ProductStyleAddOns';
 import {SizeAndFitGuide} from '~/components/commerce/SizeAndFitGuide';
 import {JsonLd} from '~/components/seo/JsonLd';
@@ -363,36 +364,51 @@ export default function Product() {
 
           {optionGroups.length > 0 && (
             <div className="mt-4 space-y-3">
-              {optionGroups.map((option) => (
-                <div key={option.name}>
-                  <p className="small-caps text-ink/50">{option.name}</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {option.values.map((value) => (
-                      <button
-                        key={`${option.name}-${value.value}`}
-                        type="button"
-                        onClick={() => {
-                          if (value.available && value.variantIndex >= 0) {
-                            selectVariantIndex(value.variantIndex, {
-                              scrollToGallery: isColorOptionName(option.name),
-                            });
-                          }
-                        }}
-                        disabled={!value.available || value.variantIndex < 0}
-                        className={`h-9 min-w-9 border px-3 text-xs transition-colors ${
-                          value.selected
-                            ? 'border-ink bg-ink text-ivory'
-                            : value.available
-                              ? 'border-border hover:border-ink'
-                              : 'border-border text-ink/30 line-through cursor-not-allowed'
-                        }`}
-                      >
-                        {value.value}
-                      </button>
-                    ))}
+              {optionGroups.map((option) => {
+                const colourOption = isColorOptionName(option.name);
+
+                return (
+                  <div key={option.name}>
+                    <p className="small-caps text-ink/50">{option.name}</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {option.values.map((value) => (
+                        <button
+                          key={`${option.name}-${value.value}`}
+                          type="button"
+                          onClick={() => {
+                            if (value.available && value.variantIndex >= 0) {
+                              selectVariantIndex(value.variantIndex, {
+                                scrollToGallery: colourOption,
+                              });
+                            }
+                          }}
+                          disabled={!value.available || value.variantIndex < 0}
+                          className={`inline-flex h-9 min-w-9 items-center justify-center gap-2 border px-3 text-xs transition-colors ${
+                            value.selected
+                              ? 'border-ink bg-ink text-ivory'
+                              : value.available
+                                ? 'border-border hover:border-ink'
+                                : 'cursor-not-allowed border-border text-ink/30 line-through'
+                          }`}
+                        >
+                          {colourOption ? (
+                            <ProductColourSwatch
+                              label={value.value}
+                              selected={value.selected}
+                              swatch={getProductOptionSwatch(
+                                product,
+                                option.name,
+                                value.value,
+                              )}
+                            />
+                          ) : null}
+                          <span>{value.value}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -928,6 +944,21 @@ function isColorOptionName(name: string) {
   return normalizedName === 'color' || normalizedName === 'colour';
 }
 
+function getProductOptionSwatch(
+  product: any,
+  optionName: string,
+  optionValue: string,
+) {
+  const option = product?.options?.find(
+    (candidate: any) => candidate?.name === optionName,
+  );
+  const value = option?.optionValues?.find(
+    (candidate: any) => candidate?.name === optionValue,
+  );
+
+  return value?.swatch ?? null;
+}
+
 function buildConnectedColourOptions(product: any): ProductColourLink[] {
   const referencedProducts = [
     ...getMetafieldProductReferences(product, 'connected_colour_products'),
@@ -1429,6 +1460,20 @@ const PRODUCT_QUERY = `#graphql
           altText
           width
           height
+        }
+      }
+      options {
+        name
+        optionValues {
+          name
+          swatch {
+            color
+            image {
+              previewImage {
+                url
+              }
+            }
+          }
         }
       }
       variants(first: 50) {

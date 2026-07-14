@@ -897,10 +897,31 @@
   the currently labelled `White | Front` media rendered that image as the main
   image with no other-colour thumbnails or carousel controls, confirming the
   opt-in filtering path. The temporary local Hydrogen server was stopped.
+- Unified PDP colour swatches started: normal Shopify Color/Colour variant
+  buttons now request `ProductOptionValue.swatch` and render its configured
+  colour or swatch image beside the option label. Linked separate-colour
+  products reuse the same compact swatch component with
+  `custom.colour_hex`/`custom.color_hex`, and missing swatch data falls back to
+  a neutral branded treatment rather than guessing a potentially incorrect
+  colour. Size, fabric, selection, availability, URL, cart, and checkout
+  behavior remain unchanged.
+- Unified PDP colour-swatch verification passed: `npm.cmd run codegen`,
+  full-tree `npm.cmd run lint`, `npm.cmd run typecheck`, `git diff --check`, and
+  `npm.cmd run build` all passed. A read-only live Storefront query confirmed
+  that `nazakat-hand-embroidered-long-spaghetti` returns exact Shopify swatches
+  for White, Pink, Mint Green, and Blue. Local SSR then rendered all four exact
+  swatch colours beside their labels. The temporary Hydrogen server was
+  stopped, and the protected order, feedback, WhatsApp, cart, checkout,
+  sitemap, robots, and Admin API surfaces have no diff.
 
 ## Next Step
 
-Deploy the verified colour-gallery checkpoint, then label all media on
+Deploy the verified colour-gallery and unified PDP swatch checkpoint. Visually
+confirm one normal Shopify variant product and one connected separate-colour
+product show a small colour circle beside every colour label while Size and
+Fabric remain text-only.
+
+Then label all media on
 `nazakat-hand-embroidered-long-spaghetti` consistently: `White |
 Front`, `White | Back`, and so on for Pink, Mint Green, and Blue. Assign each
 colour's Front image to every matching size/fabric variant for cart and checkout
