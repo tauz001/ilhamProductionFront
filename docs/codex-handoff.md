@@ -869,15 +869,26 @@
   `scripts/browser-client.mjs`; no visual pass is claimed. The temporary local
   Hydrogen server was stopped. Real split-card acceptance still requires the
   Shopify boolean metafield to be created and enabled on a test product.
+- Live Storefront colour-image audit completed on 2026-07-14. The hybrid code
+  is resolving the selected colour and `firstSelectableVariant.image`
+  correctly. For `nazakat-hand-embroidered-long-spaghetti`, Shopify currently
+  returns the same featured image for White, Pink, Mint Green, and Blue, so
+  neither the virtual listing cards nor PDP can display distinct colour
+  imagery. By contrast, `naaz-long-hand-embroidered-chikankari-kurti` returns
+  distinct variant images for Purple, Navy, Beige, Sea Green, Teal, and Maroon,
+  confirming the storefront image-selection path works. No code change is
+  required for this symptom; assign the correct image to every size/fabric
+  variant of each colour in Shopify Admin.
 
 ## Next Step
 
-Commit and push the verified hybrid checkpoint. In Shopify Admin, create the product
-boolean metafield `custom.split_colour_listings` with Storefront API access and
-test one existing product that has Color/Colour plus Size variants by setting it
-to true. Confirm homepage, collection, all-products, search, and recommendation
-cards split by colour; each card must open the PDP with that colour selected,
-then size selection, cart, and checkout must retain the real Shopify variant.
+Fix the Shopify variant-image assignments on
+`nazakat-hand-embroidered-long-spaghetti`: upload the White, Pink, Mint Green,
+and Blue images to the product, then assign the matching image to every variant
+combination belonging to that colour. Confirm homepage, collection,
+all-products, search, and recommendation cards use distinct colour images; each
+card must open the PDP with that colour selected, and changing size must retain
+the colour image.
 
 Also retain the already-supported true separate-product test: create one
 product per colour, connect siblings through the product-list reference
