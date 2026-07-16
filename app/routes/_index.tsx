@@ -9,7 +9,9 @@ import {MaskedReveal, FadeUp} from '~/components/editorial/MaskedReveal';
 import {ParallaxImage} from '~/components/editorial/ParallaxImage';
 import {UrduCalligraphy} from '~/components/editorial/UrduCalligraphy';
 import {ProductRail} from '~/components/commerce/ProductRail';
+import {HomepageCampaignSlot} from '~/components/home/HomepageCampaignSlot';
 import {easeSilk} from '~/lib/motion/variants';
+import {loadHomepageCampaigns} from '~/lib/commerce/homepage-campaigns.server';
 import {
   getMetafieldImage,
   logMissingShopifyField,
@@ -34,7 +36,8 @@ export const meta: Route.MetaFunction = () => {
 };
 
 export async function loader({context}: Route.LoaderArgs) {
-  const data = await context.storefront.query(`
+  const [data, campaigns] = await Promise.all([
+    context.storefront.query(`
     #graphql
     query Homepage {
       shop {
@@ -220,13 +223,16 @@ export async function loader({context}: Route.LoaderArgs) {
         }
       }
     }
-  `);
+    `),
+    loadHomepageCampaigns(context.storefront),
+  ]);
 
-  return data;
+  return {...data, campaigns};
 }
 
 export default function Home() {
-  const {products, collections, shop} = useLoaderData<typeof loader>();
+  const {products, collections, shop, campaigns} =
+    useLoaderData<typeof loader>();
 
 const allProducts = products.nodes;
 const allCollections = collections.nodes;
@@ -262,6 +268,12 @@ const bestsellers = useMemo(
   const menCollection = allCollections.find((c: any) => c.handle === 'men');
   const weddingCollection = allCollections.find(
     (c: any) => c.handle === 'wedding-edit',
+  );
+  const campaignSlotOne = campaigns.find(
+    (campaign) => campaign.handle === 'slot-1',
+  );
+  const campaignSlotTwo = campaigns.find(
+    (campaign) => campaign.handle === 'slot-2',
   );
   const womenBannerImage = getMetafieldImage(shop, 'homepage_women_banner');
   const menBannerImage = getMetafieldImage(shop, 'homepage_men_banner');
@@ -481,6 +493,8 @@ const bestsellers = useMemo(
         </div>
       </section>
 
+      <HomepageCampaignSlot campaign={campaignSlotOne} />
+
       <section className="relative mx-auto max-w-5xl px-6 py-32 text-center md:py-44 overflow-hidden">
         <UrduCalligraphy
           word="حرفہ"
@@ -578,6 +592,8 @@ const bestsellers = useMemo(
           </Link>
         ))}
       </section>
+
+      <HomepageCampaignSlot campaign={campaignSlotTwo} />
 
       <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden bg-ink text-ivory md:h-[100svh] md:min-h-[640px]">
         <ParallaxImage

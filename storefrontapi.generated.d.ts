@@ -3,6 +3,236 @@
 /* eslint-disable */
 import type * as StorefrontAPI from '@shopify/hydrogen/storefront-api-types';
 
+export type HomepageCampaignSettingsQueryVariables = StorefrontAPI.Exact<{
+  [key: string]: never;
+}>;
+
+export type HomepageCampaignSettingsQuery = {
+  slotOne?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Metaobject, 'id' | 'handle'> & {
+      fields: Array<
+        Pick<StorefrontAPI.MetaobjectField, 'key' | 'type' | 'value'> & {
+          reference?: StorefrontAPI.Maybe<{
+            image?: StorefrontAPI.Maybe<
+              Pick<
+                StorefrontAPI.Image,
+                'id' | 'url' | 'altText' | 'width' | 'height'
+              >
+            >;
+          }>;
+        }
+      >;
+    }
+  >;
+  slotTwo?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Metaobject, 'id' | 'handle'> & {
+      fields: Array<
+        Pick<StorefrontAPI.MetaobjectField, 'key' | 'type' | 'value'> & {
+          reference?: StorefrontAPI.Maybe<{
+            image?: StorefrontAPI.Maybe<
+              Pick<
+                StorefrontAPI.Image,
+                'id' | 'url' | 'altText' | 'width' | 'height'
+              >
+            >;
+          }>;
+        }
+      >;
+    }
+  >;
+};
+
+export type HomepageCampaignProductFragment = Pick<
+  StorefrontAPI.Product,
+  | 'id'
+  | 'title'
+  | 'handle'
+  | 'vendor'
+  | 'productType'
+  | 'tags'
+  | 'availableForSale'
+> & {
+  featuredImage?: StorefrontAPI.Maybe<
+    Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
+  >;
+  images: {
+    nodes: Array<
+      Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
+    >;
+  };
+  options: Array<
+    Pick<StorefrontAPI.ProductOption, 'name'> & {
+      optionValues: Array<
+        Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+          firstSelectableVariant?: StorefrontAPI.Maybe<
+            Pick<
+              StorefrontAPI.ProductVariant,
+              'id' | 'title' | 'availableForSale'
+            > & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              selectedOptions: Array<
+                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+              >;
+              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
+            }
+          >;
+        }
+      >;
+    }
+  >;
+  variantsCount?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Count, 'count'>>;
+  variants: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.ProductVariant,
+        'id' | 'title' | 'availableForSale'
+      > & {
+        image?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        product: Pick<
+          StorefrontAPI.Product,
+          'id' | 'handle' | 'title' | 'vendor' | 'productType'
+        >;
+        selectedOptions: Array<
+          Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+        >;
+        price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+        compareAtPrice?: StorefrontAPI.Maybe<
+          Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+        >;
+      }
+    >;
+  };
+  priceRange: {
+    minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+  };
+  metafields: Array<
+    StorefrontAPI.Maybe<
+      Pick<StorefrontAPI.Metafield, 'key' | 'namespace' | 'value'>
+    >
+  >;
+};
+
+export type HomepageCampaignProductsQueryVariables = StorefrontAPI.Exact<{
+  first: StorefrontAPI.Scalars['Int']['input'];
+  query: StorefrontAPI.Scalars['String']['input'];
+  reverse: StorefrontAPI.Scalars['Boolean']['input'];
+  sortKey: StorefrontAPI.ProductSortKeys;
+}>;
+
+export type HomepageCampaignProductsQuery = {
+  products: {
+    nodes: Array<
+      Pick<
+        StorefrontAPI.Product,
+        | 'id'
+        | 'title'
+        | 'handle'
+        | 'vendor'
+        | 'productType'
+        | 'tags'
+        | 'availableForSale'
+      > & {
+        featuredImage?: StorefrontAPI.Maybe<
+          Pick<
+            StorefrontAPI.Image,
+            'id' | 'url' | 'altText' | 'width' | 'height'
+          >
+        >;
+        images: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.Image,
+              'id' | 'url' | 'altText' | 'width' | 'height'
+            >
+          >;
+        };
+        options: Array<
+          Pick<StorefrontAPI.ProductOption, 'name'> & {
+            optionValues: Array<
+              Pick<StorefrontAPI.ProductOptionValue, 'name'> & {
+                firstSelectableVariant?: StorefrontAPI.Maybe<
+                  Pick<
+                    StorefrontAPI.ProductVariant,
+                    'id' | 'title' | 'availableForSale'
+                  > & {
+                    image?: StorefrontAPI.Maybe<
+                      Pick<
+                        StorefrontAPI.Image,
+                        'id' | 'url' | 'altText' | 'width' | 'height'
+                      >
+                    >;
+                    selectedOptions: Array<
+                      Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+                    >;
+                    price: Pick<
+                      StorefrontAPI.MoneyV2,
+                      'amount' | 'currencyCode'
+                    >;
+                    compareAtPrice?: StorefrontAPI.Maybe<
+                      Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+                    >;
+                  }
+                >;
+              }
+            >;
+          }
+        >;
+        variantsCount?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Count, 'count'>>;
+        variants: {
+          nodes: Array<
+            Pick<
+              StorefrontAPI.ProductVariant,
+              'id' | 'title' | 'availableForSale'
+            > & {
+              image?: StorefrontAPI.Maybe<
+                Pick<
+                  StorefrontAPI.Image,
+                  'id' | 'url' | 'altText' | 'width' | 'height'
+                >
+              >;
+              product: Pick<
+                StorefrontAPI.Product,
+                'id' | 'handle' | 'title' | 'vendor' | 'productType'
+              >;
+              selectedOptions: Array<
+                Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>
+              >;
+              price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+              compareAtPrice?: StorefrontAPI.Maybe<
+                Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>
+              >;
+            }
+          >;
+        };
+        priceRange: {
+          minVariantPrice: Pick<
+            StorefrontAPI.MoneyV2,
+            'amount' | 'currencyCode'
+          >;
+        };
+        metafields: Array<
+          StorefrontAPI.Maybe<
+            Pick<StorefrontAPI.Metafield, 'key' | 'namespace' | 'value'>
+          >
+        >;
+      }
+    >;
+  };
+};
+
 export type RawCartCreateMutationVariables = StorefrontAPI.Exact<{
   input: StorefrontAPI.CartInput;
   numCartLines?: StorefrontAPI.InputMaybe<
@@ -3541,6 +3771,14 @@ export type SignupVisualQuery = {
 };
 
 interface GeneratedQueryTypes {
+  '#graphql\n  query HomepageCampaignSettings {\n    slotOne: metaobject(handle: {type: "homepage_campaign", handle: "slot-1"}) {\n      id\n      handle\n      fields {\n        key\n        type\n        value\n        reference {\n          ... on MediaImage {\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n        }\n      }\n    }\n    slotTwo: metaobject(handle: {type: "homepage_campaign", handle: "slot-2"}) {\n      id\n      handle\n      fields {\n        key\n        type\n        value\n        reference {\n          ... on MediaImage {\n            image {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n        }\n      }\n    }\n  }\n': {
+    return: HomepageCampaignSettingsQuery;
+    variables: HomepageCampaignSettingsQueryVariables;
+  };
+  '#graphql\n  query HomepageCampaignProducts(\n    $first: Int!\n    $query: String!\n    $reverse: Boolean!\n    $sortKey: ProductSortKeys!\n  ) {\n    products(\n      first: $first\n      query: $query\n      reverse: $reverse\n      sortKey: $sortKey\n    ) {\n      nodes {\n        ...HomepageCampaignProduct\n      }\n    }\n  }\n  #graphql\n  fragment HomepageCampaignProduct on Product {\n    id\n    title\n    handle\n    vendor\n    productType\n    tags\n    availableForSale\n    featuredImage {\n      id\n      url\n      altText\n      width\n      height\n    }\n    images(first: 4) {\n      nodes {\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    options {\n      name\n      optionValues {\n        name\n        firstSelectableVariant {\n          id\n          title\n          availableForSale\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n          selectedOptions {\n            name\n            value\n          }\n          price {\n            amount\n            currencyCode\n          }\n          compareAtPrice {\n            amount\n            currencyCode\n          }\n        }\n      }\n    }\n    variantsCount {\n      count\n    }\n    variants(first: 10) {\n      nodes {\n        id\n        title\n        availableForSale\n        image {\n          id\n          url\n          altText\n          width\n          height\n        }\n        product {\n          id\n          handle\n          title\n          vendor\n          productType\n        }\n        selectedOptions {\n          name\n          value\n        }\n        price {\n          amount\n          currencyCode\n        }\n        compareAtPrice {\n          amount\n          currencyCode\n        }\n      }\n    }\n    priceRange {\n      minVariantPrice {\n        amount\n        currencyCode\n      }\n    }\n    metafields(identifiers: [\n      {namespace: "custom", key: "subtitle"},\n      {namespace: "custom", key: "split_colour_listings"},\n      {namespace: "custom", key: "base_title"},\n      {namespace: "custom", key: "connected_colour_products"},\n      {namespace: "custom", key: "connected_color_products"}\n    ]) {\n      key\n      namespace\n      value\n    }\n  }\n\n': {
+    return: HomepageCampaignProductsQuery;
+    variables: HomepageCampaignProductsQueryVariables;
+  };
   '#graphql\n  fragment Shop on Shop {\n    id\n    name\n    description\n    primaryDomain {\n      url\n    }\n    brand {\n      logo {\n        image {\n          url\n        }\n      }\n    }\n  }\n  query Header(\n    $country: CountryCode\n    $headerMenuHandle: String!\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    shop {\n      ...Shop\n    }\n    menu(handle: $headerMenuHandle) {\n      ...Menu\n    }\n    announcementMenu: menu(handle: "announcement-bar") {\n      ...Menu\n    }\n  }\n  #graphql\n  fragment MenuItem on MenuItem {\n    id\n    resourceId\n    tags\n    title\n    type\n    url\n  }\n  fragment ChildMenuItem on MenuItem {\n    ...MenuItem\n  }\n  fragment ParentMenuItem on MenuItem {\n    ...MenuItem\n    items {\n      ...ChildMenuItem\n    }\n  }\n  fragment Menu on Menu {\n    id\n    items {\n      ...ParentMenuItem\n    }\n  }\n\n': {
     return: HeaderQuery;
     variables: HeaderQueryVariables;
@@ -3553,7 +3791,7 @@ interface GeneratedQueryTypes {
     return: StoreRobotsQuery;
     variables: StoreRobotsQueryVariables;
   };
-  '\n    #graphql\n    query Homepage {\n      shop {\n        metafields(identifiers: [\n          {namespace: "custom", key: "homepage_hero_1"},\n          {namespace: "custom", key: "custom_homepage_hero_1"},\n          {namespace: "custom", key: "homepage_hero_1_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_1_mobile"},\n          {namespace: "custom", key: "homepage_hero_2"},\n          {namespace: "custom", key: "custom_homepage_hero_2"},\n          {namespace: "custom", key: "homepage_hero_2_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_2_mobile"},\n          {namespace: "custom", key: "homepage_hero_3"},\n          {namespace: "custom", key: "custom_homepage_hero_3"},\n          {namespace: "custom", key: "homepage_hero_3_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_3_mobile"},\n          {namespace: "custom", key: "homepage_hero_4"},\n          {namespace: "custom", key: "custom_homepage_hero_4"},\n          {namespace: "custom", key: "homepage_hero_4_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_4_mobile"},\n          {namespace: "custom", key: "homepage_women_banner"},\n          {namespace: "custom", key: "custom_homepage_women_banner"},\n          {namespace: "custom", key: "homepage_men_banner"},\n          {namespace: "custom", key: "custom_homepage_men_banner"},\n          {namespace: "custom", key: "homepage_wedding_banner"},\n          {namespace: "custom", key: "custom_homepage_wedding_banner"},\n          {namespace: "custom", key: "homepage_wdding_banner"},\n          {namespace: "custom", key: "custom_homepage_wdding_banner"}\n        ]) {\n          key\n          namespace\n          value\n          type\n          reference {\n            ... on MediaImage {\n              image {\n                id\n                url\n                altText\n                width\n                height\n              }\n            }\n          }\n        }\n      }\n\n      products(first: 12, sortKey: CREATED_AT, reverse: true) {\n        nodes {\n          id\n          title\n          handle\n          vendor\n          productType\n          tags\n          availableForSale\n\n          featuredImage {\n            id\n            url\n            altText\n            width\n            height\n          }\n\n          images(first: 4) {\n            nodes {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n\n          options {\n            name\n            optionValues {\n              name\n              firstSelectableVariant {\n                id\n                title\n                availableForSale\n                image {\n                  id\n                  url\n                  altText\n                  width\n                  height\n                }\n                selectedOptions {\n                  name\n                  value\n                }\n                price {\n                  amount\n                  currencyCode\n                }\n                compareAtPrice {\n                  amount\n                  currencyCode\n                }\n              }\n            }\n          }\n\n          variantsCount {\n            count\n          }\n\n          variants(first: 10) {\n            nodes {\n              id\n              title\n              availableForSale\n\n              image {\n                id\n                url\n                altText\n                width\n                height\n              }\n\n              product {\n                id\n                handle\n                title\n                vendor\n                productType\n              }\n\n              selectedOptions {\n                name\n                value\n              }\n\n              price {\n                amount\n                currencyCode\n              }\n              compareAtPrice {\n                amount\n                currencyCode\n              }\n            }\n          }\n\n          priceRange {\n            minVariantPrice {\n              amount\n              currencyCode\n            }\n          }\n\n          metafields(identifiers: [\n            {namespace: "custom", key: "subtitle"},\n            {namespace: "custom", key: "split_colour_listings"},\n            {namespace: "custom", key: "base_title"},\n            {namespace: "custom", key: "connected_colour_products"},\n            {namespace: "custom", key: "connected_color_products"}\n          ]) {\n            key\n            namespace\n            value\n          }\n        }\n      }\n\n      collections(first: 10) {\n        nodes {\n          id\n          title\n          handle\n\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n        }\n      }\n    }\n  ': {
+  '\n    #graphql\n    query Homepage {\n      shop {\n        metafields(identifiers: [\n          {namespace: "custom", key: "homepage_hero_1"},\n          {namespace: "custom", key: "custom_homepage_hero_1"},\n          {namespace: "custom", key: "homepage_hero_1_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_1_mobile"},\n          {namespace: "custom", key: "homepage_hero_2"},\n          {namespace: "custom", key: "custom_homepage_hero_2"},\n          {namespace: "custom", key: "homepage_hero_2_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_2_mobile"},\n          {namespace: "custom", key: "homepage_hero_3"},\n          {namespace: "custom", key: "custom_homepage_hero_3"},\n          {namespace: "custom", key: "homepage_hero_3_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_3_mobile"},\n          {namespace: "custom", key: "homepage_hero_4"},\n          {namespace: "custom", key: "custom_homepage_hero_4"},\n          {namespace: "custom", key: "homepage_hero_4_mobile"},\n          {namespace: "custom", key: "custom_homepage_hero_4_mobile"},\n          {namespace: "custom", key: "homepage_women_banner"},\n          {namespace: "custom", key: "custom_homepage_women_banner"},\n          {namespace: "custom", key: "homepage_men_banner"},\n          {namespace: "custom", key: "custom_homepage_men_banner"},\n          {namespace: "custom", key: "homepage_wedding_banner"},\n          {namespace: "custom", key: "custom_homepage_wedding_banner"},\n          {namespace: "custom", key: "homepage_wdding_banner"},\n          {namespace: "custom", key: "custom_homepage_wdding_banner"}\n        ]) {\n          key\n          namespace\n          value\n          type\n          reference {\n            ... on MediaImage {\n              image {\n                id\n                url\n                altText\n                width\n                height\n              }\n            }\n          }\n        }\n      }\n\n      products(first: 12, sortKey: CREATED_AT, reverse: true) {\n        nodes {\n          id\n          title\n          handle\n          vendor\n          productType\n          tags\n          availableForSale\n\n          featuredImage {\n            id\n            url\n            altText\n            width\n            height\n          }\n\n          images(first: 4) {\n            nodes {\n              id\n              url\n              altText\n              width\n              height\n            }\n          }\n\n          options {\n            name\n            optionValues {\n              name\n              firstSelectableVariant {\n                id\n                title\n                availableForSale\n                image {\n                  id\n                  url\n                  altText\n                  width\n                  height\n                }\n                selectedOptions {\n                  name\n                  value\n                }\n                price {\n                  amount\n                  currencyCode\n                }\n                compareAtPrice {\n                  amount\n                  currencyCode\n                }\n              }\n            }\n          }\n\n          variantsCount {\n            count\n          }\n\n          variants(first: 10) {\n            nodes {\n              id\n              title\n              availableForSale\n\n              image {\n                id\n                url\n                altText\n                width\n                height\n              }\n\n              product {\n                id\n                handle\n                title\n                vendor\n                productType\n              }\n\n              selectedOptions {\n                name\n                value\n              }\n\n              price {\n                amount\n                currencyCode\n              }\n              compareAtPrice {\n                amount\n                currencyCode\n              }\n            }\n          }\n\n          priceRange {\n            minVariantPrice {\n              amount\n              currencyCode\n            }\n          }\n\n          metafields(identifiers: [\n            {namespace: "custom", key: "subtitle"},\n            {namespace: "custom", key: "split_colour_listings"},\n            {namespace: "custom", key: "base_title"},\n            {namespace: "custom", key: "connected_colour_products"},\n            {namespace: "custom", key: "connected_color_products"}\n          ]) {\n            key\n            namespace\n            value\n          }\n        }\n      }\n\n      collections(first: 10) {\n        nodes {\n          id\n          title\n          handle\n\n          image {\n            id\n            url\n            altText\n            width\n            height\n          }\n        }\n      }\n    }\n    ': {
     return: HomepageQuery;
     variables: HomepageQueryVariables;
   };

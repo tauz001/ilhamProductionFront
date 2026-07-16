@@ -914,7 +914,81 @@
   stopped, and the protected order, feedback, WhatsApp, cart, checkout,
   sitemap, robots, and Admin API surfaces have no diff.
 
+## Shopify-Controlled Homepage Campaign Phase
+
+### Approved Objective
+
+- Add two fixed homepage campaign slots without turning the Hydrogen homepage
+  into a general-purpose page builder.
+- Each Shopify-managed slot can show a short full-width responsive banner, a
+  product rail fetched by Shopify product tag, both together, or nothing.
+- Control visibility with metaobject booleans plus optional start/end dates so
+  campaigns can be prepared, activated, expired, or removed without code or a
+  new deployment.
+- Reuse the existing `ProductRail` and `ProductCard` so sale pricing, linked or
+  virtual colour listings, sold-out behavior, hover images, quick view, and
+  product navigation remain consistent.
+- Keep missing definitions/entries/configuration completely hidden and preserve
+  the existing homepage when Shopify setup is absent.
+- Keep Storefront reads cached and bounded, load only enabled rail products,
+  use responsive Shopify CDN banner images, and preserve all protected order,
+  feedback, WhatsApp, cart, checkout, sitemap, robots, and Admin API behavior.
+
+### Implementation Order
+
+1. Define and normalize the `homepage_campaign` Storefront metaobject contract
+   for fixed handles `slot-1` and `slot-2`.
+2. Query active/scheduled configuration safely, then fetch at most the configured
+   number of products for each enabled tag-driven rail.
+3. Add a shared responsive campaign surface and place slot 1 after the homepage
+   marquee and slot 2 between the Women/Men edit and Wedding edit.
+4. Verify missing, disabled, banner-only, rail-only, combined, scheduled,
+   malformed, mobile-image, internal-link, external-link, and empty-tag cases.
+5. Run codegen, lint, TypeScript, diff checks, production build, and protected
+   surface audit; update this handoff, commit, and push the checkpoint.
+
+### Current Notes
+
+- Implemented the server-only `homepage_campaign` reader for fixed entry
+  handles `slot-1` and `slot-2`. Missing definition/scope/entries, query errors,
+  disabled entries, Draft entries, invalid schedules, and incomplete content all
+  fail closed without changing the existing homepage.
+- Each active entry supports banner-only, rail-only, or combined output through
+  `enabled`, `show_banner`, and `show_rail`. Optional `start_at` and `end_at`
+  provide server-enforced scheduling. Banner links are limited to safe internal
+  paths or HTTP(S) URLs.
+- Campaign rail products are selected by exact Shopify tag, sorted by the
+  configured newest/best-selling/price/title mode, capped to 2-12 products, and
+  moved sold-out-last while retaining Shopify's chosen order among available
+  products. Product queries run only for currently enabled/scheduled rails with
+  a non-empty tag.
+- Added a responsive full-width campaign banner with desktop/mobile Shopify CDN
+  sources, fixed responsive height, lazy decoding/loading, optional real HTML
+  copy/CTA, light/dark text treatment, and a restrained hover scale. Rails reuse
+  the existing `ProductRail`/`ProductCard` commerce path.
+- Fixed placements are implemented: slot 1 follows the hero heritage marquee;
+  slot 2 follows the Women/Men edit and precedes the Wedding edit.
+- Added `docs/shopify-homepage-campaigns.md` with the exact definition, field
+  keys/types, entry handles, operating modes, scheduling, tagging, and safety
+  behavior required for Shopify Admin setup.
+- `npm.cmd run codegen`, full-tree `npm.cmd run lint`, and
+  `npm.cmd run typecheck` passed. Production client/Oxygen SSR build passed; the
+  homepage route remains 5.73KB gzip and no campaign query/config identifiers
+  appear in client JavaScript.
+- Local zero-setup SSR acceptance returned HTTP 200 with the existing hero, New
+  Arrivals, and Best Sellers intact, zero campaign wrappers, and no empty slot
+  spacing. The temporary Hydrogen server was stopped.
+- Protected order-detail/Admin, feedback, WhatsApp, cart, checkout, sitemap,
+  and robots surfaces have no diff. `.env` remains ignored and unchanged.
+
 ## Next Step
+
+Create the Shopify `homepage_campaign` metaobject definition and the Active
+`slot-1`/`slot-2` entries using `docs/shopify-homepage-campaigns.md`, deploy this
+checkpoint to Oxygen, and test banner-only, rail-only, combined, disabled, and
+scheduled states with real Shopify images/tags on mobile and desktop.
+
+After campaign acceptance, continue the existing colour-gallery checks below.
 
 Deploy the verified colour-gallery and unified PDP swatch checkpoint. Visually
 confirm one normal Shopify variant product and one connected separate-colour
