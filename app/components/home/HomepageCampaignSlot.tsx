@@ -17,9 +17,10 @@ export function HomepageCampaignSlot({
   if (!campaign) return null;
 
   const railHeadingId = `homepage-campaign-${campaign.handle}-title`;
+  const combinedWithBanner = Boolean(campaign.banner);
   const railSpacing = campaign.banner
-    ? 'pt-9 pb-16 md:pt-11 md:pb-20'
-    : 'py-16 md:py-20';
+    ? 'relative z-10 -mt-5 pb-12 md:-mt-7 md:pb-14'
+    : 'py-14 md:py-16';
 
   return (
     <section
@@ -32,16 +33,22 @@ export function HomepageCampaignSlot({
         <div
           className={`mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-12 ${railSpacing}`}
         >
-          <div className="mb-8 flex items-end justify-between gap-6 border-b border-border pb-5 md:mb-10">
+          <div
+            className={`mb-6 flex items-end justify-between gap-6 ${
+              combinedWithBanner
+                ? 'border border-border bg-ivory/95 px-5 py-4 shadow-[0_16px_40px_rgba(55,43,27,0.08)] backdrop-blur-sm md:px-6'
+                : 'border-b border-border pb-4'
+            }`}
+          >
             <div className="min-w-0">
               {campaign.rail.subtitle ? (
-                <p className="small-caps text-ink/50">
+                <p className="small-caps text-[9px] text-ink/45">
                   {campaign.rail.subtitle}
                 </p>
               ) : null}
               <h2
                 id={railHeadingId}
-                className={`${campaign.rail.subtitle ? 'mt-3' : ''} font-display text-4xl leading-none text-ink sm:text-5xl md:text-6xl`}
+                className={`${campaign.rail.subtitle ? 'mt-1.5' : ''} font-display text-3xl leading-none text-ink sm:text-4xl md:text-5xl`}
               >
                 {campaign.rail.title}
               </h2>

@@ -9,6 +9,11 @@ import {MaskedReveal, FadeUp} from '~/components/editorial/MaskedReveal';
 import {ParallaxImage} from '~/components/editorial/ParallaxImage';
 import {ProductRail} from '~/components/commerce/ProductRail';
 import {HomepageCampaignSlot} from '~/components/home/HomepageCampaignSlot';
+import {
+  HomepageCategoryEdit,
+  HomepagePromiseStrip,
+  NewestAtelierEdit,
+} from '~/components/home/HomepageEditorial';
 import {easeSilk} from '~/lib/motion/variants';
 import {loadHomepageCampaigns} from '~/lib/commerce/homepage-campaigns.server';
 import {
@@ -268,6 +273,9 @@ const bestsellers = useMemo(
   const weddingCollection = allCollections.find(
     (c: any) => c.handle === 'wedding-edit',
   );
+  const giftingCollection = allCollections.find(
+    (c: any) => c.handle === 'gifting',
+  );
   const campaignSlotOne = campaigns.find(
     (campaign) => campaign.handle === 'slot-1',
   );
@@ -295,6 +303,44 @@ const bestsellers = useMemo(
     weddingCollection?.image?.url ??
     allProducts[1]?.images?.nodes?.[0]?.url ??
     '';
+  const giftingBanner =
+    giftingCollection?.image?.url ??
+    allProducts[2]?.featuredImage?.url ??
+    allProducts[2]?.images?.nodes?.[0]?.url ??
+    womenBanner;
+  const newestFeatureProducts = allProducts
+    .filter((product: any) => Boolean(product.featuredImage?.url))
+    .slice(0, 3);
+  const homepageCategories = [
+    {
+      alt: 'Women chikankari edit',
+      eyebrow: 'Anarkalis, kurtis, co-ords',
+      href: '/collections/women',
+      imageUrl: womenBanner,
+      title: 'Women',
+    },
+    {
+      alt: 'Men chikankari edit',
+      eyebrow: 'Kurtas, nawabi, pathani',
+      href: '/collections/men',
+      imageUrl: menBanner,
+      title: 'Men',
+    },
+    {
+      alt: 'Wedding chikankari edit',
+      eyebrow: 'Heirlooms and occasion pieces',
+      href: '/collections/wedding-edit',
+      imageUrl: weddingBanner,
+      title: 'Wedding',
+    },
+    {
+      alt: 'ilham gifting edit',
+      eyebrow: 'Considered gifts from Lucknow',
+      href: '/gifting',
+      imageUrl: giftingBanner,
+      title: 'Gifting',
+    },
+  ];
 
   if (!newArrivals.length) {
     logMissingShopifyField(
@@ -494,18 +540,18 @@ const bestsellers = useMemo(
 
       <HomepageCampaignSlot campaign={campaignSlotOne} />
 
-      <section className="relative mx-auto max-w-5xl overflow-hidden px-6 py-20 text-center md:py-28">
+      <section className="relative mx-auto max-w-5xl overflow-hidden px-6 py-12 text-center md:py-16">
         <FadeUp>
           <p className="relative small-caps text-ink/50">
             A House of Whitework
           </p>
         </FadeUp>
-        <h2 className="relative mt-7 font-display text-5xl leading-[1.05] text-ink md:text-7xl text-balance">
+        <h2 className="relative mt-5 font-display text-4xl leading-[1.05] text-ink sm:text-5xl md:text-6xl text-balance">
           A garment is never <em className="italic font-serif">finished</em> -
           only set down by the hands that made it.
         </h2>
         <FadeUp delay={0.2}>
-          <p className="relative mx-auto mt-7 max-w-2xl text-base leading-relaxed text-ink/65">
+          <p className="relative mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-ink/65 md:text-base">
             ilham translates the old Persian word for <em>imprint</em>. Every
             piece in our atelier is the imprint of a woman in a quiet courtyard,
             a needle in unhurried light, a motif recalled from a grandmother&apos;s
@@ -514,69 +560,12 @@ const bestsellers = useMemo(
         </FadeUp>
       </section>
 
-      <section className="relative mx-auto max-w-[1500px] overflow-hidden px-4 pb-20 sm:px-6 md:pb-24 lg:px-12">
-        <div className="relative mb-10 flex items-end justify-between border-b border-border pb-6">
-          <div>
-            <p className="small-caps text-ink/50">Freshly off the loom</p>
-            <h2 id="new-arrivals-title" className="mt-3 font-display text-5xl md:text-6xl">
-              New Arrivals
-            </h2>
-          </div>
-          <Link
-            to="/collections/new-arrivals"
-            prefetch="intent"
-            className="small-caps story-link hidden md:inline-block"
-          >
-            View all -&gt;
-          </Link>
-        </div>
-        <FadeUp>
-          <ProductRail products={newArrivals} labelledBy="new-arrivals-title" />
-        </FadeUp>
-      </section>
+      <NewestAtelierEdit
+        featuredProducts={newestFeatureProducts}
+        railProducts={newArrivals}
+      />
 
-      <section className="grid gap-px bg-border md:grid-cols-2">
-        {[
-          {
-            img: womenBanner,
-            alt: womenBannerImage?.altText ?? 'Women chikankari banner',
-            title: 'Women',
-            tagline: 'Anarkalis, sarees, co-ords',
-            handle: 'women',
-          },
-          {
-            img: menBanner,
-            alt: menBannerImage?.altText ?? 'Men chikankari banner',
-            title: 'Men',
-            tagline: 'Kurtas, nawabi, pathani',
-            handle: 'men',
-          },
-        ].map((c) => (
-          <Link
-            key={c.title}
-            to={`/collections/${c.handle}`}
-            prefetch="intent"
-            className="group relative block h-[62svh] min-h-[460px] overflow-hidden bg-ink md:h-[68svh] md:min-h-[560px]"
-          >
-            <ParallaxImage
-              src={c.img}
-              alt={c.alt}
-              className="absolute inset-0"
-              imgClassName="brightness-90 object-center transition-[filter] duration-[900ms] group-hover:brightness-100"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/60" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-ivory">
-              <p className="small-caps text-ivory/70">{c.tagline}</p>
-              <h3 className="mt-4 font-display text-7xl tracking-[0.02em] md:text-8xl">
-                {c.title}
-              </h3>
-              <span className="mt-8 small-caps border border-ivory/60 px-8 py-3 group-hover:bg-ivory group-hover:text-ink transition-colors">
-                Discover -&gt;
-              </span>
-            </div>
-          </Link>
-        ))}
-      </section>
+      <HomepageCategoryEdit categories={homepageCategories} />
 
       <HomepageCampaignSlot campaign={campaignSlotTwo} />
 
@@ -613,11 +602,11 @@ const bestsellers = useMemo(
 
       <HomepagePromiseStrip />
 
-      <section className="mx-auto max-w-[1500px] px-4 py-20 sm:px-6 md:py-24 lg:px-12">
-        <div className="mb-10 flex items-end justify-between border-b border-border pb-6">
+      <section className="mx-auto max-w-[1500px] px-4 py-14 sm:px-6 md:py-16 lg:px-12">
+        <div className="mb-6 flex items-end justify-between border-b border-border pb-4">
           <div>
             <p className="small-caps text-ink/50">Returned to, again and again</p>
-            <h2 id="best-sellers-title" className="mt-3 font-display text-5xl md:text-6xl">
+            <h2 id="best-sellers-title" className="mt-1.5 font-display text-4xl leading-none md:text-5xl">
               Best Sellers
             </h2>
           </div>
@@ -634,63 +623,5 @@ const bestsellers = useMemo(
         </FadeUp>
       </section>
     </>
-  );
-}
-
-const HOMEPAGE_PROMISES = [
-  {
-    eyebrow: 'Lucknow made',
-    title: 'Hand-embroidered, never imitated.',
-    to: '/about',
-  },
-  {
-    eyebrow: 'Made slowly',
-    title: 'Patient craft, considered quantities.',
-    to: '/about',
-  },
-  {
-    eyebrow: 'Across India',
-    title: 'Tracked delivery from our atelier.',
-    to: '/policies/shipping-policy',
-  },
-  {
-    eyebrow: 'Considered returns',
-    title: '14-day return or exchange on eligible pieces.',
-    to: '/policies/refund-policy',
-  },
-] as const;
-
-function HomepagePromiseStrip() {
-  return (
-    <section
-      aria-labelledby="homepage-promise-title"
-      className="border-y border-border bg-cream/45"
-    >
-      <h2 id="homepage-promise-title" className="sr-only">
-        The ilham promise
-      </h2>
-      <div className="mx-auto grid max-w-[1500px] sm:grid-cols-2 lg:grid-cols-4">
-        {HOMEPAGE_PROMISES.map((promise, index) => (
-          <Link
-            key={promise.eyebrow}
-            to={promise.to}
-            prefetch="intent"
-            className={`group px-6 py-8 transition-colors hover:bg-ivory md:px-8 md:py-10 ${
-              index > 0 ? 'border-t border-border' : ''
-            } ${index >= 2 ? 'sm:border-t' : 'sm:border-t-0'} ${
-              index % 2 ? 'sm:border-l' : 'sm:border-l-0'
-            } ${index > 0 ? 'lg:border-l' : 'lg:border-l-0'} lg:border-t-0`}
-          >
-            <p className="small-caps text-[10px] text-gold">{promise.eyebrow}</p>
-            <p className="mt-3 max-w-[17rem] font-serif text-lg leading-snug text-ink/78 transition-colors group-hover:text-ink">
-              {promise.title}
-            </p>
-            <span className="mt-5 inline-block small-caps text-[9px] text-ink/45 transition-colors group-hover:text-gold">
-              Read more -&gt;
-            </span>
-          </Link>
-        ))}
-      </div>
-    </section>
   );
 }

@@ -1014,14 +1014,66 @@
   returned HTTP 200 with `slot-1`, its rail, and `The ilham promise` present,
   and no Urdu component/class output. The temporary server was stopped.
 
+## Homepage Commerce Storytelling Phase
+
+### Approved Objective
+
+- Add a compact, traditionally styled category section without using the
+  generic "Shop by categories" heading.
+- Make Shopify campaign banners and their optional product rails feel like one
+  continuous offer while retaining the existing campaign configuration.
+- Add a dynamic New Arrivals story before the existing rail, populated from
+  the newest Shopify products and linked to the real New Arrivals collection.
+- Reduce excess homepage section height without shrinking or replacing the
+  shared `ProductCard` component.
+- Shorten the House of Whitework story and upgrade the Ilham promise into a
+  useful icon-led trust strip with short supporting descriptions.
+
+### Current Notes
+
+- Added `HomepageEditorial.tsx` with three bounded, data-driven surfaces:
+  `NewestAtelierEdit`, `HomepageCategoryEdit`, and `HomepagePromiseStrip`.
+- `NewestAtelierEdit` automatically uses the first three newest products that
+  have images. Desktop presents them in restrained Lucknow-arch frames beside
+  the editorial CTA; mobile becomes a horizontal arch trail. The existing New
+  Arrivals `ProductRail` begins immediately below in the same section, reusing
+  the existing full-size ProductCards and linking to `/collections/new-arrivals`.
+- Replaced the tall Women/Men split with `The Courtyard Edit`: four compact
+  traditional arches for Women, Men, Wedding, and Gifting. Each uses its real
+  collection URL and collection image when available, with existing editorial
+  imagery as a safe fallback because the current Shopify collections do not
+  yet have collection images.
+- Combined campaign banners now overlap their rail heading panel slightly;
+  rail title, subtitle, and card spacing were tightened so the banner and rail
+  read as one offer. Banner-only and rail-only behavior remains unchanged.
+- House of Whitework, standalone homepage rail wrappers, and heading gaps are
+  shorter. ProductCard image/card dimensions were not changed.
+- The Ilham promise now has four lightweight Lucide icons, concise headings,
+  one-line explanations, real About/Shipping/Refund links, and deliberate top
+  breathing room after the Wedding edit.
+- Desktop visual QA at 1440x1000 confirmed the campaign overlap, arched New
+  Arrivals composition, four-column Courtyard Edit, promise strip, and no
+  horizontal overflow. Mobile visual QA at 390x844 confirmed the New Arrivals
+  arch trail, two-column Courtyard Edit, stacked promise cards, and no document
+  overflow. Product cards retained their existing dimensions in both views.
+- No Shopify definition, environment variable, Admin API scope, or manual
+  product assignment is required for this phase. New Arrivals update whenever
+  the existing newest-product Storefront data updates; campaign controls remain
+  in the existing `homepage_campaign` metaobjects.
+- Final verification passed full-tree `npm.cmd run lint`, `npm.cmd run
+  typecheck`, `git diff --check`, and the production client/Oxygen SSR
+  `npm.cmd run build`. The generated homepage route is 7.54KB gzip. The diff is
+  limited to the homepage route, its campaign/editorial components, and this
+  handoff; protected order, feedback, WhatsApp, cart, checkout, sitemap, robots,
+  and Admin API files remain untouched.
+
 ## Next Step
 
-Deploy the verified homepage rhythm checkpoint and visually confirm on one
-phone and one desktop that the active `slot-1` banner flows directly into its
-product rail, the shorter editorial sections still preserve comfortable copy
-spacing, the promise strip has correct borders/links, and all decorative Urdu
-has disappeared. Continue controlling campaign content from Shopify; create
-`slot-2` only when a second campaign position is needed.
+Commit and push the verified homepage commerce storytelling checkpoint, then
+deploy and confirm the production homepage on one phone and one desktop.
+Shopify collection images are optional; adding them later to Women, Men,
+Wedding, and Gifting will replace the current safe fallback images without a
+code change.
 
 After campaign acceptance, continue the existing colour-gallery checks below.
 
