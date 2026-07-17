@@ -992,14 +992,36 @@
   `text_theme` should be `light` or `dark`, and `product_limit` values above 12
   are safely clamped to 12. `slot-2` does not exist yet, which is valid and
   simply leaves the second fixed position empty.
+- Homepage rhythm refinement completed after live campaign acceptance. A
+  combined banner-and-rail campaign now uses only 36px/44px top padding before
+  the rail instead of the previous 80px/96px, with a tighter heading gap and a
+  slightly more generous bottom edge so the offer reads as one unit without
+  colliding with the following story.
+- The homepage editorial cadence is denser without flattening its hierarchy:
+  the House of Whitework statement now uses 80px/112px vertical padding, New
+  Arrivals and Best Sellers use compact 80px/96px spacing, Women/Men cards are
+  62svh/68svh instead of 80vh, and the Wedding edit is 68svh/78svh instead of
+  a full viewport. A lightweight four-column `The ilham promise` strip now
+  bridges Wedding into Best Sellers with links to About, Shipping, and Refund
+  policy pages.
+- Decorative Urdu calligraphy was removed completely for now from homepage,
+  bag/empty bag, search drawer, mobile navigation, footer, login, and signup.
+  The unused `UrduCalligraphy` component and `font-urdu` utilities were removed;
+  commerce behavior and customer-account flows were not changed.
+- Rhythm refinement verification passed full-tree `npm.cmd run lint`,
+  `npm.cmd run typecheck`, `git diff --check`, and the production client/Oxygen
+  SSR `npm.cmd run build`. Local SSR using the real Active Shopify campaign
+  returned HTTP 200 with `slot-1`, its rail, and `The ilham promise` present,
+  and no Urdu component/class output. The temporary server was stopped.
 
 ## Next Step
 
-In Shopify `homepage_campaign` entry `slot-1`, clear both schedule fields for
-immediate display or set `end_at` later than `start_at`. Correct the link and
-theme values noted above, then allow the short Storefront cache to refresh and
-test banner-only, rail-only, combined, disabled, and scheduled states on mobile
-and desktop. Create `slot-2` only when a second campaign position is needed.
+Deploy the verified homepage rhythm checkpoint and visually confirm on one
+phone and one desktop that the active `slot-1` banner flows directly into its
+product rail, the shorter editorial sections still preserve comfortable copy
+spacing, the promise strip has correct borders/links, and all decorative Urdu
+has disappeared. Continue controlling campaign content from Shopify; create
+`slot-2` only when a second campaign position is needed.
 
 After campaign acceptance, continue the existing colour-gallery checks below.
 

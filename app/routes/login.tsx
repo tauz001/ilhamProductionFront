@@ -2,7 +2,6 @@ import {Link, redirect, useLoaderData} from 'react-router';
 import type {Route} from './+types/login';
 import {motion} from 'framer-motion';
 import {ShieldCheck} from 'lucide-react';
-import {UrduCalligraphy} from '~/components/editorial/UrduCalligraphy';
 import {easeSilk} from '~/lib/motion/variants';
 import {logMissingShopifyField} from '~/lib/commerce/shopify-fields';
 import {privatePageMeta} from '~/lib/seo';
@@ -54,13 +53,6 @@ export default function LoginPage() {
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
-          <UrduCalligraphy
-            word="الہام"
-            variant="ivory"
-            opacity={0.18}
-            size="text-[34vw]"
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-          />
           <div className="absolute bottom-16 left-12 right-12 text-ivory">
             <p className="small-caps text-ivory/60">Welcome back</p>
             <h2 className="mt-4 font-display text-5xl leading-[1.05]">
@@ -74,14 +66,6 @@ export default function LoginPage() {
         </div>
 
         <div className="relative flex items-center justify-center px-6 py-16 lg:px-20">
-          <UrduCalligraphy
-            word="خوش آمدید"
-            variant="antique"
-            opacity={0.04}
-            size="text-[120px]"
-            className="absolute right-6 top-10"
-          />
-
           <motion.div
             initial={{opacity: 0, y: 20}}
             animate={{opacity: 1, y: 0}}

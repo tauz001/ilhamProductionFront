@@ -141,8 +141,6 @@
   .font-display { font-family: var(--font-display); }
   .font-serif { font-family: var(--font-serif); }
   .font-sans { font-family: var(--font-sans); }
-  .font-urdu { font-family: "Noto Nastaliq Urdu", serif; font-weight: 500; }
-
   .tracking-luxe { letter-spacing: 0.32em; }
   .tracking-wider-luxe { letter-spacing: 0.48em; }
 

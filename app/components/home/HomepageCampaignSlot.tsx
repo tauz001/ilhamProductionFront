@@ -17,6 +17,9 @@ export function HomepageCampaignSlot({
   if (!campaign) return null;
 
   const railHeadingId = `homepage-campaign-${campaign.handle}-title`;
+  const railSpacing = campaign.banner
+    ? 'pt-9 pb-16 md:pt-11 md:pb-20'
+    : 'py-16 md:py-20';
 
   return (
     <section
@@ -26,8 +29,10 @@ export function HomepageCampaignSlot({
       {campaign.banner ? <CampaignBanner campaign={campaign} /> : null}
 
       {campaign.rail && campaign.products.length ? (
-        <div className="mx-auto max-w-[1500px] px-4 py-20 sm:px-6 md:py-24 lg:px-12">
-          <div className="mb-10 flex items-end justify-between gap-6 border-b border-border pb-5 md:mb-12">
+        <div
+          className={`mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-12 ${railSpacing}`}
+        >
+          <div className="mb-8 flex items-end justify-between gap-6 border-b border-border pb-5 md:mb-10">
             <div className="min-w-0">
               {campaign.rail.subtitle ? (
                 <p className="small-caps text-ink/50">

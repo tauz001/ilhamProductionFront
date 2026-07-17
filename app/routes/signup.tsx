@@ -2,7 +2,6 @@ import {Link, redirect, useLoaderData} from 'react-router';
 import type {Route} from './+types/signup';
 import {motion} from 'framer-motion';
 import {Bookmark, Gift, ShieldCheck, Sparkles} from 'lucide-react';
-import {UrduCalligraphy} from '~/components/editorial/UrduCalligraphy';
 import {easeSilk} from '~/lib/motion/variants';
 import {logMissingShopifyField} from '~/lib/commerce/shopify-fields';
 import {privatePageMeta} from '~/lib/seo';
@@ -46,14 +45,6 @@ export default function SignupPage() {
     <div className="relative min-h-screen bg-ivory pt-20 lg:pt-0">
       <div className="grid min-h-screen lg:grid-cols-[1.05fr_1fr]">
         <div className="relative flex items-center justify-center px-6 py-16 lg:px-20">
-          <UrduCalligraphy
-            word="آغاز"
-            variant="antique"
-            opacity={0.04}
-            size="text-[120px]"
-            className="absolute left-6 top-10"
-          />
-
           <motion.div
             initial={{opacity: 0, y: 20}}
             animate={{opacity: 1, y: 0}}
@@ -99,14 +90,6 @@ export default function SignupPage() {
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-ivory/60 via-ivory/40 to-ink/60" />
-          <UrduCalligraphy
-            word="حرفہ"
-            variant="ivory"
-            opacity={0.16}
-            size="text-[30vw]"
-            className="absolute right-1/2 top-1/2 translate-x-1/2 -translate-y-1/2"
-          />
-
           <div className="absolute inset-0 flex flex-col justify-end p-12">
             <p className="small-caps text-ivory/80">As a ilham member</p>
             <h2 className="mt-4 font-display text-4xl leading-[1.1] text-ivory">

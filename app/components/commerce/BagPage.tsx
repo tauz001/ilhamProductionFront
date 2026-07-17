@@ -4,7 +4,6 @@ import {Suspense} from 'react';
 import {Gift, RefreshCw, ShieldCheck, Truck} from 'lucide-react';
 import {useOptimisticCart} from '@shopify/hydrogen';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
-import {UrduCalligraphy} from '~/components/editorial/UrduCalligraphy';
 import {DiscountTicket} from '~/components/commerce/DiscountTicket';
 import {formatMoney} from '~/lib/commerce/format-money';
 import {
@@ -65,14 +64,6 @@ export function BagPage({
 
   return (
     <div className="relative min-h-screen bg-ivory pt-28 pb-24 lg:pt-36">
-      <UrduCalligraphy
-        word="الہام"
-        variant="antique"
-        opacity={0.045}
-        size="text-[180px] md:text-[260px]"
-        className="absolute -top-10 right-4"
-      />
-
       <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-12">
         <motion.div
           initial={{opacity: 0, y: 20}}
@@ -330,8 +321,7 @@ function EmptyBag() {
       transition={{duration: 1, ease: easeSilk}}
       className="flex flex-col items-center justify-center py-32 text-center"
     >
-      <p className="font-urdu text-7xl text-[oklch(0.32_0.11_25)]/30">خالی</p>
-      <h2 className="mt-8 font-display text-5xl text-ink">Your bag awaits</h2>
+      <h2 className="font-display text-5xl text-ink">Your bag awaits</h2>
       <p className="mt-4 max-w-md text-sm italic text-ink/55">
         Every ilham piece is hand-embroidered over weeks. Begin your selection
         from the atelier below.

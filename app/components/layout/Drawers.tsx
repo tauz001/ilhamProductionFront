@@ -343,20 +343,6 @@ function SearchOverlay() {
             <div
               className="relative overflow-hidden rounded-[2px] border border-ink/10 bg-ivory/95 shadow-fabric sm:bg-ivory/75 sm:backdrop-blur-2xl"
             >
-              <span
-                aria-hidden
-                className="hidden font-urdu pointer-events-none absolute -top-12 right-6 select-none text-[180px] leading-none text-[oklch(0.32_0.11_25)]/[0.05]"
-              >
-                تلاش
-              </span>
-
-              <span
-                aria-hidden
-                className="font-urdu pointer-events-none absolute -top-12 right-6 select-none text-[180px] leading-none text-[oklch(0.32_0.11_25)]/[0.05]"
-              >
-                تلاش
-              </span>
-
               <div className="relative px-8 pt-7 pb-3">
                 <div className="flex items-center justify-between">
                   <p className="small-caps text-ink/45">Search the atelier</p>

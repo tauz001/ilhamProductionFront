@@ -5,12 +5,6 @@ import {SOCIAL_LINKS} from '~/lib/social-links';
 export function Footer() {
   return (
     <footer className="relative overflow-hidden bg-ink text-ivory">
-      <span
-        aria-hidden
-        className="font-urdu pointer-events-none absolute -bottom-16 left-1/2 -translate-x-1/2 select-none text-[42vh] leading-none text-[oklch(0.62_0.11_75)]/[0.04]"
-      >
-        الہام
-      </span>
       <div className="relative mx-auto max-w-[1500px] px-6 py-24 lg:px-12">
         <div className="flex flex-col items-center text-center">
           <Link

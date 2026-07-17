@@ -840,13 +840,6 @@ export function MobileMenuDrawer() {
             exit={{x: '-100%'}}
             transition={{duration: motionDuration.overlay, ease: easeSilk}}
           >
-            <span
-              aria-hidden
-              className="font-urdu pointer-events-none absolute -right-6 top-24 select-none text-[28vh] leading-none text-gold/[0.07]"
-            >
-              الہام
-            </span>
-
             <motion.div
               className="relative flex items-center justify-between"
               initial={{opacity: 0, y: -10}}
