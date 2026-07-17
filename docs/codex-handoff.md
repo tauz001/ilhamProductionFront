@@ -980,13 +980,26 @@
   spacing. The temporary Hydrogen server was stopped.
 - Protected order-detail/Admin, feedback, WhatsApp, cart, checkout, sitemap,
   and robots surfaces have no diff. `.env` remains ignored and unchanged.
+- Live production campaign audit on 2026-07-17 confirmed the deployed homepage
+  JavaScript contains the campaign implementation, Oxygen returns HTTP 200,
+  Storefront API can read the Active `homepage_campaign` entry at `slot-1`,
+  both banner images resolve, and the exact `new arrival` tag currently matches
+  ten products. The configured slot is hidden only because `end_at`
+  (`2026-07-16T21:30:00Z`) occurs before `start_at`
+  (`2026-07-17T09:00:00Z`); the schedule intentionally fails closed.
+- The same audit found three non-blocking configuration corrections:
+  `banner_link`/`rail_link` need `/` or a complete `https://` URL,
+  `text_theme` should be `light` or `dark`, and `product_limit` values above 12
+  are safely clamped to 12. `slot-2` does not exist yet, which is valid and
+  simply leaves the second fixed position empty.
 
 ## Next Step
 
-Create the Shopify `homepage_campaign` metaobject definition and the Active
-`slot-1`/`slot-2` entries using `docs/shopify-homepage-campaigns.md`, deploy this
-checkpoint to Oxygen, and test banner-only, rail-only, combined, disabled, and
-scheduled states with real Shopify images/tags on mobile and desktop.
+In Shopify `homepage_campaign` entry `slot-1`, clear both schedule fields for
+immediate display or set `end_at` later than `start_at`. Correct the link and
+theme values noted above, then allow the short Storefront cache to refresh and
+test banner-only, rail-only, combined, disabled, and scheduled states on mobile
+and desktop. Create `slot-2` only when a second campaign position is needed.
 
 After campaign acceptance, continue the existing colour-gallery checks below.
 
