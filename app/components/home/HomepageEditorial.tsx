@@ -32,9 +32,8 @@ export type HomepageEditorialProduct = {
   vendor?: string | null;
 };
 
-export type HomepageCategory = {
+export type HomepageProductCategory = {
   alt: string;
-  eyebrow: string;
   href: string;
   imageUrl: string;
   title: string;
@@ -174,59 +173,72 @@ function NewestArchCard({
   );
 }
 
-export function HomepageCategoryEdit({
+export function HomepageCategoryStrip({
   categories,
 }: {
-  categories: HomepageCategory[];
+  categories: HomepageProductCategory[];
 }) {
-  const visibleCategories = categories.filter((category) => category.imageUrl);
+  const visibleCategories = categories
+    .filter((category) => category.imageUrl)
+    .slice(0, 7);
   if (!visibleCategories.length) return null;
 
   return (
-    <section aria-labelledby="courtyard-edit-title" className="bg-ivory py-14 md:py-18">
+    <section
+      aria-labelledby="homepage-category-title"
+      className="border-b border-border/70 bg-ivory py-8 md:py-10"
+    >
       <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-12">
-        <div className="mb-9 text-center md:mb-11">
-          <p className="small-caps text-gold">Ways into the house</p>
-          <h2
-            id="courtyard-edit-title"
-            className="mt-3 font-display text-5xl leading-none text-ink md:text-6xl"
+        <div className="mb-6 flex items-end justify-between gap-6 md:mb-8">
+          <div>
+            <p className="small-caps text-gold">Shop by form</p>
+            <h2
+              id="homepage-category-title"
+              className="mt-1.5 font-display text-4xl leading-none text-ink md:text-5xl"
+            >
+              Find your silhouette
+            </h2>
+          </div>
+          <Link
+            to="/collections"
+            prefetch="intent"
+            className="small-caps story-link hidden shrink-0 sm:inline-block"
           >
-            The Courtyard Edit
-          </h2>
-          <ChikanMotif className="mx-auto mt-5 h-4 w-28 text-gold/80" />
+            Explore all -&gt;
+          </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 lg:gap-7">
-          {visibleCategories.map((category, index) => (
+        <div className="flex snap-x gap-5 overflow-x-auto pb-2 [scrollbar-width:none] sm:gap-7 lg:justify-center lg:gap-9 [&::-webkit-scrollbar]:hidden">
+          {visibleCategories.map((category) => (
             <Link
-              key={category.title}
+              key={`${category.href}-${category.title}`}
               to={category.href}
               prefetch="intent"
-              className={`group ${index % 2 ? 'md:translate-y-4' : ''}`}
+              className="group w-[106px] shrink-0 snap-start text-center sm:w-[132px] lg:w-[150px]"
             >
-              <div className="relative h-[250px] overflow-hidden rounded-t-[999px] border border-gold/45 bg-cream sm:h-[320px] lg:h-[380px] xl:h-[420px]">
-                <img
-                  src={shopifyImageUrl(category.imageUrl, 640)}
-                  srcSet={shopifySrcSet(category.imageUrl, CARD_IMAGE_WIDTHS)}
-                  sizes="(min-width: 1024px) 24vw, 48vw"
-                  alt={category.alt}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover transition-transform duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.035]"
+              <span className="relative block aspect-square rounded-full border border-gold/55 bg-cream p-1.5 shadow-[0_14px_34px_rgba(55,43,27,0.08)] transition-transform duration-500 group-hover:-translate-y-1">
+                <span className="block h-full overflow-hidden rounded-full border border-ivory bg-cream">
+                  <img
+                    src={shopifyImageUrl(category.imageUrl, 320)}
+                    srcSet={shopifySrcSet(category.imageUrl, CARD_IMAGE_WIDTHS)}
+                    sizes="(min-width: 1024px) 150px, (min-width: 640px) 132px, 106px"
+                    alt={category.alt}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.045]"
+                  />
+                </span>
+                <span
+                  aria-hidden
+                  className="absolute -bottom-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 border-b border-r border-gold/55 bg-ivory"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/72 via-transparent to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-4 text-center text-ivory sm:p-6">
-                  <p className="small-caps text-[8px] text-ivory/65 sm:text-[9px]">
-                    {category.eyebrow}
-                  </p>
-                  <h3 className="mt-1.5 font-display text-3xl leading-none sm:text-4xl">
-                    {category.title}
-                  </h3>
-                  <span className="mt-3 inline-block text-[9px] small-caps text-gold-soft transition-colors group-hover:text-ivory">
-                    Enter -&gt;
-                  </span>
-                </div>
-              </div>
+              </span>
+              <span className="mt-4 block font-serif text-base leading-tight text-ink sm:text-lg">
+                {category.title}
+              </span>
+              <span className="mt-1.5 block small-caps text-[8px] text-gold opacity-0 transition-opacity group-hover:opacity-100 sm:text-[9px]">
+                View edit -&gt;
+              </span>
             </Link>
           ))}
         </div>

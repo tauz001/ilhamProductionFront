@@ -47,7 +47,7 @@ export function ProductRail({products, labelledBy}: Props) {
       </div>
 
       {listings.length > 2 ? (
-        <div className="mt-5 flex justify-end gap-2">
+        <div className="pointer-events-none absolute inset-x-1 top-[40%] z-20 flex -translate-y-1/2 justify-between sm:-inset-x-4 lg:-inset-x-5">
           <RailButton label="Scroll products left" onClick={() => scroll('left')}>
             <ChevronLeft className="h-4 w-4" strokeWidth={1.2} />
           </RailButton>
@@ -74,7 +74,7 @@ function RailButton({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="grid h-11 w-11 place-items-center border border-border text-ink/65 transition-colors hover:border-ink hover:text-ink"
+      className="pointer-events-auto grid h-10 w-10 place-items-center border border-border bg-ivory/95 text-ink/70 shadow-[0_8px_24px_rgba(55,43,27,0.12)] backdrop-blur-sm transition-colors hover:border-ink hover:bg-ink hover:text-ivory sm:h-11 sm:w-11"
     >
       {children}
     </button>

@@ -196,12 +196,16 @@ export default function Collection() {
   const sort = getCollectionSort(searchParams);
 
   const facets = useMemo(() => {
+    const categories = new Set<string>();
     const occasions = new Set<string>();
     const fabrics = new Set<string>();
     const sizes = new Set<string>();
     const colors = new Map<string, string | undefined>();
 
     listingItems.forEach((product: any) => {
+      const productCategory = getProductCategory(product);
+      if (productCategory) categories.add(productCategory);
+
       parseListField(getMetafieldValue(product, 'occasions')).forEach((occasion) =>
         occasions.add(occasion),
       );
@@ -216,6 +220,7 @@ export default function Collection() {
     });
 
     return {
+      categories: [...categories].sort(),
       occasions: [...occasions].sort(),
       fabrics: [...fabrics].sort(),
       sizes: [...sizes],
@@ -250,9 +255,17 @@ export default function Collection() {
       }
 
       const productOccasions = parseListField(getMetafieldValue(product, 'occasions'));
+      const productCategory = getProductCategory(product);
       const fabric = getProductFabric(product);
       const color = getProductColor(product);
       const price = getProductPrice(product);
+
+      if (
+        filters.categories.length &&
+        (!productCategory || !filters.categories.includes(productCategory))
+      ) {
+        return false;
+      }
 
       if (
         filters.occasions.length &&
@@ -314,6 +327,7 @@ export default function Collection() {
   );
 
   const activeCount =
+    filters.categories.length +
     filters.priceBands.length +
     filters.colors.length +
     filters.occasions.length +
@@ -323,6 +337,16 @@ export default function Collection() {
     (collectionQuery ? 1 : 0);
 
   const groups = [
+    ...(facets.categories.length
+      ? [
+          {
+            key: 'categories' as const,
+            label: 'Category',
+            type: 'list' as const,
+            values: facets.categories,
+          },
+        ]
+      : []),
     {key: 'priceBands' as const, label: 'Price', type: 'price' as const},
     {key: 'colors' as const, label: 'Color', type: 'color' as const},
     {
@@ -578,6 +602,7 @@ function MobileFilters({
   activeCount: number;
   clearAll: () => void;
   facets: {
+    categories: string[];
     occasions: string[];
     fabrics: string[];
     sizes: string[];
@@ -620,6 +645,15 @@ function MobileFilters({
             )}
 
             <div className="divide-y divide-ink/10">
+              {facets.categories.length > 0 && (
+                <MobileGroup title="Category">
+                  <CheckList
+                    items={facets.categories.map((value) => ({value, label: value}))}
+                    selected={filters.categories}
+                    onToggle={(value) => toggle('categories', value)}
+                  />
+                </MobileGroup>
+              )}
               <MobileGroup title="Price">
                 <CheckList
                   items={PRICE_BANDS.map((band) => ({value: band.id, label: band.label}))}
@@ -905,6 +939,10 @@ function getProductColor(product: any) {
   }
 
   return {name, hex};
+}
+
+function getProductCategory(product: any) {
+  return product?.productType?.trim() ?? '';
 }
 
 function getProductFabric(product: any) {

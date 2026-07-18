@@ -1,4 +1,5 @@
 export type CollectionFilterState = {
+  categories: string[];
   priceBands: string[];
   colors: string[];
   occasions: string[];
@@ -17,6 +18,7 @@ export const PRICE_BANDS = [
 ];
 
 export const EMPTY_COLLECTION_FILTERS: CollectionFilterState = {
+  categories: [],
   priceBands: [],
   colors: [],
   occasions: [],
@@ -28,6 +30,7 @@ export const EMPTY_COLLECTION_FILTERS: CollectionFilterState = {
 export const SORT_OPTIONS = new Set(['featured', 'new', 'price-asc', 'price-desc']);
 
 const PARAM_BY_FILTER_KEY: Record<CollectionFilterKey, string> = {
+  categories: 'category',
   priceBands: 'price',
   colors: 'color',
   occasions: 'occasion',
@@ -44,6 +47,7 @@ export function parseCollectionFilters(
   searchParams: URLSearchParams,
 ): CollectionFilterState {
   return {
+    categories: getParamValues(searchParams, 'category'),
     priceBands: getParamValues(searchParams, 'price'),
     colors: getParamValues(searchParams, 'color'),
     occasions: getParamValues(searchParams, 'occasion'),

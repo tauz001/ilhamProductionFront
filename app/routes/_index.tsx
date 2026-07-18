@@ -10,7 +10,7 @@ import {ParallaxImage} from '~/components/editorial/ParallaxImage';
 import {ProductRail} from '~/components/commerce/ProductRail';
 import {HomepageCampaignSlot} from '~/components/home/HomepageCampaignSlot';
 import {
-  HomepageCategoryEdit,
+  HomepageCategoryStrip,
   HomepagePromiseStrip,
   NewestAtelierEdit,
 } from '~/components/home/HomepageEditorial';
@@ -226,6 +226,40 @@ export async function loader({context}: Route.LoaderArgs) {
           }
         }
       }
+
+      categoryMenu: menu(handle: "homepage-categories") {
+        id
+        items {
+          id
+          title
+          url
+          resource {
+            ... on Collection {
+              id
+              title
+              handle
+              image {
+                id
+                url
+                altText
+                width
+                height
+              }
+              products(first: 1) {
+                nodes {
+                  featuredImage {
+                    id
+                    url
+                    altText
+                    width
+                    height
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
     `),
     loadHomepageCampaigns(context.storefront),
@@ -235,7 +269,7 @@ export async function loader({context}: Route.LoaderArgs) {
 }
 
 export default function Home() {
-  const {products, collections, shop, campaigns} =
+  const {products, collections, categoryMenu, shop, campaigns} =
     useLoaderData<typeof loader>();
 
 const allProducts = products.nodes;
@@ -273,9 +307,6 @@ const bestsellers = useMemo(
   const weddingCollection = allCollections.find(
     (c: any) => c.handle === 'wedding-edit',
   );
-  const giftingCollection = allCollections.find(
-    (c: any) => c.handle === 'gifting',
-  );
   const campaignSlotOne = campaigns.find(
     (campaign) => campaign.handle === 'slot-1',
   );
@@ -303,44 +334,25 @@ const bestsellers = useMemo(
     weddingCollection?.image?.url ??
     allProducts[1]?.images?.nodes?.[0]?.url ??
     '';
-  const giftingBanner =
-    giftingCollection?.image?.url ??
-    allProducts[2]?.featuredImage?.url ??
-    allProducts[2]?.images?.nodes?.[0]?.url ??
-    womenBanner;
   const newestFeatureProducts = allProducts
     .filter((product: any) => Boolean(product.featuredImage?.url))
     .slice(0, 3);
-  const homepageCategories = [
-    {
-      alt: 'Women chikankari edit',
-      eyebrow: 'Anarkalis, kurtis, co-ords',
-      href: '/collections/women',
-      imageUrl: womenBanner,
-      title: 'Women',
-    },
-    {
-      alt: 'Men chikankari edit',
-      eyebrow: 'Kurtas, nawabi, pathani',
-      href: '/collections/men',
-      imageUrl: menBanner,
-      title: 'Men',
-    },
-    {
-      alt: 'Wedding chikankari edit',
-      eyebrow: 'Heirlooms and occasion pieces',
-      href: '/collections/wedding-edit',
-      imageUrl: weddingBanner,
-      title: 'Wedding',
-    },
-    {
-      alt: 'ilham gifting edit',
-      eyebrow: 'Considered gifts from Lucknow',
-      href: '/gifting',
-      imageUrl: giftingBanner,
-      title: 'Gifting',
-    },
-  ];
+  const homepageProductCategories = (categoryMenu?.items ?? [])
+    .map((item: any) => {
+      const collection = item.resource;
+      const image =
+        collection?.image ?? collection?.products?.nodes?.[0]?.featuredImage;
+
+      if (!collection?.handle || !image?.url) return null;
+
+      return {
+        alt: image.altText || `${item.title || collection.title} chikankari`,
+        href: `/collections/${collection.handle}`,
+        imageUrl: image.url,
+        title: item.title?.trim() || collection.title,
+      };
+    })
+    .filter(Boolean);
 
   if (!newArrivals.length) {
     logMissingShopifyField(
@@ -538,6 +550,8 @@ const bestsellers = useMemo(
         </div>
       </section>
 
+      <HomepageCategoryStrip categories={homepageProductCategories} />
+
       <HomepageCampaignSlot campaign={campaignSlotOne} />
 
       <section className="relative mx-auto max-w-5xl overflow-hidden px-6 py-12 text-center md:py-16">
@@ -565,7 +579,48 @@ const bestsellers = useMemo(
         railProducts={newArrivals}
       />
 
-      <HomepageCategoryEdit categories={homepageCategories} />
+      <section className="grid gap-px bg-border md:grid-cols-2">
+        {[
+          {
+            img: womenBanner,
+            alt: womenBannerImage?.altText ?? 'Women chikankari banner',
+            title: 'Women',
+            tagline: 'Anarkalis, sarees, co-ords',
+            handle: 'women',
+          },
+          {
+            img: menBanner,
+            alt: menBannerImage?.altText ?? 'Men chikankari banner',
+            title: 'Men',
+            tagline: 'Kurtas, nawabi, pathani',
+            handle: 'men',
+          },
+        ].map((category) => (
+          <Link
+            key={category.title}
+            to={`/collections/${category.handle}`}
+            prefetch="intent"
+            className="group relative block h-[62svh] min-h-[460px] overflow-hidden bg-ink md:h-[68svh] md:min-h-[560px]"
+          >
+            <ParallaxImage
+              src={category.img}
+              alt={category.alt}
+              className="absolute inset-0"
+              imgClassName="brightness-90 object-center transition-[filter] duration-[900ms] group-hover:brightness-100"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/60" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-ivory">
+              <p className="small-caps text-ivory/70">{category.tagline}</p>
+              <h3 className="mt-4 font-display text-7xl tracking-[0.02em] md:text-8xl">
+                {category.title}
+              </h3>
+              <span className="mt-8 border border-ivory/60 px-8 py-3 small-caps transition-colors group-hover:bg-ivory group-hover:text-ink">
+                Discover -&gt;
+              </span>
+            </div>
+          </Link>
+        ))}
+      </section>
 
       <HomepageCampaignSlot campaign={campaignSlotTwo} />
 

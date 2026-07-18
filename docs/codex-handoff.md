@@ -1069,6 +1069,61 @@
 
 ## Next Step
 
+### Homepage Category And Rail Correction
+
+- Preserve the dynamic arched New Arrivals feature and the improved Ilham
+  promise, but remove `The Courtyard Edit`; restore the former full-width
+  Women/Men editorial split in that position.
+- Add a shorter, traditional category discovery strip immediately after the
+  hero marquee. It must be controlled by a Shopify navigation menu named
+  `homepage-categories`, use linked collection imagery (falling back to the
+  collection's first product image), and hide cleanly when no valid category
+  items exist.
+- Treat Shopify Product Type as the storefront `Category` facet so setting a
+  product's type in Shopify automatically adds it to the relevant collection
+  filter values. Keep existing price, colour, occasion, fabric, size, and
+  availability behavior unchanged.
+- For campaign slots that contain both a banner and product rail, preserve the
+  clean original campaign presentation, hide redundant rail title/subtitle
+  copy, and place the product cards directly beneath the banner. Rail-only
+  campaigns retain their visible heading and CTA.
+- Remove the separate bottom arrow row from every shared `ProductRail`; place
+  accessible left/right controls over the far rail edges on desktop and mobile
+  so card dimensions remain unchanged and no empty control space remains.
+- Implementation completed locally: the homepage now queries collection links
+  from `homepage-categories`, renders up to seven circular category medallions
+  immediately after the marquee, and falls back from collection image to the
+  collection's first product image. Invalid/non-collection items fail closed.
+- `The Courtyard Edit` was removed from the rendered homepage and the former
+  Women/Men full-width split restored. The arched newest-product feature and
+  Ilham promise remain unchanged.
+- Combined campaign slots now hide redundant rail title/subtitle/CTA and place
+  the unchanged ProductRail 8px/12px below the banner. Rail-only campaigns keep
+  their full heading presentation.
+- Shared ProductRail controls now overlay the left/right rail edges on desktop
+  and mobile; the old bottom control row and its extra height are removed.
+- Collection Product Type values now populate a `Category` filter on desktop
+  and mobile, using the `category` URL parameter alongside all existing facets.
+  The control hides when no Product Type values exist and appears automatically
+  once Shopify category data is populated, avoiding an empty filter menu.
+  Exact Shopify setup is documented in
+  `docs/shopify-homepage-categories.md`.
+- Browser QA passed at 1440x1000 and 390x844: the former Women/Men editorial
+  split is restored, `The Courtyard Edit` is absent, ProductRail arrows overlay
+  the far edges without document overflow, the old bottom control gap is gone,
+  and desktop/mobile collection filters render cleanly. Because the
+  `homepage-categories` menu is not present in the connected store yet, the new
+  category strip correctly hides with no blank space; follow the Shopify guide
+  below to activate it.
+- Final verification passed Storefront codegen, full-tree `npm.cmd run lint`,
+  `npm.cmd run typecheck`, `npm.cmd run build`, and `git diff --check`. The
+  generated homepage route is 7.83KB gzip. The build only reports the existing
+  empty server-route chunks and third-party Framer Motion sourcemap warnings.
+  The diff is limited to homepage/rail components, collection filter plumbing,
+  generated Storefront types, the Shopify setup guide, and this handoff;
+  protected order detail, Admin API, feedback, WhatsApp, cart, checkout,
+  sitemap, and robots files remain untouched.
+
 Commit and push the verified homepage commerce storytelling checkpoint, then
 deploy and confirm the production homepage on one phone and one desktop.
 Shopify collection images are optional; adding them later to Women, Men,
