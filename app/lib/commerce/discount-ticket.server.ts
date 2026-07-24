@@ -1,9 +1,9 @@
 import type {DiscountTicketOffer} from './discount-ticket';
+import {shopifyAdminGraphqlRequest} from './shopify-admin.server';
+import type {ShopifyAdminEnv} from './shopify-admin.server';
 
-type DiscountEnv = {
+type DiscountEnv = ShopifyAdminEnv & {
   DISCOUNT_TICKET_TAG?: string;
-  PRIVATE_SHOPIFY_ADMIN_API_TOKEN?: string;
-  PUBLIC_STORE_DOMAIN?: string;
 };
 
 type AdminDiscountNode = {
@@ -67,41 +67,25 @@ export function fetchFeaturedDiscountOffer(env: DiscountEnv) {
 async function readFeaturedDiscountOffer(
   env: DiscountEnv,
 ): Promise<DiscountTicketOffer | null> {
-  const shopDomain = normalizeShopDomain(env.PUBLIC_STORE_DOMAIN);
-  const token = env.PRIVATE_SHOPIFY_ADMIN_API_TOKEN;
   const selector = normalizeDiscountSelector(env.DISCOUNT_TICKET_TAG);
 
-  if (!shopDomain || !token) {
-    return null;
-  }
-
   for (const query of buildDiscountQueries(selector)) {
-    const response = await fetch(
-      `https://${shopDomain}/admin/api/2026-04/graphql.json`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': token,
-        },
-        body: JSON.stringify({
-          query: FEATURED_DISCOUNT_QUERY,
-          variables: {
-            first: 10,
-            query,
-          },
-        }),
+    const payload = await shopifyAdminGraphqlRequest<{
+      discountNodes?: {nodes?: AdminDiscountNode[] | null} | null;
+    }>({
+      apiVersion: '2026-04',
+      env,
+      logLabel: 'read featured discount ticket',
+      query: FEATURED_DISCOUNT_QUERY,
+      variables: {
+        first: 10,
+        query,
       },
-    );
+    });
 
-    const payload = (await response.json().catch(() => ({}))) as {
-      data?: {discountNodes?: {nodes?: AdminDiscountNode[] | null} | null};
-      errors?: Array<{message?: string}>;
-    };
-
-    if (!response.ok || payload.errors?.length) {
+    if (!payload || payload.errors?.length) {
       console.warn(
-        `[discount-ticket] Could not read Shopify discounts (${response.status}). Confirm PRIVATE_SHOPIFY_ADMIN_API_TOKEN belongs to ${shopDomain}, has read_discounts, and one active code discount matches DISCOUNT_TICKET_TAG by code or title.`,
+        '[discount-ticket] Could not read Shopify discounts. Confirm the Admin app has read_discounts and one active code discount matches DISCOUNT_TICKET_TAG by code or title.',
       );
       return null;
     }

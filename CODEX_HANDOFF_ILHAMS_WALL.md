@@ -99,19 +99,34 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
   - `git diff --check`
   - Protected diff check for order detail, feedback API, checkout, main
     sitemap/robots, WhatsApp, add-to-cart, and `.env`.
+- Replaced the wall's expiring static Admin-token dependency with the shared
+  server-only client-credentials provider. The provider caches the generated
+  token, refreshes before expiry, and retries once after a 401.
+- The same provider now serves wall reads, invite reads/writes, metaobject
+  creation, and Shopify Files mutations without exposing credentials to the
+  browser.
+- Automatic-token verification passed with a mocked cache/401-refresh flow,
+  full lint, TypeScript, client/Oxygen production build, client credential-leak
+  scan, and diff checks.
 
 ## Pending
 
-- Commit and push checkpoint.
+- Add the Client ID and Secret to local `.env` and Oxygen, deploy, then verify
+  one approved wall note and one unused invite link against the live shop.
+- Run the production build, commit, and push the automatic-token checkpoint.
 
 ## Environment Variables Needed
 
-- `PRIVATE_SHOPIFY_ADMIN_API_TOKEN`
+- `PRIVATE_SHOPIFY_ADMIN_CLIENT_ID`
+- `PRIVATE_SHOPIFY_ADMIN_CLIENT_SECRET`
 - `PUBLIC_STORE_DOMAIN`
+- `PRIVATE_SHOPIFY_ADMIN_API_TOKEN` is retained only as a temporary legacy
+  fallback; client-credentials tokens stored here expire after about 24 hours.
 
 ## Shopify-Side Setup Required
 
-- Create a custom/private app token for the exact store domain.
+- Use the existing Dev Dashboard app's Client ID and Secret for the exact store
+  domain. The Hydrogen server now generates and refreshes its Admin token.
 - Required Admin API scopes:
   - `read_orders`
   - `read_metaobjects`
@@ -152,9 +167,11 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
 
 ## Known Issues
 
-- Earlier diagnostics showed the current local Admin token returns HTTP 401 for
-  basic Admin GraphQL against `qvkgah-er.myshopify.com`. The wall will fail
-  safely until a valid token is provided.
+- Earlier diagnostics showed the stored local Admin token returns HTTP 401
+  because Dev Dashboard client-credentials tokens expire after roughly 24
+  hours. The code now refreshes automatically, but the new Client ID and Secret
+  environment variables must be configured and deployed before that path can
+  activate.
 - The wall eligibility query intentionally does not use the `#graphql` marker in
   `app/lib/commerce/ilhams-wall.server.ts`; Hydrogen codegen validates that
   marker against the Storefront schema, while this query is sent to the Customer
@@ -178,8 +195,14 @@ Build `ilham's wall`: a premium sticky-note customer review wall at
 
 ## Next Exact Steps
 
-1. Commit and push only the wall invite files; do not stage `.env` or unrelated
-   `HANDOFF.md`.
+1. Add `PRIVATE_SHOPIFY_ADMIN_CLIENT_ID` and
+   `PRIVATE_SHOPIFY_ADMIN_CLIENT_SECRET` to local `.env` and Oxygen without
+   sharing or committing them.
+2. Deploy with `--env-file .env`.
+3. Verify `/ilhams-wall` shows approved notes and an unused
+   `/ilhams-wall/review?invite=...` link opens its form.
+4. Commit and push only the shared Admin-client implementation and handoffs; do
+   not stage `.env` or unrelated `HANDOFF.md`.
 
 ## Continue If Codex Session Ends
 

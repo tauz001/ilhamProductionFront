@@ -1,3 +1,9 @@
+import {
+  hasShopifyAdminConfig,
+  shopifyAdminGraphqlRequest,
+} from './shopify-admin.server';
+import type {ShopifyAdminEnv} from './shopify-admin.server';
+
 export type TrackingLookupMode = 'awb' | 'order';
 
 export type TrackingStage =
@@ -30,9 +36,7 @@ export type ShipmentTracking = {
   events: TrackingEvent[];
 };
 
-export type OrderTrackingEnv = {
-  PUBLIC_STORE_DOMAIN?: string;
-  PRIVATE_SHOPIFY_ADMIN_API_TOKEN?: string;
+export type OrderTrackingEnv = ShopifyAdminEnv & {
   SHIPROCKET_API_TOKEN?: string;
   SHIPROCKET_EMAIL?: string;
   SHIPROCKET_PASSWORD?: string;
@@ -191,9 +195,7 @@ async function findVerifiedShopifyOrder({
   env: OrderTrackingEnv;
   reference: string;
 }) {
-  const shopDomain = normalizeShopDomain(env.PUBLIC_STORE_DOMAIN);
-  const token = env.PRIVATE_SHOPIFY_ADMIN_API_TOKEN;
-  if (!shopDomain || !token) {
+  if (!hasShopifyAdminConfig(env)) {
     throw new TrackingLookupError(
       'Order tracking is temporarily unavailable.',
       'CONFIGURATION',
@@ -203,30 +205,19 @@ async function findVerifiedShopifyOrder({
 
   const candidates = orderSearchQueries(reference);
   for (const query of candidates) {
-    const response = await fetch(
-      `https://${shopDomain}/admin/api/2026-01/graphql.json`,
-      {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': token,
-        },
-        body: JSON.stringify({
-          query: SHOPIFY_TRACKING_ORDER_QUERY,
-          variables: {query},
-        }),
-      },
-    );
-    const payload = (await response.json().catch(() => ({}))) as {
-      data?: {orders?: {nodes?: ShopifyTrackingOrder[] | null} | null};
-      errors?: Array<{message?: string}>;
-    };
+    const payload = await shopifyAdminGraphqlRequest<{
+      orders?: {nodes?: ShopifyTrackingOrder[] | null} | null;
+    }>({
+      apiVersion: '2026-01',
+      env,
+      logLabel: 'look up order tracking details',
+      query: SHOPIFY_TRACKING_ORDER_QUERY,
+      variables: {query},
+    });
 
-    if (!response.ok || payload.errors?.length) {
+    if (!payload || payload.errors?.length) {
       console.error('[order-tracking] Shopify order lookup failed:', {
-        status: response.status,
-        hasErrors: Boolean(payload.errors?.length),
+        hasErrors: Boolean(payload?.errors?.length),
       });
       throw new TrackingLookupError(
         'Order tracking is temporarily unavailable.',
@@ -538,15 +529,6 @@ function shopifyFulfillmentLabel(status?: string | null) {
     default:
       return 'Order confirmed';
   }
-}
-
-function normalizeShopDomain(domain?: string | null) {
-  return (
-    domain
-      ?.trim()
-      .replace(/^https?:\/\//i, '')
-      .replace(/\/.*$/, '') || null
-  );
 }
 
 function firstUsefulText(...values: unknown[]) {

@@ -1,3 +1,12 @@
+import {
+  hasShopifyAdminConfig,
+  shopifyAdminGraphqlRequest,
+} from './shopify-admin.server';
+import type {
+  ShopifyAdminEnv,
+  ShopifyAdminGraphqlResponse,
+} from './shopify-admin.server';
+
 export type IlhamsWallReview = {
   id: string;
   customerName: string;
@@ -59,10 +68,8 @@ export type IlhamsWallInviteState = {
   status: 'expired' | 'missing' | 'ready' | 'unavailable' | 'used';
 };
 
-type WallEnv = {
-  PRIVATE_SHOPIFY_ADMIN_API_TOKEN?: string;
+type WallEnv = ShopifyAdminEnv & {
   PUBLIC_PRIMARY_DOMAIN?: string;
-  PUBLIC_STORE_DOMAIN?: string;
 };
 
 type CustomerAccountLike = {
@@ -72,11 +79,6 @@ type CustomerAccountLike = {
     query: string,
     options?: {variables?: Record<string, unknown>},
   ): Promise<any>;
-};
-
-type AdminGraphqlResponse<T> = {
-  data?: T;
-  errors?: Array<{message?: string}>;
 };
 
 type MetaobjectNode = {
@@ -977,40 +979,14 @@ async function adminGraphqlRequest<T>({
   query: string;
   variables: Record<string, unknown>;
   warnLabel: string;
-}): Promise<AdminGraphqlResponse<T> | null> {
-  const shopDomain = normalizeShopDomain(env.PUBLIC_STORE_DOMAIN);
-  const token = env.PRIVATE_SHOPIFY_ADMIN_API_TOKEN;
-  if (!shopDomain || !token) return null;
-
-  try {
-    const response = await fetch(
-      `https://${shopDomain}/admin/api/2026-04/graphql.json`,
-      {
-        body: JSON.stringify({query, variables}),
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': token,
-        },
-        method: 'POST',
-      },
-    );
-    const payload = (await response.json().catch(() => ({}))) as
-      | AdminGraphqlResponse<T>
-      | {errors?: Array<{message?: string}>};
-
-    if (!response.ok) {
-      console.error(`[ilhams-wall] Shopify Admin request failed: ${warnLabel}`, {
-        errors: payload.errors,
-        status: response.status,
-      });
-      return null;
-    }
-
-    return payload as AdminGraphqlResponse<T>;
-  } catch (error) {
-    console.error(`[ilhams-wall] Shopify Admin request crashed: ${warnLabel}`, error);
-    return null;
-  }
+}): Promise<ShopifyAdminGraphqlResponse<T> | null> {
+  return shopifyAdminGraphqlRequest<T>({
+    apiVersion: '2026-04',
+    env,
+    logLabel: `[ilhams-wall] ${warnLabel}`,
+    query,
+    variables,
+  });
 }
 
 function parseReviewTarget(value: FormDataEntryValue | null) {
@@ -1179,7 +1155,7 @@ function getFileExtension(mimeType?: string) {
 }
 
 function hasAdminConfig(env: WallEnv) {
-  return Boolean(normalizeShopDomain(env.PUBLIC_STORE_DOMAIN) && env.PRIVATE_SHOPIFY_ADMIN_API_TOKEN);
+  return hasShopifyAdminConfig(env);
 }
 
 function normalizeShopDomain(domain?: string | null) {

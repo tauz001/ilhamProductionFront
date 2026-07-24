@@ -1067,6 +1067,61 @@
   handoff; protected order, feedback, WhatsApp, cart, checkout, sitemap, robots,
   and Admin API files remain untouched.
 
+## Automatic Shopify Admin Token Phase
+
+### Problem Confirmed
+
+- Shopify Dev Dashboard client-credentials access tokens expire after roughly
+  24 hours by design.
+- The storefront previously stored one generated `shpat_...` value in
+  `PRIVATE_SHOPIFY_ADMIN_API_TOKEN` and reused it indefinitely.
+- Storefront API features such as products and homepage campaigns continued to
+  work because they use separate Storefront credentials, while Admin-backed
+  features such as ilham's wall failed safely after the Admin token expired.
+
+### Implementation
+
+- Added the server-only shared Admin client
+  `app/lib/commerce/shopify-admin.server.ts`.
+- The client requests a fresh Admin token with the Shopify client-credentials
+  grant, caches it until five minutes before expiry, and deduplicates concurrent
+  token exchanges inside an Oxygen worker.
+- Admin GraphQL requests retry exactly once with a forced refresh after HTTP
+  401. Tokens, Client IDs, and secrets are never logged or returned to browser
+  code.
+- Ilham's wall, wall invite/photo writes, discount-ticket reads, order-feedback
+  persistence, and public order tracking now use the shared client.
+- The existing `PRIVATE_SHOPIFY_ADMIN_API_TOKEN` remains a legacy fallback so
+  current deployments fail gracefully while the new variables are being added.
+- The protected account order-detail Admin enrichment file was intentionally
+  not changed.
+
+### Required Environment
+
+- Add these server-only values locally and in Oxygen:
+  - `PRIVATE_SHOPIFY_ADMIN_CLIENT_ID`
+  - `PRIVATE_SHOPIFY_ADMIN_CLIENT_SECRET`
+- Keep `PUBLIC_STORE_DOMAIN` set to the exact `.myshopify.com` store domain.
+- The released app version still needs the scopes required by each feature:
+  `read_orders`, `write_orders`, `read_metaobjects`, `write_metaobjects`,
+  `read_files`, `write_files`, and `read_discounts`; older order searches may
+  also need Shopify approval for `read_all_orders`.
+- Do not place the Client Secret in a `PUBLIC_` variable or commit `.env`.
+
+### Verification
+
+- Shared token helper mock passed: cached tokens were reused, and a simulated
+  401 performed one refresh and one retry.
+- `npm.cmd run lint` passed.
+- `npm.cmd run typecheck` passed.
+- `npm.cmd run build` passed for both client and Oxygen SSR bundles.
+- Client bundle scan found no Admin environment names, token-exchange endpoint,
+  or `X-Shopify-Access-Token` code.
+- `git diff --check` passed.
+- Local `.env` variable-name audit confirmed the two new client-credential
+  variables are not configured yet; live Admin verification must follow after
+  the owner adds them.
+
 ## Next Step
 
 ### Homepage Category And Rail Correction

@@ -1,11 +1,10 @@
 import type {Route} from './+types/api.order-feedback';
 import {CUSTOMER_ORDER_FEEDBACK_OWNERSHIP_QUERY} from '~/graphql/customer-account/CustomerOrderFeedbackQuery';
+import {shopifyAdminGraphqlRequest} from '~/lib/commerce/shopify-admin.server';
+import type {ShopifyAdminEnv} from '~/lib/commerce/shopify-admin.server';
 import {getNumericOrderId, getOrderGid} from '~/lib/customer-account/order-route-id';
 
-type FeedbackEnv = {
-  PUBLIC_STORE_DOMAIN?: string;
-  PRIVATE_SHOPIFY_ADMIN_API_TOKEN?: string;
-};
+type FeedbackEnv = ShopifyAdminEnv;
 
 type FeedbackBody = {
   action?: 'claim-prompt' | 'submit';
@@ -218,35 +217,13 @@ async function adminGraphqlRequest({
   query: string;
   variables: Record<string, unknown>;
 }) {
-  const shopDomain = normalizeShopDomain(env.PUBLIC_STORE_DOMAIN);
-  const adminToken = env.PRIVATE_SHOPIFY_ADMIN_API_TOKEN;
-  if (!shopDomain || !adminToken) return null;
-
-  try {
-    const response = await fetch(
-      `https://${shopDomain}/admin/api/2026-01/graphql.json`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': adminToken,
-        },
-        body: JSON.stringify({query, variables}),
-      },
-    );
-    const payload = (await response.json().catch(() => ({}))) as any;
-    if (!response.ok) {
-      console.error('[feedback] Shopify Admin API request failed:', {
-        status: response.status,
-        errors: payload.errors,
-      });
-      return null;
-    }
-    return payload;
-  } catch (error) {
-    console.error('[feedback] Shopify Admin API request crashed:', error);
-    return null;
-  }
+  return shopifyAdminGraphqlRequest<any>({
+    apiVersion: '2026-01',
+    env,
+    logLabel: 'read or save order feedback',
+    query,
+    variables,
+  });
 }
 
 function normalizeOrderId(value: unknown) {
@@ -254,15 +231,6 @@ function normalizeOrderId(value: unknown) {
   if (!orderId) return null;
   const normalized = getOrderGid(orderId);
   return getNumericOrderId(normalized) ? normalized : null;
-}
-
-function normalizeShopDomain(domain?: string | null) {
-  return (
-    domain
-      ?.trim()
-      .replace(/^https?:\/\//i, '')
-      .replace(/\/.*$/, '') || null
-  );
 }
 
 function normalizeRating(value: unknown) {
